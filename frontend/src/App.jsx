@@ -340,23 +340,13 @@ function App() {
         }
     };
 
-    const selectSource = async (sourceId) => {
+    const selectSource = (sourceId) => {
         setCurrentSource(sourceId);
+        setSearchQuery('');
+        setSearchResults([]);
+        
         if (previousView === STATES.SEARCH) {
             setView(STATES.SEARCH);
-            if (searchQuery.trim()) {
-                setStatus('Buscando...');
-                try {
-                    const results = await api.searchAnime(searchQuery, sourceId);
-                    setSearchResults(results);
-                    setSearchIndex(-1);
-                } catch (e) {
-                    console.error("Error al buscar anime:", e);
-                }
-                setStatus('');
-            } else {
-                setSearchResults([]);
-            }
         } else if (previousView === STATES.CATALOG) {
             loadCatalog(1, sourceId);
         } else {
