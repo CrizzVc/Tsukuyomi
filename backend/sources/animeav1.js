@@ -57,9 +57,9 @@ const animeav1 = {
 
         const status = $('header .flex.flex-wrap.items-center.gap-2.text-sm span:last-child').text().trim();
         const genres = [];
-        $('.bg-soft.text-subs').each((i, el) => {
+        $('a[href*="/catalogo?genre="]').each((i, el) => {
             const text = $(el).text().trim();
-            if (text && text.length < 20 && !text.includes('hace')) {
+            if (text) {
                 genres.push(text);
             }
         });
@@ -129,7 +129,7 @@ const animeav1 = {
     },
 
     search: async (query) => {
-        const response = await axios.get(`${BASE_URL}/catalogo?q=${encodeURIComponent(query)}`, {
+        const response = await axios.get(`${BASE_URL}/catalogo?search=${encodeURIComponent(query)}`, {
             headers: { 'User-Agent': 'Mozilla/5.0' }
         });
         const $ = cheerio.load(response.data);
@@ -139,8 +139,8 @@ const animeav1 = {
         
         grid.children().each((i, el) => {
             const link = $(el).find('a[href*="/media/"]').first();
-            const title = $(el).find('header div, div.font-bold, h3').first().text().trim();
-            const image = $(el).find('img').attr('src');
+            const title = $(el).find('h3').first().text().trim() || $(el).find('header div, div.font-bold').first().text().trim();
+            const image = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
             
             if (link.length > 0) {
                 results.push({
@@ -164,8 +164,8 @@ const animeav1 = {
         
         grid.children().each((i, el) => {
             const link = $(el).find('a[href*="/media/"]').first();
-            const title = $(el).find('header div, div.font-bold, h3').first().text().trim();
-            const image = $(el).find('img').attr('src');
+            const title = $(el).find('h3').first().text().trim() || $(el).find('header div, div.font-bold').first().text().trim();
+            const image = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
             
             if (link.length > 0) {
                 results.push({
