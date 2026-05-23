@@ -56,6 +56,21 @@ ipcMain.handle('api-extract', async (event, { url }) => {
   return await animeProvider.extract(url);
 });
 
+ipcMain.handle('api-news', async (event, { apiKey }) => {
+  try {
+    const response = await fetch(`https://newsapi.org/v2/everything?qInTitle=anime%20OR%20manga%20OR%20crunchyroll&sortBy=publishedAt&language=es&apiKey=${apiKey}`);
+    const data = await response.json();
+    if (data.status === 'ok') {
+      return data.articles;
+    } else {
+      throw new Error(data.message || 'Error fetching news from NewsAPI');
+    }
+  } catch (error) {
+    console.error("News API error:", error.message);
+    return { error: error.message };
+  }
+});
+
 app.whenReady().then(() => {
   createWindow();
 

@@ -51,10 +51,17 @@ function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [status, setStatus] = useState('');
     const [clock, setClock] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+    const [previousView, setPreviousView] = useState(STATES.HOME);
+
+    // News API states
+    const [newsApiKey, setNewsApiKey] = useState(() => localStorage.getItem('news_api_key') || '');
+    const [newsArticles, setNewsArticles] = useState([]);
+    const [newsLoading, setNewsLoading] = useState(false);
+    const [newsError, setNewsError] = useState('');
 
     // Navigation state for "spatial" focus simulation
-    const [rowIndex, setRowIndex] = useState(0); // 0: Latest, 1: Favorites, -1: Header
-    const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0 });
+    const [rowIndex, setRowIndex] = useState(0); // 0: Latest, 1: Favorites, 2: News, -1: Header
+    const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0, 2: 0 });
     const colIndex = colIndices[rowIndex] || 0;
 
     const setColIndex = (updater) => {
@@ -86,6 +93,12 @@ function App() {
     };
 
     useEffect(() => {
+        if (view !== STATES.EXTENSIONS_MODAL) {
+            setPreviousView(view);
+        }
+    }, [view]);
+
+    useEffect(() => {
         const timer = setInterval(() => {
             setClock(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
         }, 1000);
@@ -102,6 +115,46 @@ function App() {
             setFavorites(filteredFavs);
         }
     }, [activeProfile, currentSource]);
+
+    const loadNews = async (key = newsApiKey) => {
+        if (!key) return;
+        setNewsLoading(true);
+        setNewsError('');
+        try {
+            const data = await api.fetchNews(key);
+            if (data && data.error) {
+                setNewsError(data.error);
+                setNewsArticles([]);
+            } else if (Array.isArray(data)) {
+                const filtered = data.filter(art => 
+                    art.title && 
+                    art.title !== '[Removed]' && 
+                    art.description && 
+                    art.description !== '[Removed]'
+                );
+                setNewsArticles(filtered.slice(0, 12));
+            } else {
+                setNewsError('Error al cargar noticias de NewsAPI.');
+                setNewsArticles([]);
+            }
+        } catch (e) {
+            setNewsError('Error de conexión.');
+            setNewsArticles([]);
+        } finally {
+            setNewsLoading(false);
+        }
+    };
+
+    const saveNewsApiKey = (key) => {
+        localStorage.setItem('news_api_key', key);
+        setNewsApiKey(key);
+    };
+
+    useEffect(() => {
+        if (newsApiKey) {
+            loadNews(newsApiKey);
+        }
+    }, [newsApiKey]);
 
     const loadLatest = async (source = currentSource) => {
         setStatus('Cargando últimos episodios...');
@@ -135,10 +188,13 @@ function App() {
         setStatus('Buscando servidores...');
         try {
             const data = await api.fetchServers(url, currentSource);
-            setServers(data);
+            setServers(data || []);
             setView(STATES.SERVER_MODAL);
             setStatus('');
         } catch (e) {
+            console.error("Error al obtener servidores:", e);
+            setServers([]);
+            setView(STATES.SERVER_MODAL);
             setStatus('Error al cargar servidores.');
         }
     };
@@ -284,17 +340,36 @@ function App() {
         }
     };
 
-    const selectSource = (sourceId) => {
+    const selectSource = async (sourceId) => {
         setCurrentSource(sourceId);
-        setView(STATES.HOME);
-        loadLatest(sourceId); // Reload content for the new source immediately
+        if (previousView === STATES.SEARCH) {
+            setView(STATES.SEARCH);
+            if (searchQuery.trim()) {
+                setStatus('Buscando...');
+                try {
+                    const results = await api.searchAnime(searchQuery, sourceId);
+                    setSearchResults(results);
+                    setSearchIndex(-1);
+                } catch (e) {
+                    console.error("Error al buscar anime:", e);
+                }
+                setStatus('');
+            } else {
+                setSearchResults([]);
+            }
+        } else if (previousView === STATES.CATALOG) {
+            loadCatalog(1, sourceId);
+        } else {
+            setView(STATES.HOME);
+            loadLatest(sourceId);
+        }
     };
 
-    const loadCatalog = async (page = 1) => {
+    const loadCatalog = async (page = 1, source = currentSource) => {
         setStatus('Cargando catálogo...');
         setView(STATES.CATALOG);
         try {
-            const data = await api.fetchCatalog(page, currentSource);
+            const data = await api.fetchCatalog(page, source);
             setCatalogResults(data);
             setCatalogPage(page);
             setSearchIndex(0);
@@ -313,7 +388,7 @@ function App() {
         else if (view === STATES.DETAILS) setView(catalogResults.length > 0 && view !== STATES.HOME ? STATES.CATALOG : STATES.HOME);
         else if (view === STATES.SEARCH) setView(STATES.HOME);
         else if (view === STATES.CATALOG) setView(STATES.HOME);
-        else if (view === STATES.EXTENSIONS_MODAL) setView(STATES.HOME);
+        else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
         else if (view === STATES.HOME) setView(STATES.PROFILES);
     };
 
@@ -321,6 +396,17 @@ function App() {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') goBack();
+
+            if (document.activeElement && document.activeElement.id === 'news-key-input') {
+                if (e.key === 'Escape') {
+                    document.activeElement.blur();
+                }
+                if (e.key === 'Enter') {
+                    const val = document.getElementById('news-key-input')?.value;
+                    if (val) saveNewsApiKey(val.trim());
+                }
+                return; // Let standard input typing happen without spatial interference
+            }
 
             if (view === STATES.PROFILES) {
                 if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, profiles.length));
@@ -330,14 +416,16 @@ function App() {
                     else selectProfile(profiles[colIndex]);
                 }
             } else if (view === STATES.HOME) {
-                if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, (rowIndex === -1 ? 3 : (rowIndex === 0 ? latest.length : Math.max(0, favorites.length - 1)))));
+                if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, (rowIndex === -1 ? 3 : (rowIndex === 0 ? latest.length : (rowIndex === 1 ? Math.max(0, favorites.length - 1) : Math.max(0, newsArticles.length - 1))))));
                 if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
                 if (e.key === 'ArrowDown') {
                     if (rowIndex === -1) setRowIndex(0);
                     else if (rowIndex === 0) setRowIndex(1);
+                    else if (rowIndex === 1) setRowIndex(2);
                 }
                 if (e.key === 'ArrowUp') {
-                    if (rowIndex === 1) setRowIndex(0);
+                    if (rowIndex === 2) setRowIndex(1);
+                    else if (rowIndex === 1) setRowIndex(0);
                     else if (rowIndex === 0) setRowIndex(-1);
                 }
                 if (e.key === 'Enter') {
@@ -346,6 +434,13 @@ function App() {
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) setView(STATES.SEARCH);
                         else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                    }
+                    else if (rowIndex === 2) {
+                        const article = newsArticles[colIndex];
+                        if (article) {
+                            const { shell } = window.require('electron');
+                            shell.openExternal(article.url);
+                        }
                     }
                     else {
                         const list = rowIndex === 0 ? latest : favorites;
@@ -621,6 +716,140 @@ function App() {
                                         )}
                                     </div>
                                 </div>
+
+                                <div className="carousel-container mt-10">
+                                    <h2 className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                        <div><span className="title-marker"></span>Noticias de Anime</div>
+                                        {newsApiKey && !newsLoading && (
+                                            <button 
+                                                style={{ 
+                                                    fontSize: '0.75rem', 
+                                                    color: 'rgba(255,255,255,0.4)', 
+                                                    cursor: 'pointer', 
+                                                    background: 'rgba(255,255,255,0.05)', 
+                                                    padding: '4px 12px', 
+                                                    borderRadius: '20px', 
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseOver={(e) => { e.target.style.color = '#fff'; e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                                                onMouseOut={(e) => { e.target.style.color = 'rgba(255,255,255,0.4)'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
+                                                onClick={() => {
+                                                    localStorage.removeItem('news_api_key');
+                                                    setNewsApiKey('');
+                                                    setNewsError('');
+                                                    setNewsArticles([]);
+                                                }}
+                                            >
+                                                Cambiar API Key
+                                            </button>
+                                        )}
+                                    </h2>
+                                    {!newsApiKey ? (
+                                        <div className="news-config-container">
+                                            <p style={{ color: 'rgba(255, 255, 255, 0.6)', margin: '0 0 15px 0' }}>Configura tu API Key de <a href="https://newsapi.org" target="_blank" rel="noreferrer" style={{ color: '#00E5FF', textDecoration: 'underline' }}>newsapi.org</a> para ver las últimas noticias.</p>
+                                            <div style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '400px', justifyContent: 'center' }}>
+                                                <input
+                                                    type="password"
+                                                    id="news-key-input"
+                                                    className="news-key-input"
+                                                    placeholder="Ingresa tu API Key y presiona Enter..."
+                                                />
+                                                <button
+                                                    className="modal-btn"
+                                                    style={{ width: 'auto', marginTop: 0, padding: '8px 20px', fontSize: '0.9rem' }}
+                                                    onClick={() => {
+                                                        const val = document.getElementById('news-key-input')?.value;
+                                                        if (val) saveNewsApiKey(val.trim());
+                                                    }}
+                                                >
+                                                    Guardar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : newsLoading ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+                                            <div style={{ width: '40px', height: '40px', border: '4px solid #00E5FF', borderTopColor: 'transparent', borderRadius: '50%' }} className="animate-spin"></div>
+                                        </div>
+                                    ) : newsError ? (
+                                        <div className="news-config-container">
+                                            <p style={{ color: '#ff4d4d', margin: '0 0 15px 0' }}>Error: {newsError}</p>
+                                            <button
+                                                className="modal-btn"
+                                                style={{ width: 'auto', marginTop: 0, padding: '8px 20px', fontSize: '0.9rem' }}
+                                                onClick={() => {
+                                                    localStorage.removeItem('news_api_key');
+                                                    setNewsApiKey('');
+                                                    setNewsError('');
+                                                    setNewsArticles([]);
+                                                }}
+                                            >
+                                                Restablecer API Key
+                                            </button>
+                                        </div>
+                                    ) : newsArticles.length > 0 ? (
+                                        <div
+                                            className="carousel-wrapper"
+                                            onTouchStart={(e) => handleTouchStart(e, 2)}
+                                            onTouchEnd={(e) => handleTouchEnd(e, newsArticles.length - 1)}
+                                        >
+                                            <div className="carousel" style={{ transform: `translateX(-${colIndices[2] * 340}px)` }}>
+                                                {newsArticles.map((article, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`news-card ${rowIndex === 2 && colIndices[2] === idx ? 'focused' : ''}`}
+                                                        onClick={() => {
+                                                            setRowIndex(2);
+                                                            setColIndex(idx);
+                                                            const { shell } = window.require('electron');
+                                                            shell.openExternal(article.url);
+                                                        }}
+                                                    >
+                                                        {article.urlToImage && (
+                                                            <img
+                                                                src={article.urlToImage}
+                                                                alt=""
+                                                                className="news-img"
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <div className="news-content">
+                                                            <div className="news-source">{article.source?.name}</div>
+                                                            <div className="news-title">{article.title}</div>
+                                                            <div className="news-description">{article.description}</div>
+                                                            <div className="news-date">
+                                                                {new Date(article.publishedAt).toLocaleDateString('es-ES', {
+                                                                    day: '2-digit',
+                                                                    month: 'short',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit'
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="news-config-container">
+                                            <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>No se encontraron noticias recientes.</p>
+                                            <button
+                                                className="modal-btn"
+                                                style={{ width: 'auto', marginTop: 10, padding: '8px 20px', fontSize: '0.9rem' }}
+                                                onClick={() => {
+                                                    localStorage.removeItem('news_api_key');
+                                                    setNewsApiKey('');
+                                                    setNewsError('');
+                                                    setNewsArticles([]);
+                                                }}
+                                            >
+                                                Cambiar API Key
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </>
                         )}
 
@@ -678,16 +907,27 @@ function App() {
                 <div className="modal-overlay">
                     <div className="modal-box">
                         <h2>Seleccionar Servidor</h2>
-                        <div className="server-grid">
-                            {servers.map((s, idx) => (
-                                <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title)}>
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                        <path d="M8 5v14l11-7z" />
+                        {servers && servers.length > 0 ? (
+                            <div className="server-grid">
+                                {servers.map((s, idx) => (
+                                    <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title)}>
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                        {s.title}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-servers">
+                                <div className="empty-servers-icon">
+                                    <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
-                                    {s.title}
-                                </button>
-                            ))}
-                        </div>
+                                </div>
+                                <p className="empty-servers-text">No se encontraron opciones de reproducción</p>
+                            </div>
+                        )}
                         <button className="modal-btn" onClick={() => setView(details ? STATES.DETAILS : STATES.HOME)}>Atrás</button>
                     </div>
                 </div>
@@ -787,20 +1027,46 @@ function App() {
                             onKeyDown={handleSearch}
                         />
                     </div>
-                    <div className="search-grid">
-                        {searchResults.map((anime, idx) => (
-                            <div
-                                key={idx}
-                                className={`search-card ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
-                                onClick={() => handleAnimeClick(anime)}
-                            >
-                                <img src={anime.image} alt={anime.title} />
-                                <div className="search-card-info">
-                                    <div className="search-card-title">{anime.title}</div>
+                    {searchResults && searchResults.length > 0 ? (
+                        <div className="search-grid">
+                            {searchResults.map((anime, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`search-card ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
+                                    onClick={() => handleAnimeClick(anime)}
+                                >
+                                    <img src={anime.image} alt={anime.title} />
+                                    <div className="search-card-info">
+                                        <div className="search-card-title">{anime.title}</div>
+                                    </div>
                                 </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="search-empty-container">
+                            <div className="search-empty-icon">
+                                {searchQuery.trim() === '' ? (
+                                    <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                                    </svg>
+                                )}
                             </div>
-                        ))}
-                    </div>
+                            <h3 className="search-empty-text">
+                                {searchQuery.trim() === '' 
+                                    ? 'Busca tus animes favoritos' 
+                                    : `No se encontraron resultados para "${searchQuery}"`}
+                            </h3>
+                            <p className="search-empty-subtext">
+                                {searchQuery.trim() === '' 
+                                    ? 'Escribe el nombre del anime en el cuadro superior y presiona Enter' 
+                                    : 'Intenta con palabras clave diferentes o verifica la ortografía'}
+                            </p>
+                        </div>
+                    )}
                     <button className="modal-btn" style={{ width: '200px', alignSelf: 'center' }} onClick={() => setView(STATES.HOME)}>Cerrar</button>
                 </div>
             )}
@@ -810,7 +1076,7 @@ function App() {
             {view === STATES.EXTENSIONS_MODAL && (
                 <div
                     className="modal-overlay stellar-overlay"
-                    onClick={(e) => e.target.classList.contains('stellar-overlay') && setView(STATES.HOME)}
+                    onClick={(e) => e.target.classList.contains('stellar-overlay') && setView(previousView)}
                 >
                     <div className="stellar-card">
 
@@ -967,7 +1233,7 @@ function App() {
                         </div>
 
                         {/* Close button */}
-                        <button className="stellar-close-btn" onClick={() => setView(STATES.HOME)}>✕</button>
+                        <button className="stellar-close-btn" onClick={() => setView(previousView)}>✕</button>
 
                     </div>
                 </div>

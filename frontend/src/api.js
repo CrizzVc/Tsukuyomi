@@ -59,3 +59,13 @@ export const extractStream = async (url) => {
         return { success: false, error: e.message };
     }
 };
+
+export const fetchNews = async (apiKey) => {
+    try {
+        const data = await ipcRenderer.invoke('api-news', { apiKey });
+        return data;
+    } catch (e) {
+        console.error("IPC News error:", e);
+        return { error: e.message };
+    }
+};
