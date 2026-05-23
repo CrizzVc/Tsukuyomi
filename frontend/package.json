@@ -1,5 +1,5 @@
 {
-  "name": "animewb",
+  "name": "tsukuyomi",
   "private": true,
   "version": "1.0.0",
   "main": "dist-electron/main.js",
@@ -13,8 +13,8 @@
     "dist": "npm run build:vite && npm run build:electron && electron-builder"
   },
   "build": {
-    "appId": "com.animewb.app",
-    "productName": "AnimeWB",
+    "appId": "com.tsukuyomi.app",
+    "productName": "Tsukuyomi",
     "directories": {
       "output": "release"
     },

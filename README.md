@@ -1,6 +1,6 @@
-# AnimeWB 🎬
+# Tsukuyomi 🎬
 
-**AnimeWB** is a premium, cinematic desktop application designed for an ad-free and immersive anime streaming experience. Built with **Electron**, **React**, and **TailwindCSS**, it offers a Netflix-style interface with a focus on speed, aesthetics, and user experience.
+**Tsukuyomi** is a premium, cinematic desktop application designed for an ad-free and immersive anime streaming experience. Built with **Electron**, **React**, and **TailwindCSS**, it offers a Netflix-style interface with a focus on speed, aesthetics, and user experience.
 
 ---
 
@@ -67,7 +67,7 @@ npm run dist
 ## 📁 Project Structure
 
 ```text
-AnimeWB/
+Tsukuyomi/
 ├── frontend/             # React + Electron Application
 │   ├── electron/         # Electron main process & services
 │   └── src/              # React frontend source code
