@@ -808,24 +808,167 @@ function App() {
 
 
             {view === STATES.EXTENSIONS_MODAL && (
-                <div className="modal-overlay">
-                    <div className="modal-box">
-                        <h2>Seleccionar Extensión</h2>
-                        <div className="extensions-grid">
-                            {EXTENSIONS.map((ext) => (
+                <div
+                    className="modal-overlay stellar-overlay"
+                    onClick={(e) => e.target.classList.contains('stellar-overlay') && setView(STATES.HOME)}
+                >
+                    <div className="stellar-card">
+
+                        {/* Crosshair lines */}
+                        <div className="stellar-crosshair stellar-crosshair-v"></div>
+                        <div className="stellar-crosshair stellar-crosshair-h"></div>
+
+                        {/* Cardinal tick marks */}
+                        <div className="stellar-tick stellar-tick-top">
+                            <svg width="13" height="16" viewBox="0 0 13 16">
+                                <polygon points="6.5,0 13,16 0,16" fill="rgba(255,255,255,0.55)" />
+                            </svg>
+                        </div>
+                        <div className="stellar-tick stellar-tick-right">
+                            <svg width="18" height="14" viewBox="0 0 18 14">
+                                <line x1="0" y1="7" x2="10" y2="7" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+                                <circle cx="14" cy="7" r="3" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" />
+                                <circle cx="14" cy="7" r="1" fill="rgba(255,255,255,0.6)" />
+                            </svg>
+                        </div>
+                        <div className="stellar-tick stellar-tick-bottom">
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                <circle cx="6" cy="6" r="4.5" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2" />
+                                <circle cx="6" cy="6" r="1.5" fill="rgba(255,255,255,0.3)" />
+                            </svg>
+                        </div>
+                        <div className="stellar-tick stellar-tick-left">
+                            <svg width="10" height="10" viewBox="0 0 10 10">
+                                <rect x="1" y="1" width="8" height="8" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
+                            </svg>
+                        </div>
+
+                        {/* Corner labels */}
+                        <div className="stellar-coord-tl">CARTA ESTELAR<br />J2000.0 · ECL</div>
+                        <div className="stellar-coord-tr">MÓDULOS<br />No. 564</div>
+
+                        {/* Orbit rings — SVG entrecortado */}
+                        <svg className="stellar-orbits" width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+                            {/* Ejes entrecortados */}
+                            <line x1="210" y1="0" x2="210" y2="80" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
+                            <line x1="210" y1="340" x2="210" y2="420" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
+                            <line x1="0" y1="210" x2="80" y2="210" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
+                            <line x1="340" y1="210" x2="420" y2="210" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
+                            {/* Órbita circular principal */}
+                            <circle cx="210" cy="210" r="142" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="0.9" strokeDasharray="6 5" />
+                            {/* Elipse horizontal */}
+                            <ellipse cx="210" cy="210" rx="180" ry="50" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" strokeDasharray="5 6" />
+                            {/* Elipse vertical */}
+                            <ellipse cx="210" cy="210" rx="50" ry="180" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" strokeDasharray="5 6" />
+                            {/* Elipse diagonal 1 */}
+                            <ellipse cx="210" cy="210" rx="160" ry="70" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.6" strokeDasharray="4 7" transform="rotate(35 210 210)" />
+                            {/* Elipse diagonal 2 */}
+                            <ellipse cx="210" cy="210" rx="160" ry="70" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.6" strokeDasharray="4 7" transform="rotate(-35 210 210)" />
+                            {/* Órbita exterior */}
+                            <circle cx="210" cy="210" r="170" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.6" strokeDasharray="3 8" />
+                            {/* Nodos */}
+                            <circle cx="210" cy="68" r="2.5" fill="rgba(255,255,255,0.4)" />
+                            <circle cx="210" cy="352" r="2" fill="rgba(255,255,255,0.25)" />
+                            <circle cx="68" cy="210" r="2" fill="rgba(255,255,255,0.25)" />
+                            <circle cx="352" cy="210" r="2.5" fill="rgba(255,255,255,0.4)" />
+                            <circle cx="310" cy="110" r="1.8" fill="rgba(255,255,255,0.3)" />
+                            <circle cx="110" cy="310" r="1.8" fill="rgba(255,255,255,0.3)" />
+                        </svg>
+
+                        {/* Central planet — SVG estático con degradado y cuadrícula */}
+                        <div className="stellar-planet">
+                            <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <radialGradient id="pg" cx="36%" cy="32%" r="62%">
+                                        <stop offset="0%" stopColor="#ffffff" />
+                                        <stop offset="35%" stopColor="#aaaaaa" />
+                                        <stop offset="70%" stopColor="#444444" />
+                                        <stop offset="100%" stopColor="#0a0a0a" />
+                                    </radialGradient>
+                                    <radialGradient id="pshine" cx="30%" cy="28%" r="48%">
+                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
+                                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                                    </radialGradient>
+                                    <clipPath id="pc">
+                                        <circle cx="45" cy="45" r="44" />
+                                    </clipPath>
+                                </defs>
+                                <circle cx="45" cy="45" r="44" fill="url(#pg)" />
+                                <g clipPath="url(#pc)" fill="none" stroke="#ffffff" strokeWidth="0.5" opacity="0.28">
+                                    {/* Horizontales */}
+                                    {[9, 18, 27, 36, 45, 54, 63, 72, 81].map(y => (
+                                        <line key={`h${y}`} x1="1" y1={y} x2="89" y2={y} />
+                                    ))}
+                                    {/* Verticales */}
+                                    {[9, 18, 27, 36, 45, 54, 63, 72, 81].map(x => (
+                                        <line key={`v${x}`} x1={x} y1="1" x2={x} y2="89" />
+                                    ))}
+                                    {/* Elipses internas */}
+                                    <ellipse cx="45" cy="45" rx="44" ry="7" />
+                                    <ellipse cx="45" cy="45" rx="44" ry="14" />
+                                    <ellipse cx="45" cy="45" rx="44" ry="28" />
+                                    <ellipse cx="45" cy="45" rx="32" ry="42" />
+                                    <ellipse cx="45" cy="45" rx="16" ry="44" />
+                                </g>
+                                <circle cx="45" cy="45" r="44" fill="url(#pshine)" />
+                                <circle cx="45" cy="45" r="44" fill="none" stroke="#ffffff" strokeWidth="0.7" opacity="0.45" />
+                            </svg>
+                        </div>
+
+                        {/* Active module indicator */}
+                        <div className="active-info" style={{ color: currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.color : 'rgba(255,255,255,0.55)' }}>
+                            {currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.name.toUpperCase() + ' · ACTIVO' : 'SELECCIONA UN MÓDULO'}
+                        </div>
+
+                        {/* Moons */}
+                        {EXTENSIONS.map((ext, idx) => {
+                            const total = EXTENSIONS.length;
+                            const angle = (360 / total) * idx - 90;
+                            const rad = (angle * Math.PI) / 180;
+                            const radius = 130;
+                            const x = Math.cos(rad) * radius;
+                            const y = Math.sin(rad) * radius;
+                            const isActive = currentSource === ext.id;
+                            return (
                                 <div
                                     key={ext.id}
-                                    className={`extension-card ${currentSource === ext.id ? 'active' : ''}`}
+                                    className={`stellar-moon ${isActive ? 'stellar-moon-active' : ''}`}
+                                    style={{
+                                        '--moon-color': ext.color,
+                                        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                                    }}
                                     onClick={() => selectSource(ext.id)}
+                                    title={ext.name}
                                 >
-                                    <div className="extension-icon" style={{ backgroundColor: ext.color }}>
-                                        {ext.icon}
+                                    <div
+                                        className="stellar-moon-core"
+                                        style={{
+                                            backgroundColor: isActive ? `${ext.color}22` : 'rgba(255,255,255,0.05)',
+                                            borderColor: isActive ? ext.color : 'rgba(255,255,255,0.18)',
+                                        }}
+                                    >
+                                        <span className="stellar-moon-icon">{ext.icon}</span>
+                                        {isActive && (
+                                            <div className="stellar-moon-pulse" style={{ '--pulse-color': ext.color }}></div>
+                                        )}
                                     </div>
-                                    <div className="extension-name">{ext.name}</div>
+                                    <div className="stellar-moon-label">{ext.name}</div>
                                 </div>
-                            ))}
+                            );
+                        })}
+
+                        {/* Bottom label */}
+                        <div className="stellar-label">MÓDULO ACTUAL</div>
+                        <div
+                            className="stellar-sublabel"
+                            style={{ color: currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.color : 'rgba(255,255,255,0.7)' }}
+                        >
+                            {currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.name.toUpperCase() : '—'}
                         </div>
-                        <button className="modal-btn" onClick={() => setView(STATES.HOME)}>Cerrar</button>
+
+                        {/* Close button */}
+                        <button className="stellar-close-btn" onClick={() => setView(STATES.HOME)}>✕</button>
+
                     </div>
                 </div>
             )}

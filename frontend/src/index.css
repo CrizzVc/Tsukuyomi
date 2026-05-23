@@ -1273,3 +1273,298 @@ header {
     font-weight: bold;
     letter-spacing: 2px;
 }
+
+/* ═══════════════════════════════════════════════
+   STELLAR CARD — Module Selection Modal
+   ═══════════════════════════════════════════════ */
+
+.stellar-overlay {
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(20px);
+}
+
+.stellar-card {
+    position: relative;
+    width: 420px;
+    height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: stellarFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes stellarFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ── Crosshair lines ── */
+.stellar-crosshair {
+    position: absolute;
+    pointer-events: none;
+}
+
+.stellar-crosshair-v {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.stellar-crosshair-h {
+    height: 1px;
+    width: 100%;
+    top: 50%;
+    left: 0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Cardinal tick marks ── */
+.stellar-tick {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.stellar-tick-top {
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.stellar-tick-right {
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.stellar-tick-bottom {
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.stellar-tick-left {
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* ── Corner labels ── */
+.stellar-coord-tl {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    font-size: 0.5rem;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.2);
+    font-family: monospace;
+    pointer-events: none;
+    line-height: 1.6;
+}
+
+.stellar-coord-tr {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    text-align: right;
+    font-size: 0.5rem;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.2);
+    font-family: monospace;
+    pointer-events: none;
+    line-height: 1.6;
+}
+
+/* ── Orbit rings SVG ── */
+.stellar-orbits {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* ── Bottom labels ── */
+.stellar-label {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    pointer-events: none;
+    white-space: nowrap;
+    font-family: monospace;
+}
+
+.stellar-sublabel {
+    position: absolute;
+    bottom: -55px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    pointer-events: none;
+    white-space: nowrap;
+    font-family: monospace;
+    transition: color 0.3s;
+}
+
+/* ── Active module info (top) ── */
+.active-info {
+    position: absolute;
+    top: -44px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2.5px;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+    text-align: center;
+    transition: color 0.3s;
+}
+
+/* ── Central planet ── */
+.stellar-planet {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    overflow: hidden;
+    z-index: 2;
+}
+
+/* ── Moons ── */
+.stellar-moon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    z-index: 5;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stellar-moon:hover .stellar-moon-core {
+    box-shadow: 0 0 22px var(--moon-color, rgba(255, 255, 255, 0.3));
+    border-color: var(--moon-color, white);
+    transform: scale(1.12);
+}
+
+.stellar-moon:hover .stellar-moon-label {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.stellar-moon-core {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.stellar-moon-active .stellar-moon-core {
+    box-shadow:
+        0 0 18px var(--moon-color),
+        0 0 38px color-mix(in srgb, var(--moon-color) 35%, transparent);
+}
+
+.stellar-moon-icon {
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.stellar-moon-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: color 0.3s;
+}
+
+.stellar-moon-active .stellar-moon-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Pulse ring around active moon */
+.stellar-moon-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1.5px solid var(--pulse-color);
+    animation: moonPulse 2s ease-out infinite;
+    pointer-events: none;
+}
+
+@keyframes moonPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(2.3);
+        opacity: 0;
+    }
+}
+
+/* ── Close button ── */
+.stellar-close-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+}
+
+.stellar-close-btn:hover {
+    background: rgba(255, 80, 80, 0.2);
+    color: white;
+    border-color: rgba(255, 80, 80, 0.4);
+    transform: scale(1.1) rotate(90deg);
+}
