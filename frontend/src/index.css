@@ -167,6 +167,7 @@ header {
     overflow: hidden;
     scroll-snap-align: start;
     flex-shrink: 0;
+    z-index: 1;
 }
 
 .large-card {
@@ -178,6 +179,27 @@ header {
 
 .large-card.expanded {
     z-index: 10;
+}
+
+.dynamic-card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 450px;
+    height: 280px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(100px) saturate(200%) brightness(0.85);
+    opacity: 0;
+    z-index: 0;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-image 0.5s ease, opacity 0.5s ease;
+    border-radius: 30px;
+    pointer-events: none;
+    will-change: transform, opacity, background-image;
+}
+
+.dynamic-card-glow.active {
+    opacity: 0.85;
 }
 
 .small-card {

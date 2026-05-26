@@ -714,7 +714,14 @@ function App() {
                                         onTouchEnd={(e) => handleTouchEnd(e, latest.length)}
                                     >
                                         <h2 className="section-title"><span className="title-marker"></span>Ultimos episodios</h2>
-                                        <div className="carousel" style={{ transform: `translateX(-${colIndices[0] * 465}px)` }}>
+                                        <div className="carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 465}px)` }}>
+                                            <div 
+                                                className={`dynamic-card-glow ${rowIndex === 0 ? 'active' : ''}`}
+                                                style={{ 
+                                                    transform: `translateX(${colIndices[0] * 465}px)`,
+                                                    backgroundImage: latest[colIndices[0]]?.image ? `url(${latest[colIndices[0]].image})` : 'none'
+                                                }}
+                                            />
                                             {latest.map((anime, idx) => (
                                                 <div
                                                     key={idx}
