@@ -24,12 +24,26 @@ const animeav1 = {
             // Episode is in div with bg-line or similar
             const episode = $(el).find('.text-lead').text().trim() || $(el).find('div.text-xs').text().trim();
             const image = $(el).find('img').attr('src');
+
+            // Derive anime URL from episode link: /media/{slug}/{epNum}
+            let cover = image;
+            let animeUrl = link.length > 0 ? BASE_URL + link.attr('href') : '';
+            const href = link.attr('href') || '';
+            const parts = href.split('/').filter(p => p);
+            if (parts.length === 3) { // /media/{slug}/{epNum}
+                animeUrl = `${BASE_URL}/media/${parts[1]}`;
+                // AnimeAV1 uses /storage/... for covers; try to find the poster img specifically
+                const posterImg = $(el).find('img[src*="poster"], img[src*="cover"], img[src*="Poster"]').attr('src');
+                if (posterImg) cover = posterImg;
+            }
             
             if (link.length > 0) {
                 results.push({
                     title: title || link.text().replace('Ver ', '').trim(),
                     episode: episode ? `Episodio ${episode}` : '',
                     image,
+                    cover,
+                    animeUrl,
                     url: BASE_URL + link.attr('href')
                 });
             }

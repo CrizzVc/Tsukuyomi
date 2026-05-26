@@ -19,7 +19,22 @@ const animeflv = {
             const episode = $(element).find('.Capi').text().trim();
             let image = $(element).find('img').attr('src');
             if (image && image.startsWith('/')) image = BASE_URL + image;
-            results.push({ title, episode, image, url: BASE_URL + urlPath });
+
+            // Derive anime cover from episode URL: /ver/{slug}-{epNum}
+            let cover = image;
+            let animeUrl = BASE_URL + urlPath;
+            if (urlPath && urlPath.includes('/ver/')) {
+                const verSlug = urlPath.replace('/ver/', '');
+                // Remove the last -number to get anime slug
+                const slugMatch = verSlug.match(/^(.+)-\d+$/);
+                if (slugMatch) {
+                    const animeSlug = slugMatch[1];
+                    cover = `${BASE_URL}/uploads/animes/covers/${animeSlug}.jpg`;
+                    animeUrl = `${BASE_URL}/anime/${animeSlug}`;
+                }
+            }
+
+            results.push({ title, episode, image, cover, animeUrl, url: BASE_URL + urlPath });
         });
         return results;
     },

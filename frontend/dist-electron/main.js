@@ -19,10 +19,22 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				const episode = $(element).find(".Capi").text().trim();
 				let image = $(element).find("img").attr("src");
 				if (image && image.startsWith("/")) image = BASE_URL + image;
+				let cover = image;
+				let animeUrl = BASE_URL + urlPath;
+				if (urlPath && urlPath.includes("/ver/")) {
+					const slugMatch = urlPath.replace("/ver/", "").match(/^(.+)-\d+$/);
+					if (slugMatch) {
+						const animeSlug = slugMatch[1];
+						cover = `${BASE_URL}/uploads/animes/covers/${animeSlug}.jpg`;
+						animeUrl = `${BASE_URL}/anime/${animeSlug}`;
+					}
+				}
 				results.push({
 					title,
 					episode,
 					image,
+					cover,
+					animeUrl,
 					url: BASE_URL + urlPath
 				});
 			});
@@ -155,10 +167,20 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				const title = $(el).find("header div").text().trim() || $(el).find("div.font-bold").text().trim();
 				const episode = $(el).find(".text-lead").text().trim() || $(el).find("div.text-xs").text().trim();
 				const image = $(el).find("img").attr("src");
+				let cover = image;
+				let animeUrl = link.length > 0 ? BASE_URL + link.attr("href") : "";
+				const parts = (link.attr("href") || "").split("/").filter((p) => p);
+				if (parts.length === 3) {
+					animeUrl = `${BASE_URL}/media/${parts[1]}`;
+					const posterImg = $(el).find("img[src*=\"poster\"], img[src*=\"cover\"], img[src*=\"Poster\"]").attr("src");
+					if (posterImg) cover = posterImg;
+				}
 				if (link.length > 0) results.push({
 					title: title || link.text().replace("Ver ", "").trim(),
 					episode: episode ? `Episodio ${episode}` : "",
 					image,
+					cover,
+					animeUrl,
 					url: BASE_URL + link.attr("href")
 				});
 			});

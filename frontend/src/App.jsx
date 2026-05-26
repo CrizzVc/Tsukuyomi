@@ -28,6 +28,19 @@ const DEFAULT_PROFILES = [
 
 const TOTAL_CATALOG_PAGES = 180;
 
+const getAnimeBadge = (anime) => {
+    const title = (anime.title || '').toLowerCase();
+    const ep = (anime.episode || '').toLowerCase();
+
+    if (title.includes('pelicula') || title.includes('película') || title.includes('movie') || ep.includes('pelicula') || ep.includes('película')) {
+        return { text: 'Película', type: 'movie' };
+    }
+    if (title.includes('especial') || title.includes('special') || title.includes('ova') || ep.includes('especial') || ep.includes('special') || ep.includes('ova')) {
+        return { text: 'Especial', type: 'special' };
+    }
+    return { text: 'TV Anime', type: 'tv' };
+};
+
 function App() {
     const [profiles, setProfiles] = useState(() => {
         const saved = localStorage.getItem('profiles');
@@ -40,6 +53,7 @@ function App() {
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
     const [currentSource, setCurrentSource] = useState('animeflv');
     const [latest, setLatest] = useState([]);
+    const [gridAnimes, setGridAnimes] = useState([]); // First 24 from catalog for the home grid
     const [catalogResults, setCatalogResults] = useState([]);
     const [catalogPage, setCatalogPage] = useState(1);
     const [favorites, setFavorites] = useState([]);
@@ -61,8 +75,8 @@ function App() {
     const [newsError, setNewsError] = useState('');
 
     // Navigation state for "spatial" focus simulation
-    const [rowIndex, setRowIndex] = useState(0); // 0: Latest, 1: Favorites, 2: News, -1: Header
-    const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0, 2: 0 });
+    const [rowIndex, setRowIndex] = useState(0); // -1: Header, 0: Latest, 1: Favorites, 2: Recent Grid, 3: News
+    const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0, 2: 0, 3: 0 });
     const colIndex = colIndices[rowIndex] || 0;
 
     const setColIndex = (updater) => {
@@ -108,6 +122,7 @@ function App() {
 
     useEffect(() => {
         loadLatest();
+        loadGridAnimes();
     }, []);
 
     useEffect(() => {
@@ -168,6 +183,15 @@ function App() {
         }
     };
 
+    const loadGridAnimes = async (source = currentSource) => {
+        try {
+            const data = await api.fetchCatalog(1, source);
+            setGridAnimes(data.slice(0, 24));
+        } catch (e) {
+            console.error('Error al cargar grid de animes:', e);
+        }
+    };
+
     const handleAnimeClick = (anime) => {
         setSelectedAnime(anime);
         openDetails(anime); // Skip ACTION_MODAL
@@ -176,7 +200,9 @@ function App() {
     const openDetails = async (anime) => {
         setStatus('Cargando detalles...');
         try {
-            const data = await api.fetchDetails(anime.url, currentSource);
+            const animeSource = anime.source || currentSource;
+            setCurrentSource(animeSource);
+            const data = await api.fetchDetails(anime.url, animeSource);
             setDetails(data);
             setView(STATES.DETAILS);
             setStatus('');
@@ -353,6 +379,7 @@ function App() {
         } else {
             setView(STATES.HOME);
             loadLatest(sourceId);
+            loadGridAnimes(sourceId);
         }
     };
 
@@ -407,17 +434,53 @@ function App() {
                     else selectProfile(profiles[colIndex]);
                 }
             } else if (view === STATES.HOME) {
-                if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, (rowIndex === -1 ? 3 : (rowIndex === 0 ? latest.length : (rowIndex === 1 ? Math.max(0, favorites.length - 1) : Math.max(0, newsArticles.length - 1))))));
+                if (e.key === 'ArrowRight') {
+                    let maxCol = 0;
+                    if (rowIndex === -1) maxCol = 3;
+                    else if (rowIndex === 0) maxCol = latest.length; // including "Ver Catálogo" card
+                    else if (rowIndex === 1) maxCol = Math.max(0, favorites.length - 1);
+                    else if (rowIndex === 2) maxCol = Math.max(0, Math.min(23, gridAnimes.length - 1));
+                    else if (rowIndex === 3) maxCol = Math.max(0, newsArticles.length - 1);
+                    setColIndex(prev => Math.min(prev + 1, maxCol));
+                }
                 if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
                 if (e.key === 'ArrowDown') {
-                    if (rowIndex === -1) setRowIndex(0);
-                    else if (rowIndex === 0) setRowIndex(1);
-                    else if (rowIndex === 1) setRowIndex(2);
+                    if (rowIndex === -1) {
+                        setRowIndex(0);
+                    } else if (rowIndex === 0) {
+                        setRowIndex(1);
+                    } else if (rowIndex === 1) {
+                        setRowIndex(2);
+                        setColIndex(0);
+                    } else if (rowIndex === 2) {
+                        const listLength = Math.min(24, gridAnimes.length);
+                        const cols = 5; // grid has 5 columns
+                        if (colIndex + cols < listLength) {
+                            setColIndex(prev => Math.min(prev + cols, listLength - 1));
+                        } else {
+                            setRowIndex(3);
+                            setColIndex(0);
+                        }
+                    }
                 }
                 if (e.key === 'ArrowUp') {
-                    if (rowIndex === 2) setRowIndex(1);
-                    else if (rowIndex === 1) setRowIndex(0);
-                    else if (rowIndex === 0) setRowIndex(-1);
+                    if (rowIndex === 3) {
+                        setRowIndex(2);
+                        const listLength = Math.min(24, gridAnimes.length);
+                        const cols = 5;
+                        setColIndex(listLength > cols ? cols : 0);
+                    } else if (rowIndex === 2) {
+                        if (colIndex >= 5) {
+                            setColIndex(prev => prev - 5);
+                        } else {
+                            setRowIndex(1);
+                            setColIndex(0);
+                        }
+                    } else if (rowIndex === 1) {
+                        setRowIndex(0);
+                    } else if (rowIndex === 0) {
+                        setRowIndex(-1);
+                    }
                 }
                 if (e.key === 'Enter') {
                     if (rowIndex === -1) {
@@ -426,11 +489,16 @@ function App() {
                         else if (colIndex === 2) setView(STATES.SEARCH);
                         else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
                     }
-                    else if (rowIndex === 2) {
+                    else if (rowIndex === 3) {
                         const article = newsArticles[colIndex];
                         if (article) {
                             const { shell } = window.require('electron');
                             shell.openExternal(article.url);
+                        }
+                    }
+                    else if (rowIndex === 2) {
+                        if (gridAnimes[colIndex]) {
+                            handleAnimeClick(gridAnimes[colIndex]);
                         }
                     }
                     else {
@@ -710,6 +778,42 @@ function App() {
 
                                 <BannerImages />
 
+                                <div className="recent-grid-section">
+                                    <div className="recent-grid-header"></div>
+
+                                    <div className="recent-anime-grid">
+                                        {gridAnimes.length === 0 ? (
+                                            // Loading skeletons
+                                            Array.from({ length: 10 }).map((_, idx) => (
+                                                <div key={idx} className="anime-card-v2">
+                                                    <div className="anime-card-v2-img-container anime-card-skeleton"></div>
+                                                    <div className="anime-card-skeleton-title"></div>
+                                                </div>
+                                            ))
+                                        ) : gridAnimes.map((anime, idx) => {
+                                            const isFocused = rowIndex === 2 && colIndex === idx;
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className={`anime-card-v2 ${isFocused ? 'focused' : ''}`}
+                                                    onClick={() => {
+                                                        setRowIndex(2);
+                                                        setColIndex(idx);
+                                                        handleAnimeClick(anime);
+                                                    }}
+                                                >
+                                                    <div className="anime-card-v2-img-container">
+                                                        <img src={anime.image} alt={anime.title} className="anime-card-v2-img" />
+                                                    </div>
+                                                    <div className="anime-card-v2-title">
+                                                        {anime.title}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
                                 <div className="carousel-container mt-10">
                                     <h2 className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                         <div><span className="title-marker"></span>Noticias de Anime</div>
@@ -783,16 +887,16 @@ function App() {
                                     ) : newsArticles.length > 0 ? (
                                         <div
                                             className="carousel-wrapper"
-                                            onTouchStart={(e) => handleTouchStart(e, 2)}
+                                            onTouchStart={(e) => handleTouchStart(e, 3)}
                                             onTouchEnd={(e) => handleTouchEnd(e, newsArticles.length - 1)}
                                         >
-                                            <div className="carousel" style={{ transform: `translateX(-${colIndices[2] * 340}px)` }}>
+                                            <div className="carousel" style={{ transform: `translateX(-${colIndices[3] * 340}px)` }}>
                                                 {newsArticles.map((article, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className={`news-card ${rowIndex === 2 && colIndices[2] === idx ? 'focused' : ''}`}
+                                                        className={`news-card ${rowIndex === 3 && colIndices[3] === idx ? 'focused' : ''}`}
                                                         onClick={() => {
-                                                            setRowIndex(2);
+                                                            setRowIndex(3);
                                                             setColIndex(idx);
                                                             const { shell } = window.require('electron');
                                                             shell.openExternal(article.url);
