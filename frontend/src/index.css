@@ -184,7 +184,6 @@ header {
     width: 250px;
     height: 150px;
     border-radius: 12px;
-    border: 2px solid transparent;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -194,6 +193,7 @@ header {
     border-color: var(--primary-color);
     box-shadow: 0 2px 20px rgba(0, 229, 255, 0.4);
     z-index: 10;
+    /* background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent); */
 }
 
 .card-overlay-gradient {
@@ -1970,20 +1970,26 @@ header {
 }
 
 .anime-card-v2-badge.movie {
-    background-color: rgba(30, 41, 59, 0.85); /* Slate 800 */
-    color: #93c5fd; /* Light blue */
+    background-color: rgba(30, 41, 59, 0.85);
+    /* Slate 800 */
+    color: #93c5fd;
+    /* Light blue */
     border: 1px solid rgba(147, 197, 253, 0.25);
 }
 
 .anime-card-v2-badge.tv {
-    background-color: rgba(49, 46, 129, 0.85); /* Indigo 900 */
-    color: #c7d2fe; /* Light indigo */
+    background-color: rgba(49, 46, 129, 0.85);
+    /* Indigo 900 */
+    color: #c7d2fe;
+    /* Light indigo */
     border: 1px solid rgba(199, 210, 254, 0.25);
 }
 
 .anime-card-v2-badge.special {
-    background-color: rgba(17, 24, 39, 0.85); /* Gray 900 */
-    color: #e5e7eb; /* Light gray */
+    background-color: rgba(17, 24, 39, 0.85);
+    /* Gray 900 */
+    color: #e5e7eb;
+    /* Light gray */
     border: 1px solid rgba(229, 231, 235, 0.25);
 }
 
