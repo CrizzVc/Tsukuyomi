@@ -1697,9 +1697,9 @@ header {
 
 /* ── Close button ── */
 .stellar-close-btn {
-    position: absolute;
-    top: -12px;
-    right: -12px;
+    position: fixed;
+    top: 42px;
+    right: 62px;
     width: 34px;
     height: 34px;
     border-radius: 50%;
@@ -1906,7 +1906,7 @@ header {
 }
 
 .bannerBtn {
-    background-color: #16171848;
+    background-color: #16171875;
     color: white;
     border: none;
     border-radius: 5px;
