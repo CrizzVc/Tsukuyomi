@@ -1719,16 +1719,90 @@ header {
 }
 
 @keyframes pulseGlow {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
         opacity: 0.8;
         filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.3));
     }
+
     50% {
         transform: scale(1.05);
         opacity: 1;
         filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.7));
     }
+}
+
+
+.bannerImg {
+    background-color: #1a1a1c;
+    background-image: linear-gradient(rgba(17, 17, 17, 0.8), #0f0f0fcc), url("../src/assets/patron.png");
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.bannerText {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-left: 10%;
+    z-index: 100;
+    width: 20px;
+}
+
+.bannerImg h1 {
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: bold;
+    font-size: 2.5rem;
+}
+
+.bannerBtn {
+    background-color: #16171848;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 200px;
+}
+
+.hrStyle {
+    width: 200px;
+    border: 1px solid #49494946;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.bannerBtn:hover {
+    background-color: #393d3fb0;
+}
+
+.bannerImg h3 {
+    color: #9b9b9b;
+    font-family: 'Inter', sans-serif;
+    font-weight: bold;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    width: 400px;
+}
+
+.bannerImg img {
+    object-fit: cover;
+    max-height: 350px;
+    /* width: 30%; */
+    width: 1000px;
+    mask-image: linear-gradient(to left, black 30%, transparent 100%);
+    display: flex;
+    justify-self: end;
+    z-index: 1;
 }
 
 /* Empty Search styling */
@@ -1768,10 +1842,13 @@ header {
 }
 
 @keyframes searchPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1) rotate(0deg);
         opacity: 0.7;
     }
+
     50% {
         transform: scale(1.08) rotate(5deg);
         opacity: 1;

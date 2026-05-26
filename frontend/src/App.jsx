@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as api from './api';
 import './index.css';
 import VideoPlayer from './components/Player/VideoPlayer';
+import BannerImages from './components/bannerimages';
 
 const STATES = {
     PROFILES: 'PROFILES',
@@ -126,10 +127,10 @@ function App() {
                 setNewsError(data.error);
                 setNewsArticles([]);
             } else if (Array.isArray(data)) {
-                const filtered = data.filter(art => 
-                    art.title && 
-                    art.title !== '[Removed]' && 
-                    art.description && 
+                const filtered = data.filter(art =>
+                    art.title &&
+                    art.title !== '[Removed]' &&
+                    art.description &&
                     art.description !== '[Removed]'
                 );
                 setNewsArticles(filtered.slice(0, 12));
@@ -344,7 +345,7 @@ function App() {
         setCurrentSource(sourceId);
         setSearchQuery('');
         setSearchResults([]);
-        
+
         if (previousView === STATES.SEARCH) {
             setView(STATES.SEARCH);
         } else if (previousView === STATES.CATALOG) {
@@ -707,18 +708,20 @@ function App() {
                                     </div>
                                 </div>
 
+                                <BannerImages />
+
                                 <div className="carousel-container mt-10">
                                     <h2 className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                         <div><span className="title-marker"></span>Noticias de Anime</div>
                                         {newsApiKey && !newsLoading && (
-                                            <button 
-                                                style={{ 
-                                                    fontSize: '0.75rem', 
-                                                    color: 'rgba(255,255,255,0.4)', 
-                                                    cursor: 'pointer', 
-                                                    background: 'rgba(255,255,255,0.05)', 
-                                                    padding: '4px 12px', 
-                                                    borderRadius: '20px', 
+                                            <button
+                                                style={{
+                                                    fontSize: '0.75rem',
+                                                    color: 'rgba(255,255,255,0.4)',
+                                                    cursor: 'pointer',
+                                                    background: 'rgba(255,255,255,0.05)',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '20px',
                                                     border: '1px solid rgba(255,255,255,0.1)',
                                                     transition: 'all 0.2s'
                                                 }}
@@ -1046,13 +1049,13 @@ function App() {
                                 )}
                             </div>
                             <h3 className="search-empty-text">
-                                {searchQuery.trim() === '' 
-                                    ? 'Busca tus animes favoritos' 
+                                {searchQuery.trim() === ''
+                                    ? 'Busca tus animes favoritos'
                                     : `No se encontraron resultados para "${searchQuery}"`}
                             </h3>
                             <p className="search-empty-subtext">
-                                {searchQuery.trim() === '' 
-                                    ? 'Escribe el nombre del anime en el cuadro superior y presiona Enter' 
+                                {searchQuery.trim() === ''
+                                    ? 'Escribe el nombre del anime en el cuadro superior y presiona Enter'
                                     : 'Intenta con palabras clave diferentes o verifica la ortografía'}
                             </p>
                         </div>
