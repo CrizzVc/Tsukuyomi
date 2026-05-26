@@ -456,10 +456,11 @@ function App() {
                         const listLength = Math.min(24, gridAnimes.length);
                         const cols = 5; // grid has 5 columns
                         if (colIndex + cols < listLength) {
-                            setColIndex(prev => Math.min(prev + cols, listLength - 1));
+                            setColIndex(prev => prev + cols);
                         } else {
                             setRowIndex(3);
-                            setColIndex(0);
+                            // Mantener una columna similar visualmente en noticias
+                            setColIndex(Math.min(colIndex % cols, Math.max(0, newsArticles.length - 1)));
                         }
                     }
                 }
@@ -468,13 +469,16 @@ function App() {
                         setRowIndex(2);
                         const listLength = Math.min(24, gridAnimes.length);
                         const cols = 5;
-                        setColIndex(listLength > cols ? cols : 0);
+                        // Apuntar a la última fila del grid manteniendo la columna
+                        const lastRowStartIndex = Math.floor((listLength - 1) / cols) * cols;
+                        const targetIndex = lastRowStartIndex + Math.min(colIndex, cols - 1);
+                        setColIndex(targetIndex < listLength ? targetIndex : listLength - 1);
                     } else if (rowIndex === 2) {
                         if (colIndex >= 5) {
                             setColIndex(prev => prev - 5);
                         } else {
                             setRowIndex(1);
-                            setColIndex(0);
+                            setColIndex(Math.min(colIndex, Math.max(0, favorites.length - 1)));
                         }
                     } else if (rowIndex === 1) {
                         setRowIndex(0);
@@ -530,7 +534,9 @@ function App() {
                     const results = view === STATES.SEARCH ? searchResults : catalogResults;
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, results.length - 1));
                     if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
-                    if (e.key === 'ArrowDown') setSearchIndex(prev => Math.min(prev + 5, results.length - 1));
+                    if (e.key === 'ArrowDown') {
+                        setSearchIndex(prev => prev + 5 < results.length ? prev + 5 : prev);
+                    }
                     if (e.key === 'ArrowUp') {
                         if (searchIndex < 5) {
                             setRowIndex(-1);
@@ -546,6 +552,21 @@ function App() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles]);
+
+    // Cinematic scroll to follow focus
+    useEffect(() => {
+        if (![STATES.HOME, STATES.CATALOG, STATES.SEARCH, STATES.PROFILES].includes(view)) return;
+        
+        const timeout = setTimeout(() => {
+            const activeEl = document.querySelector('.focused, .large-card.expanded');
+            if (activeEl) {
+                const rect = activeEl.getBoundingClientRect();
+                const targetY = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+                window.scrollTo({ top: targetY, behavior: 'smooth' });
+            }
+        }, 50);
+        return () => clearTimeout(timeout);
+    }, [rowIndex, colIndex, searchIndex, view]);
 
     const renderPagination = () => {
         const items = [];
