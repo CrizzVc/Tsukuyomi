@@ -83,13 +83,16 @@ const animeflv = {
             if (text && text.includes('var episodes = [')) {
                 const match = text.match(/var episodes = (\[.*?\]);/);
                 const animeSlugMatch = text.match(/var anime_info = \[.*,"(.*?)",/);
+                const animeIdMatch = text.match(/var anime_info = \["(\d+)"/);
                 if (match && animeSlugMatch) {
                     try {
                         const epData = JSON.parse(match[1]);
                         const animeSlug = animeSlugMatch[1];
+                        const animeId = animeIdMatch ? animeIdMatch[1] : '';
                         episodes = epData.map(e => ({
                             episode: e[0],
-                            url: `${BASE_URL}/ver/${animeSlug}-${e[0]}`
+                            url: `${BASE_URL}/ver/${animeSlug}-${e[0]}`,
+                            image: animeId ? `https://cdn.animeflv.net/screenshots/${animeId}/${e[0]}/th_3.jpg` : ''
                         }));
                     } catch (e) { }
                 }

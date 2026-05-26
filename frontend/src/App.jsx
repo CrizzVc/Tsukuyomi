@@ -88,6 +88,10 @@ function App() {
 
     const touchStartX = useRef(null);
     const [searchIndex, setSearchIndex] = useState(-1); // -1: input focused
+    const [detailsActiveIndex, setDetailsActiveIndex] = useState(0);
+    const [episodeSearchQuery, setEpisodeSearchQuery] = useState('');
+    const [isEpisodeSearchVisible, setIsEpisodeSearchVisible] = useState(false);
+    const [episodeSortOrder, setEpisodeSortOrder] = useState('desc');
 
     const handleTouchStart = (e, row) => {
         touchStartX.current = e.touches[0].clientX;
@@ -205,6 +209,10 @@ function App() {
             const data = await api.fetchDetails(anime.url, animeSource);
             setDetails(data);
             setView(STATES.DETAILS);
+            setDetailsActiveIndex(0);
+            setEpisodeSearchQuery('');
+            setIsEpisodeSearchVisible(false);
+            setEpisodeSortOrder('desc');
             setStatus('');
         } catch (e) {
             setStatus('Error al cargar detalles.');
@@ -547,16 +555,42 @@ function App() {
                     }
                     if (e.key === 'Enter' && results[searchIndex]) handleAnimeClick(results[searchIndex]);
                 }
+            } else if (view === STATES.DETAILS && details) {
+                const filteredEpisodes = (details.episodes || [])
+                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                    .sort((a, b) => {
+                        const numA = parseFloat(a.episode);
+                        const numB = parseFloat(b.episode);
+                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                    });
+
+                if (e.key === 'ArrowRight') {
+                    setDetailsActiveIndex(prev => Math.min(prev + 1, filteredEpisodes.length - 1));
+                }
+                if (e.key === 'ArrowLeft') {
+                    setDetailsActiveIndex(prev => Math.max(prev - 1, 0));
+                }
+                if (e.key === 'ArrowDown') {
+                    setDetailsActiveIndex(prev => Math.min(prev + 5, filteredEpisodes.length - 1));
+                }
+                if (e.key === 'ArrowUp') {
+                    setDetailsActiveIndex(prev => Math.max(prev - 5, 0));
+                }
+                if (e.key === 'Enter') {
+                    if (filteredEpisodes[detailsActiveIndex]) {
+                        openServers(filteredEpisodes[detailsActiveIndex].url);
+                    }
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
-        if (![STATES.HOME, STATES.CATALOG, STATES.SEARCH, STATES.PROFILES].includes(view)) return;
-        
+        if (![STATES.HOME, STATES.CATALOG, STATES.SEARCH, STATES.PROFILES, STATES.DETAILS].includes(view)) return;
+
         const timeout = setTimeout(() => {
             const activeEl = document.querySelector('.focused, .large-card.expanded');
             if (activeEl) {
@@ -736,9 +770,9 @@ function App() {
                                     >
                                         <h2 className="section-title"><span className="title-marker"></span>Ultimos episodios</h2>
                                         <div className="carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 465}px)` }}>
-                                            <div 
+                                            <div
                                                 className={`dynamic-card-glow ${rowIndex === 0 ? 'active' : ''}`}
-                                                style={{ 
+                                                style={{
                                                     transform: `translateX(${colIndices[0] * 465}px)`,
                                                     backgroundImage: latest[colIndices[0]]?.image ? `url(${latest[colIndices[0]].image})` : 'none'
                                                 }}
@@ -1127,15 +1161,96 @@ function App() {
                             </div>
                         )}
 
-                        <h3 style={{ marginTop: '40px', fontSize: '1.5rem' }}>Episodios</h3>
-                        <div className="episodes-list">
-                            {details.episodes.map((ep, idx) => (
-                                <div key={idx} className="episode-item" onClick={() => openServers(ep.url)}>
-                                    Episodio {ep.episode}
-                                </div>
-                            ))}
+                        <div className="episodes-header-container">
+                            <h3 className="episodes-section-title">Episodios</h3>
+                            <div className="episodes-controls">
+                                {isEpisodeSearchVisible && (
+                                    <input
+                                        type="text"
+                                        className="episode-search-input"
+                                        placeholder="Buscar episodio..."
+                                        value={episodeSearchQuery}
+                                        onChange={(e) => {
+                                            setEpisodeSearchQuery(e.target.value);
+                                            setDetailsActiveIndex(0);
+                                        }}
+                                        autoFocus
+                                    />
+                                )}
+                                <button
+                                    className={`episode-control-btn ${isEpisodeSearchVisible ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setIsEpisodeSearchVisible(!isEpisodeSearchVisible);
+                                        if (isEpisodeSearchVisible) setEpisodeSearchQuery('');
+                                    }}
+                                    title="Buscar episodio"
+                                >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    className={`episode-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
+                                    onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                                    title="Ordenar episodios"
+                                >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                        <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                        <button className="modal-btn mt-6" onClick={() => setView(STATES.HOME)}>Cerrar</button>
+
+                        <div className="episodes-grid">
+                            {(details.episodes || [])
+                                .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                .sort((a, b) => {
+                                    const numA = parseFloat(a.episode);
+                                    const numB = parseFloat(b.episode);
+                                    return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                })
+                                .map((ep, idx) => {
+                                    const isFocused = detailsActiveIndex === idx;
+                                    const epThumb = ep.image || details.backdrop || details.cover;
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`episode-card ${isFocused ? 'focused' : ''}`}
+                                            onClick={() => {
+                                                setDetailsActiveIndex(idx);
+                                                openServers(ep.url);
+                                            }}
+                                        >
+                                            <div className="episode-thumbnail-container">
+                                                <img
+                                                    src={epThumb}
+                                                    className="episode-thumbnail"
+                                                    alt={`Episodio ${ep.episode}`}
+                                                    onError={(e) => {
+                                                        if (e.target.src !== details.cover) {
+                                                            e.target.src = details.cover;
+                                                        }
+                                                    }}
+                                                />
+                                                <div className="episode-badge">
+                                                    Episodio {ep.episode}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            }
+                        </div>
+
+                        {((details.episodes || [])
+                            .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))).length === 0 && (
+                                <div className="no-episodes-found">
+                                    No se encontraron episodios
+                                </div>
+                            )
+                        }
+
+                        {/* <button className="modal-btn mt-6" onClick={() => setView(STATES.HOME)}>Cerrar</button> */}
                     </div>
                 </div>
             )}
