@@ -1094,6 +1094,7 @@ function App() {
 
             {view === STATES.DETAILS && details && (
                 <div className="view-overlay">
+                    <button className="details-close-btn" onClick={goBack} title="Cerrar">✕</button>
                     <div className="details-bg" style={{ backgroundImage: `url(${details.backdrop || details.cover})` }}></div>
                     <div className="details-left">
                         <img src={details.cover} className="details-cover" alt="Cover" />
@@ -1232,9 +1233,9 @@ function App() {
                                                         }
                                                     }}
                                                 />
-                                                <div className="episode-badge">
-                                                    Episodio {ep.episode}
-                                                </div>
+                                            </div>
+                                            <div className="episode-badge">
+                                                Episodio {ep.episode}
                                             </div>
                                         </div>
                                     );
