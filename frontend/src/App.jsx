@@ -838,7 +838,7 @@ function App() {
                                     </div>
                                 </div>
 
-                                <BannerImages />
+                                <BannerImages onExplore={() => loadCatalog(1)} />
 
                                 <div className="recent-grid-section">
                                     <div className="recent-grid-header"></div>
