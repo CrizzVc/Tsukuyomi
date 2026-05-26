@@ -1019,13 +1019,13 @@ function App() {
                                     {catalogResults.map((anime, idx) => (
                                         <div
                                             key={idx}
-                                            className={`search-card ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
+                                            className={`anime-card-v2 ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
                                             onClick={() => handleAnimeClick(anime)}
                                         >
-                                            <img src={anime.image} alt={anime.title} />
-                                            <div className="search-card-info">
-                                                <div className="search-card-title">{anime.title}</div>
+                                            <div className="anime-card-v2-img-container">
+                                                <img src={anime.image} alt={anime.title} className="anime-card-v2-img" />
                                             </div>
+                                            <div className="anime-card-v2-title">{anime.title}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -1273,13 +1273,13 @@ function App() {
                             {searchResults.map((anime, idx) => (
                                 <div
                                     key={idx}
-                                    className={`search-card ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
+                                    className={`anime-card-v2 ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
                                     onClick={() => handleAnimeClick(anime)}
                                 >
-                                    <img src={anime.image} alt={anime.title} />
-                                    <div className="search-card-info">
-                                        <div className="search-card-title">{anime.title}</div>
+                                    <div className="anime-card-v2-img-container">
+                                        <img src={anime.image} alt={anime.title} className="anime-card-v2-img" />
                                     </div>
+                                    <div className="anime-card-v2-title">{anime.title}</div>
                                 </div>
                             ))}
                         </div>
