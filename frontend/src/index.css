@@ -218,6 +218,33 @@ header {
     /* background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent); */
 }
 
+.small-card .card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+.small-card.focused .card-info,
+.small-card:hover .card-info {
+    opacity: 1;
+}
+
+.small-card .card-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    opacity: 1;
+    max-height: none;
+    transform: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .small-card.focused .card-overlay-gradient,
 .small-card:hover .card-overlay-gradient {
     opacity: 1;
