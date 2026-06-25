@@ -454,7 +454,7 @@ header {
 .details-cover {
     width: 100%;
     border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    /* box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7); */
 }
 
 .details-right {
@@ -2361,8 +2361,15 @@ header {
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 
 /* Virtual keyboard */
@@ -2416,7 +2423,7 @@ header {
 .tv-key-space {
     flex: 2;
     font-size: 1.2rem;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .tv-key-backspace {
@@ -2436,7 +2443,7 @@ header {
 .tv-key-clear {
     flex: 2;
     background: rgba(255, 255, 255, 0.07);
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.85rem;
     letter-spacing: 0.5px;
 }
@@ -2480,6 +2487,7 @@ header {
 .tv-search-right::-webkit-scrollbar {
     width: 6px;
 }
+
 .tv-search-right::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
@@ -2563,7 +2571,7 @@ header {
     height: 160px;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     position: relative;
 }
 
@@ -2592,7 +2600,7 @@ header {
     overflow: hidden;
     border: 2px solid transparent;
     transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .tv-result-card:hover,
@@ -2624,7 +2632,7 @@ header {
 .tv-result-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -2632,7 +2640,7 @@ header {
     padding: 8px 10px 10px;
     font-size: 0.82rem;
     font-weight: 600;
-    color: rgba(255,255,255,0.85);
+    color: rgba(255, 255, 255, 0.85);
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -2648,7 +2656,7 @@ header {
     align-items: center;
     justify-content: center;
     gap: 16px;
-    color: rgba(255,255,255,0.25);
+    color: rgba(255, 255, 255, 0.25);
     text-align: center;
     padding: 60px 0;
 }
@@ -2656,12 +2664,12 @@ header {
 .tv-empty-title {
     font-size: 1.3rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     margin: 0;
 }
 
 .tv-empty-sub {
     font-size: 0.9rem;
-    color: rgba(255,255,255,0.25);
+    color: rgba(255, 255, 255, 0.25);
     margin: 0;
-}
+}

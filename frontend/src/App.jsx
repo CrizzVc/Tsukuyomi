@@ -777,6 +777,286 @@ function App() {
                     transform: translateX(-10px);
                     pointer-events: none;
                 }
+
+                /* --- Details view --- */
+                .details-view {
+                    flex-direction: column !important;
+                    gap: 0 !important;
+                    padding: 50px 60px 40px 60px !important;
+                    overflow-y: auto !important;
+                    overflow-x: hidden !important;
+                }
+
+                .details-top-section {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 60px;
+                }
+
+                .details-view .details-left {
+                    flex: 0 0 280px;
+                }
+
+                .details-view .details-right {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                /* ── Episodios full-width abajo ── */
+                .details-episodes-section {
+                    width: 100%;
+                    padding: 16px 0 0 0;
+                    border-top: 1px solid rgba(255,255,255,0.07);
+                    margin-top: 28px;
+                }
+
+                .details-episodes-section .episodes-header-container {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 14px;
+                    margin-top: 0;
+                }
+
+                .details-episodes-section .episodes-section-title {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: rgba(255,255,255,0.7);
+                    margin: 0;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .details-episodes-section .episodes-row {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    gap: 12px;
+                    overflow-x: auto;
+                    overflow-y: visible;
+                    padding-bottom: 12px;
+                    scroll-snap-type: x proximity;
+                    -webkit-overflow-scrolling: touch;
+                    align-items: flex-start;
+                }
+
+                .details-episodes-section .episodes-row::-webkit-scrollbar {
+                    height: 4px;
+                }
+                .details-episodes-section .episodes-row::-webkit-scrollbar-track {
+                    background: rgba(255,255,255,0.04);
+                    border-radius: 2px;
+                }
+                .details-episodes-section .episodes-row::-webkit-scrollbar-thumb {
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 2px;
+                }
+
+                .details-episodes-section .episode-card {
+                    flex: 0 0 400px;
+                    width: 400px;
+                    height: calc(400px * 9 / 16);
+                    position: relative;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    border: 2px solid transparent;
+                    scroll-snap-align: start;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                }
+
+                .details-episodes-section .episode-card:hover,
+                .details-episodes-section .episode-card.focused {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 4px 20px rgba(0,229,255,0.25);
+                }
+
+                .details-episodes-section .episode-thumbnail-container {
+                    position: absolute;
+                    inset: 0;
+                }
+
+                .details-episodes-section .episode-thumbnail-container img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+
+                .details-episodes-section .episode-badge {
+                    position: absolute;
+                    bottom: 6px;
+                    left: 6px;
+                    background: rgba(14,14,18,0.82);
+                    backdrop-filter: blur(4px);
+                    color: rgba(255,255,255,0.9);
+                    padding: 4px 9px;
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    border-radius: 5px;
+                    z-index: 2;
+                }
+                .episodes-row-wrapper .episodes-header-container {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                }
+                .episodes-row-wrapper .episodes-section-title {
+                    font-size: 1.1rem;
+                    margin: 0;
+                    white-space: nowrap;
+                }
+                .episodes-row-wrapper .episode-search-input {
+                    width: 130px;
+                }
+                .episodes-row-wrapper .episode-search-input:focus {
+                    width: 160px;
+                }
+
+                .episodes-row {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    gap: 12px;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    padding-bottom: 10px;
+                    scroll-snap-type: x proximity;
+                    -webkit-overflow-scrolling: touch;
+                    margin-top: 0;
+                    margin-bottom: 0;
+                }
+                /* Las tarjetas dentro de la fila siempre mantienen el formato miniatura,
+                   sin importar el breakpoint de 1200px que las convierte en lista en .episodes-grid */
+
+                .episodes-row .episode-thumbnail-container {
+                    position: absolute;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                }
+                .episodes-row .episode-thumbnail-container img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+                .episodes-row .episode-badge {
+                    position: absolute;
+                    bottom: 6px;
+                    left: 6px;
+                    background: rgba(20, 21, 28, 0.85);
+                    color: rgba(255, 255, 255, 0.9);
+                    padding: 4px 8px;
+                    font-size: 0.7rem;
+                    border-radius: 5px;
+                    backdrop-filter: blur(4px);
+                    z-index: 2;
+                }
+                .episodes-row .episode-card:hover .episode-badge,
+                .episodes-row .episode-card.focused .episode-badge {
+                    background: rgba(20, 21, 28, 0.95);
+                    color: white;
+                }
+                .episodes-row::-webkit-scrollbar {
+                    height: 6px;
+                }
+                .episodes-row::-webkit-scrollbar-track {
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 3px;
+                }
+                .episodes-row::-webkit-scrollbar-thumb {
+                    background: rgba(255,255,255,0.25);
+                    border-radius: 3px;
+                }
+                .episodes-row::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255,255,255,0.4);
+                }
+                .episodes-row-wrapper .no-episodes-found {
+                    padding: 20px;
+                    font-size: 0.95rem;
+                }
+
+                .details-title {
+                    font-size: 3rem;
+                    margin-bottom: 10px;
+                    line-height: 1.1;
+                }
+
+                /* Tablet */
+                @media (max-width: 1024px) {
+                    .details-view {
+                        gap: 36px !important;
+                    }
+                    .details-view .details-left {
+                        flex: 0 0 260px !important;
+                    }
+                    .details-title {
+                        font-size: 2.2rem;
+                    }
+                    .episodes-row .episode-card,
+                    .episodes-row .episode-thumbnail-container {
+                        width: 130px;
+                    }
+                }
+
+                /* Móvil: apilar columnas */
+                @media (max-width: 760px) {
+                    .details-view {
+                        flex-direction: column !important;
+                        overflow-y: auto !important;
+                        padding: 30px 20px 40px !important;
+                        gap: 24px !important;
+                    }
+                    .details-view .details-left {
+                        flex: 0 0 auto !important;
+                        width: 100% !important;
+                        align-items: center;
+                        overflow-y: visible;
+                        max-height: none;
+                    }
+                    .details-view .details-cover {
+                        max-width: 220px;
+                    }
+                    .details-view .details-right {
+                        width: 100% !important;
+                        padding-right: 0 !important;
+                    }
+                    .details-title {
+                        font-size: 1.7rem;
+                        text-align: center;
+                    }
+                    .episodes-row-wrapper {
+                        margin-top: 18px;
+                        width: 100%;
+                    }
+                    .episodes-row-wrapper .episodes-header-container {
+                        justify-content: center;
+                        flex-wrap: wrap;
+                    }
+                    .episodes-row .episode-card,
+                    .episodes-row .episode-thumbnail-container {
+                        width: 130px;
+                    }
+                    .episodes-section-title {
+                        font-size: 1rem;
+                    }
+                }
+
+                @media (max-width: 420px) {
+                    #app-container {
+                        padding: 20px 16px !important;
+                    }
+                    .episodes-row .episode-card,
+                    .episodes-row .episode-thumbnail-container {
+                        width: 110px;
+                    }
+                    .search-bar-expandable.expanded {
+                        width: 200px;
+                    }
+                }
             `}</style>
             <input
                 type="file"
@@ -1181,75 +1461,79 @@ function App() {
             )}
 
             {view === STATES.DETAILS && details && (
-                <div className="view-overlay">
+                <div className="view-overlay details-view">
                     <button className="details-close-btn" onClick={goBack} title="Cerrar">✕</button>
                     <div className="details-bg" style={{ backgroundImage: `url(${details.backdrop || details.cover})` }}></div>
-                    <div className="details-left">
-                        <img src={details.cover} className="details-cover" alt="Cover" />
 
-                        <div className="flex items-center gap-3 mt-4">
-                            <button
-                                className={`modal-btn ${favorites.some(f => f.url === selectedAnime?.url) ? 'active' : ''}`}
-                                onClick={() => toggleFavorite(selectedAnime || details)}
-                                style={{ marginTop: 0, width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', borderRadius: '50%' }}
-                            >
-                                {favorites.some(f => f.url === selectedAnime?.url) ? '❤' : '♡'}
-                            </button>
+                    {/* ── Zona superior: portada + info ── */}
+                    <div className="details-top-section">
+                        <div className="details-left">
+                            <img src={details.cover} className="details-cover" alt="Cover" />
+                            <div className="flex items-center gap-3 mt-4">
+                                <button
+                                    className={`modal-btn ${favorites.some(f => f.url === selectedAnime?.url) ? 'active' : ''}`}
+                                    onClick={() => toggleFavorite(selectedAnime || details)}
+                                    style={{ marginTop: 0, width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', borderRadius: '50%' }}
+                                >
+                                    {favorites.some(f => f.url === selectedAnime?.url) ? '❤' : '♡'}
+                                </button>
+                                {details.status && (
+                                    <div className={`status-badge ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`} style={{ marginTop: 0 }}>
+                                        <span className="ic-monitor ic-before"></span>
+                                        {details.status}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-                            {details.status && (
-                                <div className={`status-badge ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`} style={{ marginTop: 0 }}>
-                                    <span className="ic-monitor ic-before"></span>
-                                    {details.status}
+                        <div className="details-right">
+                            <h1 className="details-title">{details.title}</h1>
+                            <div className="synopsis-box">
+                                <h2>Sinopsis</h2>
+                                {details.genres && details.genres.length > 0 && (
+                                    <div className="genres-list">
+                                        {details.genres.map((g, idx) => (
+                                            <span key={idx} className="genre-pill">{g}</span>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className={`synopsis-text ${expandedSynopsis ? 'expanded' : ''}`}>
+                                    {details.synopsis}
+                                </p>
+                                {details.synopsis && details.synopsis.length > 200 && (
+                                    <button
+                                        className="text-white mt-2 font-bold hover:underline"
+                                        onClick={() => setExpandedSynopsis(!expandedSynopsis)}
+                                    >
+                                        {expandedSynopsis ? 'Leer menos' : 'Leer más...'}
+                                    </button>
+                                )}
+                            </div>
+                            {details.related && details.related.length > 0 && (
+                                <div className="related-section">
+                                    <h3>Relacionados</h3>
+                                    <div className="related-row">
+                                        {details.related.map((rel, idx) => (
+                                            <div key={idx} className="related-card" onClick={() => openDetails(rel)}>
+                                                {rel.image ? (
+                                                    <img src={rel.image} alt="" />
+                                                ) : (
+                                                    <div className="related-placeholder">▶</div>
+                                                )}
+                                                <div className="related-info">
+                                                    <div className="related-card-title">{rel.title}</div>
+                                                    <div className="related-type">{rel.type || 'Relacionado'}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="details-right">
-                        <h1 style={{ fontSize: '3rem', marginBottom: '10px' }}>{details.title}</h1>
 
-                        <div className="synopsis-box">
-                            <h2>Sinopsis</h2>
-                            {details.genres && details.genres.length > 0 && (
-                                <div className="genres-list">
-                                    {details.genres.map((g, idx) => (
-                                        <span key={idx} className="genre-pill">{g}</span>
-                                    ))}
-                                </div>
-                            )}
-                            <p className={`synopsis-text ${expandedSynopsis ? 'expanded' : ''}`}>
-                                {details.synopsis}
-                            </p>
-                            {details.synopsis && details.synopsis.length > 200 && (
-                                <button
-                                    className="text-white mt-2 font-bold hover:underline"
-                                    onClick={() => setExpandedSynopsis(!expandedSynopsis)}
-                                >
-                                    {expandedSynopsis ? 'Leer menos' : 'Leer más...'}
-                                </button>
-                            )}
-                        </div>
-
-                        {details.related && details.related.length > 0 && (
-                            <div className="related-section">
-                                <h3>Relacionados</h3>
-                                <div className="related-row">
-                                    {details.related.map((rel, idx) => (
-                                        <div key={idx} className="related-card" onClick={() => openDetails(rel)}>
-                                            {rel.image ? (
-                                                <img src={rel.image} alt="" />
-                                            ) : (
-                                                <div className="related-placeholder">▶</div>
-                                            )}
-                                            <div className="related-info">
-                                                <div className="related-card-title">{rel.title}</div>
-                                                <div className="related-type">{rel.type || 'Relacionado'}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
+                    {/* ── Zona inferior: episodios full-width ── */}
+                    <div className="details-episodes-section">
                         <div className="episodes-header-container">
                             <h3 className="episodes-section-title">Episodios</h3>
                             <div className="episodes-controls">
@@ -1290,7 +1574,7 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="episodes-grid">
+                        <div className="episodes-row">
                             {(details.episodes || [])
                                 .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
                                 .sort((a, b) => {
@@ -1338,11 +1622,11 @@ function App() {
                                 </div>
                             )
                         }
-
-                        {/* <button className="modal-btn mt-6" onClick={() => setView(STATES.HOME)}>Cerrar</button> */}
                     </div>
                 </div>
             )}
+
+
 
             {view === STATES.EXTENSIONS_MODAL && (
                 <div
