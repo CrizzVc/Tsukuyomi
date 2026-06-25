@@ -919,6 +919,21 @@ function App() {
                 .episodes-row-wrapper .episode-search-input:focus {
                     width: 160px;
                 }
+                
+                .synopsis-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                    margin-bottom: 16px;
+                }
+                .synopsis-header h2 {
+                    margin: 0;
+                    white-space: nowrap;
+                }
+                .synopsis-header .genres-list {
+                    margin-bottom: 0;
+                }
 
                 .episodes-row {
                     display: flex;
@@ -1494,14 +1509,16 @@ function App() {
                         <div className="details-right">
                             <h1 className="details-title">{details.title}</h1>
                             <div className="synopsis-box">
-                                <h2>Sinopsis</h2>
-                                {details.genres && details.genres.length > 0 && (
-                                    <div className="genres-list">
-                                        {details.genres.map((g, idx) => (
-                                            <span key={idx} className="genre-pill">{g}</span>
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="synopsis-header">
+                                    <h2>Sinopsis</h2>
+                                    {details.genres && details.genres.length > 0 && (
+                                        <div className="genres-list">
+                                            {details.genres.map((g, idx) => (
+                                                <span key={idx} className="genre-pill">{g}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                                 <p className={`synopsis-text ${expandedSynopsis ? 'expanded' : ''}`}>
                                     {details.synopsis}
                                 </p>
