@@ -750,6 +750,7 @@ function App() {
                     white-space: nowrap;
                     opacity: 1;
                     transition: opacity 0.2s ease;
+                    color: #ffffff33;
                 }
                 .search-bar-expandable.expanded .search-label {
                     display: none;
@@ -1260,6 +1261,9 @@ function App() {
                                                         onClick={() => { setRowIndex(1); setColIndex(idx); handleAnimeClick(anime); }}
                                                     >
                                                         <div className="card-overlay-gradient"></div>
+                                                        <div className="card-info">
+                                                            <div className="card-title">{anime.title}</div>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>

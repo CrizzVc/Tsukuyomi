@@ -211,11 +211,21 @@ header {
 
 .small-card.focused,
 .small-card:hover {
-    transform: scale(1.06);
-    border: 1px solid var(--primary-color);
+    /* transform: scale(1.06); */
+    /* border: 1px solid var(--primary-color); */
     /* box-shadow: 0 2px 20px rgba(0, 229, 255, 0.4); */
     z-index: 10;
     /* background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent); */
+}
+
+.small-card.focused .card-overlay-gradient,
+.small-card:hover .card-overlay-gradient {
+    opacity: 1;
+}
+
+.small-card .card-overlay-gradient {
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .card-overlay-gradient {
