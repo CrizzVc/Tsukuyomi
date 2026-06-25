@@ -4,7 +4,6 @@ import './index.css';
 import VideoPlayer from './components/Player/VideoPlayer';
 import BannerImages from './components/bannerimages';
 import AnimeNewsCarousel from './components/animeNews';
-import SearchOverlay from './components/buscador';
 
 const STATES = {
     PROFILES: 'PROFILES',
@@ -89,6 +88,8 @@ function App() {
     };
 
     const touchStartX = useRef(null);
+    const searchDebounceRef = useRef(null);
+    const [isSearchActive, setIsSearchActive] = useState(false); // true: barra de búsqueda expandida en el header
     const [searchIndex, setSearchIndex] = useState(-1); // -1: input focused
     const [detailsActiveIndex, setDetailsActiveIndex] = useState(0);
     const [episodeSearchQuery, setEpisodeSearchQuery] = useState('');
@@ -367,13 +368,66 @@ function App() {
         localStorage.setItem('profiles', JSON.stringify(updatedProfiles));
     };
 
+    const activateSearch = () => {
+        setIsSearchActive(true);
+        setSearchQuery('');
+        setSearchResults([]);
+        setSearchIndex(-1);
+        setRowIndex(-1);
+        setColIndex(2);
+        setView(STATES.CATALOG);
+    };
+
+    const deactivateSearch = () => {
+        setIsSearchActive(false);
+        setSearchQuery('');
+        setSearchResults([]);
+        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+
+    // Búsqueda reactiva: dispara una petición cada vez que el usuario escribe (con debounce)
+    useEffect(() => {
+        if (!isSearchActive) return;
+        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+        const query = searchQuery.trim();
+        if (query === '') {
+            setSearchResults([]);
+            setStatus('');
+            return;
+        }
+
+        setStatus('Buscando...');
+        searchDebounceRef.current = setTimeout(async () => {
+            try {
+                const results = await api.searchAnime(query, currentSource);
+                setSearchResults(results);
+                setSearchIndex(prev => (prev === -1 ? -1 : 0));
+            } catch (e) {
+                console.error('Error al buscar:', e);
+            } finally {
+                setStatus('');
+            }
+        }, 350);
+
+        return () => {
+            if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+        };
+    }, [searchQuery, isSearchActive, currentSource]);
+
     const handleSearch = async (e) => {
         if (e.key === 'Enter') {
+            if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+            const query = searchQuery.trim();
+            if (query === '') return;
             setStatus('Buscando...');
-            const results = await api.searchAnime(searchQuery, currentSource);
+            const results = await api.searchAnime(query, currentSource);
             setSearchResults(results);
             setSearchIndex(-1); // reset focus to input
             setStatus('');
+        } else if (e.key === 'Escape') {
+            deactivateSearch();
+            setView(STATES.HOME);
         }
     };
 
@@ -382,8 +436,8 @@ function App() {
         setSearchQuery('');
         setSearchResults([]);
 
-        if (previousView === STATES.SEARCH) {
-            setView(STATES.SEARCH);
+        if (isSearchActive) {
+            setView(STATES.CATALOG);
         } else if (previousView === STATES.CATALOG) {
             loadCatalog(1, sourceId);
         } else {
@@ -394,6 +448,7 @@ function App() {
     };
 
     const loadCatalog = async (page = 1, source = currentSource) => {
+        deactivateSearch();
         setStatus('Cargando catálogo...');
         setView(STATES.CATALOG);
         try {
@@ -414,7 +469,7 @@ function App() {
         if (view === STATES.PLAYER) setView(STATES.SERVER_MODAL);
         else if (view === STATES.SERVER_MODAL) setView(details ? STATES.DETAILS : STATES.HOME);
         else if (view === STATES.DETAILS) setView(catalogResults.length > 0 && view !== STATES.HOME ? STATES.CATALOG : STATES.HOME);
-        else if (view === STATES.SEARCH) setView(STATES.HOME);
+        else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
         else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
         else if (view === STATES.HOME) setView(STATES.PROFILES);
@@ -500,7 +555,7 @@ function App() {
                     if (rowIndex === -1) {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
-                        else if (colIndex === 2) setView(STATES.SEARCH);
+                        else if (colIndex === 2) activateSearch();
                         else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
                     }
                     else if (rowIndex === 3) {
@@ -524,9 +579,9 @@ function App() {
                         }
                     }
                 }
-            } else if (view === STATES.SEARCH || view === STATES.CATALOG) {
+            } else if (view === STATES.CATALOG) {
                 if (rowIndex === -1) {
-                    // Header navigation in Search/Catalog views
+                    // Header navigation in Catalog view (incluye búsqueda)
                     if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, 3));
                     if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
                     if (e.key === 'ArrowDown') {
@@ -536,12 +591,12 @@ function App() {
                     if (e.key === 'Enter') {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
-                        else if (colIndex === 2) setView(STATES.SEARCH);
+                        else if (colIndex === 2) activateSearch();
                         else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
                     }
                 } else {
                     // Grid navigation
-                    const results = view === STATES.SEARCH ? searchResults : catalogResults;
+                    const results = (isSearchActive && searchQuery.trim() !== '') ? searchResults : catalogResults;
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, results.length - 1));
                     if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
                     if (e.key === 'ArrowDown') {
@@ -550,7 +605,7 @@ function App() {
                     if (e.key === 'ArrowUp') {
                         if (searchIndex < 5) {
                             setRowIndex(-1);
-                            setColIndex(view === STATES.CATALOG ? 1 : 2); // Return to corresponding tab
+                            setColIndex(isSearchActive ? 2 : 1); // Volver a la pestaña correspondiente
                         } else {
                             setSearchIndex(prev => Math.max(prev - 5, 0));
                         }
@@ -591,7 +646,7 @@ function App() {
 
     // Cinematic scroll to follow focus
     useEffect(() => {
-        if (![STATES.HOME, STATES.CATALOG, STATES.SEARCH, STATES.PROFILES, STATES.DETAILS].includes(view)) return;
+        if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS].includes(view)) return;
 
         const timeout = setTimeout(() => {
             const activeEl = document.querySelector('.focused, .large-card.expanded');
@@ -636,6 +691,93 @@ function App() {
 
     return (
         <div id="app-root">
+            <style>{`
+                .search-bar-expandable {
+                    display: flex;
+                    align-items: center;
+                    height: 38px;
+                    border-radius: 19px;
+                    background: rgba(255,255,255,0.08);
+                    border: 1px solid rgba(255,255,255,0.12);
+                    overflow: hidden;
+                    cursor: pointer;
+                    transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, border-color 0.2s ease;
+                    width: 110px;
+                    flex-shrink: 0;
+                }
+                .search-bar-expandable.expanded {
+                    width: 320px;
+                    cursor: default;
+                    background: rgba(255,255,255,0.1);
+                    border-color: rgba(255,255,255,0.25);
+                }
+                .search-bar-expandable.focused {
+                    border-color: rgba(255,255,255,0.4);
+                }
+                .search-bar-expandable .search-icon-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 38px;
+                    height: 38px;
+                    flex-shrink: 0;
+                    background: none;
+                    border: none;
+                    color: currentColor;
+                    cursor: pointer;
+                    padding: 0;
+                }
+                .search-bar-expandable .search-label {
+                    white-space: nowrap;
+                    opacity: 1;
+                    transition: opacity 0.2s ease;
+                }
+                .search-bar-expandable.expanded .search-label {
+                    display: none;
+                }
+                .search-bar-expandable .search-inline-input {
+                    flex: 1;
+                    height: 100%;
+                    background: none;
+                    border: none;
+                    outline: none;
+                    color: #fff;
+                    font-size: 14px;
+                    min-width: 0;
+                    opacity: 0;
+                    transition: opacity 0.18s ease 0.05s;
+                }
+                .search-bar-expandable.expanded .search-inline-input {
+                    opacity: 1;
+                }
+                .search-bar-expandable .search-clear-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    flex-shrink: 0;
+                    background: none;
+                    border: none;
+                    color: rgba(255,255,255,0.6);
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+                .search-clear-btn:hover { color: #fff; }
+                .header-left .nav-link.catalog-link {
+                    transition: opacity 0.25s ease, max-width 0.3s ease, margin 0.3s ease, transform 0.25s ease;
+                    max-width: 220px;
+                    overflow: hidden;
+                    white-space: nowrap;
+                }
+                .header-left .nav-link.catalog-link.hidden-by-search {
+                    opacity: 0;
+                    max-width: 0;
+                    margin-left: 0 !important;
+                    transform: translateX(-10px);
+                    pointer-events: none;
+                }
+            `}</style>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -731,7 +873,7 @@ function App() {
                                 Home
                             </span>
                             <span
-                                className={`nav-link ${(rowIndex === -1 && colIndex === 1) ? 'focused' : ''} ${view === STATES.CATALOG ? 'active' : ''}`}
+                                className={`nav-link catalog-link ${(rowIndex === -1 && colIndex === 1) ? 'focused' : ''} ${view === STATES.CATALOG && !isSearchActive ? 'active' : ''} ${isSearchActive ? 'hidden-by-search' : ''}`}
                                 onClick={() => loadCatalog(1)}
                             >
                                 Catálogo de Anime
@@ -739,13 +881,41 @@ function App() {
                         </div>
                         <div className="header-right">
                             <div
-                                className={`search-pill ${(rowIndex === -1 && colIndex === 2) ? 'focused' : ''}`}
-                                onClick={() => setView(STATES.SEARCH)}
+                                className={`search-bar-expandable ${isSearchActive ? 'expanded' : ''} ${(rowIndex === -1 && colIndex === 2) ? 'focused' : ''}`}
+                                onClick={() => { if (!isSearchActive) activateSearch(); }}
                             >
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                                </svg>
-                                <span>Search</span>
+                                <button
+                                    type="button"
+                                    className="search-icon-btn"
+                                    onClick={(e) => { e.stopPropagation(); if (!isSearchActive) activateSearch(); }}
+                                    aria-label="Buscar"
+                                >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                                    </svg>
+                                </button>
+                                {!isSearchActive && <span className="search-label">Search</span>}
+                                {isSearchActive && (
+                                    <>
+                                        <input
+                                            autoFocus
+                                            className="search-inline-input"
+                                            placeholder="Buscar anime..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyDown={handleSearch}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="search-clear-btn"
+                                            onClick={(e) => { e.stopPropagation(); deactivateSearch(); setView(STATES.HOME); }}
+                                            aria-label="Cerrar búsqueda"
+                                        >
+                                            ✕
+                                        </button>
+                                    </>
+                                )}
                             </div>
 
                             <div
@@ -901,45 +1071,76 @@ function App() {
 
                         {view === STATES.CATALOG && (
                             <div className="catalog-tab" style={{ padding: '20px 40px' }}>
-                                <h2 className="section-title"><span className="title-marker"></span>Catálogo Completo</h2>
-                                <div className="search-grid" style={{ marginTop: '20px' }}>
-                                    {catalogResults.map((anime, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`anime-card-v2 ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
-                                            onClick={() => handleAnimeClick(anime)}
-                                        >
-                                            <div className="anime-card-v2-img-container">
-                                                <img src={anime.image} alt={anime.title} className="anime-card-v2-img" />
-                                            </div>
-                                            <div className="anime-card-v2-title">{anime.title}</div>
+                                <h2 className="section-title">
+                                    <span className="title-marker"></span>
+                                    {isSearchActive
+                                        ? (searchQuery.trim() === '' ? 'Buscar anime' : `Resultados para "${searchQuery}"`)
+                                        : 'Catálogo Completo'}
+                                </h2>
+
+                                {isSearchActive && searchQuery.trim() === '' ? (
+                                    <div className="search-empty-container">
+                                        <div className="search-empty-icon">
+                                            <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+                                            </svg>
                                         </div>
-                                    ))}
-                                </div>
-                                <div className="custom-pagination">
-                                    {renderPagination().map((item, idx) => {
-                                        if (item.type === 'ellipsis') {
-                                            return <span key={idx} className="page-ellipsis">...</span>;
-                                        }
+                                        <h3 className="search-empty-text">Busca tus animes favoritos</h3>
+                                        <p className="search-empty-subtext">Escribe el nombre del anime en la barra superior</p>
+                                    </div>
+                                ) : isSearchActive && searchResults.length === 0 ? (
+                                    <div className="search-empty-container">
+                                        <div className="search-empty-icon">
+                                            <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="search-empty-text">No se encontraron resultados para "{searchQuery}"</h3>
+                                        <p className="search-empty-subtext">Intenta con palabras clave diferentes o verifica la ortografía</p>
+                                    </div>
+                                ) : (
+                                    <div className="search-grid" style={{ marginTop: '20px' }}>
+                                        {(isSearchActive ? searchResults : catalogResults).map((anime, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`anime-card-v2 ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
+                                                onClick={() => handleAnimeClick(anime)}
+                                            >
+                                                <div className="anime-card-v2-img-container">
+                                                    <img src={anime.image} alt={anime.title} className="anime-card-v2-img" />
+                                                </div>
+                                                <div className="anime-card-v2-title">{anime.title}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
-                                        let onClick = () => { };
-                                        if (!item.disabled) {
-                                            if (item.type === 'page') onClick = () => loadCatalog(item.label);
-                                            else if (item.type === 'first') onClick = () => loadCatalog(1);
-                                            else if (item.type === 'prev') onClick = () => loadCatalog(catalogPage - 1);
-                                            else if (item.type === 'next') onClick = () => loadCatalog(catalogPage + 1);
-                                            else if (item.type === 'last') onClick = () => loadCatalog(TOTAL_CATALOG_PAGES);
-                                        }
+                                {!isSearchActive && (
+                                    <div className="custom-pagination">
+                                        {renderPagination().map((item, idx) => {
+                                            if (item.type === 'ellipsis') {
+                                                return <span key={idx} className="page-ellipsis">...</span>;
+                                            }
 
-                                        const className = `page-btn ${item.type === 'page' && item.label === catalogPage ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`;
+                                            let onClick = () => { };
+                                            if (!item.disabled) {
+                                                if (item.type === 'page') onClick = () => loadCatalog(item.label);
+                                                else if (item.type === 'first') onClick = () => loadCatalog(1);
+                                                else if (item.type === 'prev') onClick = () => loadCatalog(catalogPage - 1);
+                                                else if (item.type === 'next') onClick = () => loadCatalog(catalogPage + 1);
+                                                else if (item.type === 'last') onClick = () => loadCatalog(TOTAL_CATALOG_PAGES);
+                                            }
 
-                                        return (
-                                            <button key={idx} className={className} disabled={item.disabled} onClick={onClick}>
-                                                {item.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                            const className = `page-btn ${item.type === 'page' && item.label === catalogPage ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`;
+
+                                            return (
+                                                <button key={idx} className={className} disabled={item.disabled} onClick={onClick}>
+                                                    {item.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </main>
@@ -1142,21 +1343,6 @@ function App() {
                     </div>
                 </div>
             )}
-
-            {view === STATES.SEARCH && (
-                <SearchOverlay
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    handleSearch={handleSearch}
-                    searchResults={searchResults}
-                    searchIndex={searchIndex}
-                    rowIndex={rowIndex}
-                    handleAnimeClick={handleAnimeClick}
-                    onClose={() => setView(STATES.HOME)}
-                />
-            )}
-
-
 
             {view === STATES.EXTENSIONS_MODAL && (
                 <div
