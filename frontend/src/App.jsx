@@ -1041,61 +1041,6 @@ function App() {
                     }
                 }
 
-                /* Móvil: apilar columnas */
-                @media (max-width: 760px) {
-                    .details-view {
-                        flex-direction: column !important;
-                        overflow-y: auto !important;
-                        padding: 30px 20px 40px !important;
-                        gap: 24px !important;
-                    }
-                    .details-view .details-left {
-                        flex: 0 0 auto !important;
-                        width: 100% !important;
-                        align-items: center;
-                        overflow-y: visible;
-                        max-height: none;
-                    }
-                    .details-view .details-cover {
-                        max-width: 220px;
-                    }
-                    .details-view .details-right {
-                        width: 100% !important;
-                        padding-right: 0 !important;
-                    }
-                    .details-title {
-                        font-size: 1.7rem;
-                        text-align: center;
-                    }
-                    .episodes-row-wrapper {
-                        margin-top: 18px;
-                        width: 100%;
-                    }
-                    .episodes-row-wrapper .episodes-header-container {
-                        justify-content: center;
-                        flex-wrap: wrap;
-                    }
-                    .episodes-row .episode-card,
-                    .episodes-row .episode-thumbnail-container {
-                        width: 130px;
-                    }
-                    .episodes-section-title {
-                        font-size: 1rem;
-                    }
-                }
-
-                @media (max-width: 420px) {
-                    #app-container {
-                        padding: 20px 16px !important;
-                    }
-                    .episodes-row .episode-card,
-                    .episodes-row .episode-thumbnail-container {
-                        width: 110px;
-                    }
-                    .search-bar-expandable.expanded {
-                        width: 200px;
-                    }
-                }
             `}</style>
             <input
                 type="file"
