@@ -782,15 +782,20 @@ function App() {
                 .details-view {
                     flex-direction: column !important;
                     gap: 0 !important;
-                    padding: 50px 60px 40px 60px !important;
-                    overflow-y: auto !important;
-                    overflow-x: hidden !important;
+                    padding: 50px 60px 0 60px !important;
+                    overflow: hidden !important;
+                    display: flex !important;
                 }
 
                 .details-top-section {
                     display: flex;
                     flex-direction: row;
                     gap: 60px;
+                    flex: 1;
+                    min-height: 0;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    padding-bottom: 20px;
                 }
 
                 .details-view .details-left {
@@ -802,12 +807,12 @@ function App() {
                     min-width: 0;
                 }
 
-                /* ── Episodios full-width abajo ── */
+                /* ── Episodios anclados abajo ── */
                 .details-episodes-section {
+                    flex-shrink: 0;
                     width: 100%;
-                    padding: 16px 0 0 0;
-                    border-top: 1px solid rgba(255,255,255,0.07);
-                    margin-top: 28px;
+                    padding: 14px 0 20px 0;
+                    border-top: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .details-episodes-section .episodes-header-container {
