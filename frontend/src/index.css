@@ -453,6 +453,8 @@ header {
 
 .details-cover {
     width: 100%;
+    min-height: 393px;
+    max-height: 393px;
     border-radius: 15px;
     /* box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7); */
 }

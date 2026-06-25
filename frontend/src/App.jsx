@@ -47,6 +47,7 @@ function App() {
         const saved = localStorage.getItem('profiles');
         return saved ? JSON.parse(saved) : DEFAULT_PROFILES;
     });
+    const episodesRowRef = useRef(null);
     const [activeProfile, setActiveProfile] = useState(null);
     const [editingProfile, setEditingProfile] = useState(null);
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
@@ -658,6 +659,24 @@ function App() {
         }, 50);
         return () => clearTimeout(timeout);
     }, [rowIndex, colIndex, searchIndex, view]);
+
+    useEffect(() => {
+        if (view !== STATES.DETAILS) return;
+        const row = episodesRowRef.current;
+        if (!row) return;
+
+        const focused = row.querySelector('.episode-card.focused');
+        if (!focused) return;
+
+        const rowRect = row.getBoundingClientRect();
+        const cardRect = focused.getBoundingClientRect();
+
+        // Centra la card enfocada dentro del row horizontalmente
+        const scrollTarget = row.scrollLeft + cardRect.left - rowRect.left
+            - (rowRect.width / 2) + (cardRect.width / 2);
+
+        row.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+    }, [detailsActiveIndex, view]);
 
     const renderPagination = () => {
         const items = [];
@@ -1596,7 +1615,7 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="episodes-row">
+                        <div className="episodes-row" ref={episodesRowRef}>
                             {(details.episodes || [])
                                 .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
                                 .sort((a, b) => {

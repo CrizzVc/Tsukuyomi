@@ -5,8 +5,10 @@ const { animeProvider } = require('./services/providers/animeProvider');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1390,
+    height: 850,
+    minWidth: 1390,
+    minHeight: 890,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
