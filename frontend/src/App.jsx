@@ -47,6 +47,8 @@ function App() {
         const saved = localStorage.getItem('profiles');
         return saved ? JSON.parse(saved) : DEFAULT_PROFILES;
     });
+    const [theme, setTheme] = useState(() => localStorage.getItem('app_theme') || 'cyber');
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const episodesRowRef = useRef(null);
     const [activeProfile, setActiveProfile] = useState(null);
     const [editingProfile, setEditingProfile] = useState(null);
@@ -114,6 +116,11 @@ function App() {
         }
         touchStartX.current = null;
     };
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('app_theme', theme);
+    }, [theme]);
 
     useEffect(() => {
         if (view !== STATES.EXTENSIONS_MODAL) {
@@ -893,7 +900,7 @@ function App() {
                 .details-episodes-section .episode-card:hover,
                 .details-episodes-section .episode-card.focused {
                     border-color: var(--primary-color);
-                    box-shadow: 0 4px 20px rgba(0,229,255,0.25);
+                    box-shadow: 0 4px 20px rgba(var(--glow-rgb), 0.25);
                 }
 
                 .details-episodes-section .episode-thumbnail-container {
@@ -1193,6 +1200,17 @@ function App() {
                                     {EXTENSIONS.find(e => e.id === currentSource)?.icon}
                                 </div>
                             </div>
+
+                            <button
+                                className="settings-btn"
+                                onClick={() => setIsSettingsOpen(true)}
+                                title="Ajustes"
+                                aria-label="Ajustes"
+                            >
+                                <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+                                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
+                                </svg>
+                            </button>
                         </div>
                     </header>
 
@@ -1780,6 +1798,169 @@ function App() {
                         {/* Close button */}
                         <button className="stellar-close-btn" onClick={() => setView(previousView)}>✕</button>
 
+                    </div>
+                </div>
+            )}
+
+            {/* Settings Panel */}
+            {isSettingsOpen && (
+                <div
+                    className="settings-panel-overlay"
+                    onClick={(e) => e.target.className === 'settings-panel-overlay' && setIsSettingsOpen(false)}
+                >
+                    <div className="settings-panel">
+                        <div className="settings-panel-header">
+                            <h2 className="settings-panel-title">Ajustes</h2>
+                            <button className="settings-close-btn" onClick={() => setIsSettingsOpen(false)}>✕</button>
+                        </div>
+
+                        <div className="settings-section-label">Tema de color</div>
+                        <div className="theme-grid">
+                            {/* Tema Cyber */}
+                            <div
+                                className={`theme-card ${theme === 'cyber' ? 'active' : ''}`}
+                                style={{ background: theme === 'cyber' ? 'rgba(0,229,255,0.08)' : 'rgba(255,255,255,0.04)', borderColor: theme === 'cyber' ? '#00E5FF' : 'rgba(255,255,255,0.08)' }}
+                                onClick={() => setTheme('cyber')}
+                            >
+                                {theme === 'cyber' && <div className="theme-active-badge">✓</div>}
+                                <div className="theme-card-preview" style={{ background: '#141416' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#00E5FF' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.15)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.1)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#00E5FF', opacity: 0.7 }}></div>
+                                </div>
+                                <div className="theme-card-name">Cyber</div>
+                                <div className="theme-card-desc">Cyan · Oscuro frío</div>
+                            </div>
+
+                            {/* Tema Ember */}
+                            <div
+                                className={`theme-card ${theme === 'ember' ? 'active' : ''}`}
+                                style={{ background: theme === 'ember' ? 'rgba(184,74,50,0.12)' : 'rgba(255,255,255,0.04)', borderColor: theme === 'ember' ? '#b84a32' : 'rgba(255,255,255,0.08)' }}
+                                onClick={() => setTheme('ember')}
+                            >
+                                {theme === 'ember' && <div className="theme-active-badge" style={{ background: '#b84a32' }}>✓</div>}
+                                <div className="theme-card-preview" style={{ background: '#1c1714' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#b84a32' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(232,213,181,0.2)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(232,213,181,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#b84a32', opacity: 0.85 }}></div>
+                                </div>
+                                <div className="theme-card-name">Ember</div>
+                                <div className="theme-card-desc">Óxido · Negro cálido</div>
+                            </div>
+
+                            {/* Tema Glitch */}
+                            <div
+                                className={`theme-card ${theme === 'glitch' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'glitch' ? 'rgba(77,45,255,0.14)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'glitch' ? '#4d2dff' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('glitch')}
+                            >
+                                {theme === 'glitch' && (
+                                    <div className="theme-active-badge" style={{ background: '#4d2dff' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#0a0a0a' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#4d2dff' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#c8ff00', opacity: 0.9 }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 26, width: 6, height: 14, borderRadius: 2, background: '#4d2dff', opacity: 0.8 }}></div>
+                                </div>
+                                <div className="theme-card-name">Glitch</div>
+                                <div className="theme-card-desc">Violeta · Negro puro</div>
+                            </div>
+
+                            {/* Tema Crimson */}
+                            <div
+                                className={`theme-card ${theme === 'crimson' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'crimson' ? 'rgba(212,22,60,0.12)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'crimson' ? '#d4163c' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('crimson')}
+                            >
+                                {theme === 'crimson' && (
+                                    <div className="theme-active-badge" style={{ background: '#d4163c' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#111113' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#d4163c' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(232,221,234,0.15)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(232,221,234,0.08)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#d4163c', opacity: 0.9 }}></div>
+                                </div>
+                                <div className="theme-card-name">Crimson</div>
+                                <div className="theme-card-desc">Rojo · Negro grafito</div>
+                            </div>
+
+                            {/* Tema Aqua */}
+                            <div
+                                className={`theme-card ${theme === 'aqua' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'aqua' ? 'rgba(39,233,181,0.1)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'aqua' ? '#27e9b5' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('aqua')}
+                            >
+                                {theme === 'aqua' && (
+                                    <div className="theme-active-badge" style={{ background: '#27e9b5', color: '#051824' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#051824' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#27e9b5' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#27e9b5', opacity: 0.9 }}></div>
+                                </div>
+                                <div className="theme-card-name">Aqua</div>
+                                <div className="theme-card-desc">Menta · Azul marino</div>
+                            </div>
+
+                            {/* Tema Nova */}
+                            <div
+                                className={`theme-card ${theme === 'green' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'green' ? 'rgba(33, 237, 169, 0.12)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'green' ? '#21ed76' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('green')}
+                            >
+                                {theme === 'green' && (
+                                    <div className="theme-active-badge" style={{ background: '#21ed76' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#111419' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#21ed76' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#21ed76', opacity: 0.9 }}></div>
+                                </div>
+                                <div className="theme-card-name">green</div>
+                                <div className="theme-card-desc">Verde · Negro azulado</div>
+                            </div>
+
+                            {/* Tema Blueprint */}
+                            <div
+                                className={`theme-card ${theme === 'blueprint' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'blueprint' ? 'rgba(74,108,247,0.1)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'blueprint' ? '#4a6cf7' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('blueprint')}
+                            >
+                                {theme === 'blueprint' && (
+                                    <div className="theme-active-badge" style={{ background: '#4a6cf7' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#f0ede6' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#4a6cf7' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(26,31,78,0.2)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(26,31,78,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#4a6cf7', opacity: 0.85 }}></div>
+                                </div>
+                                <div className="theme-card-name" style={{ color: 'white' }}>Blueprint</div>
+                                <div className="theme-card-desc">Azul · Fondo claro</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

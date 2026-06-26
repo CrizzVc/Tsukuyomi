@@ -1,12 +1,430 @@
 /* CSS for Tsukuyomi Electron App - Inspired by webOS TV Cinematic UI */
 
-:root {
+/* ══════════════════════════════════════════
+   TEMA 1 — Cyber (default, cyan)
+   ══════════════════════════════════════════ */
+:root,
+[data-theme="cyber"] {
     --primary-color: #00E5FF;
-    /* Cyan glow */
     --bg-color: #141416;
     --text-color: #ffffff;
     --text-dim: #6a6a70;
     --card-width: 200px;
+    /* derived surfaces */
+    --surface-1: #1a1a24;
+    --surface-2: #1f1f25;
+    --surface-3: #2a2a35;
+    --search-bg: #0a0a0e;
+    --glow-rgb: 0, 229, 255;
+}
+
+/* ══════════════════════════════════════════
+   TEMA 2 — Ember
+   Paleta: fondo negro cálido #1c1714
+   acento rojo óxido #b84a32, texto crema #e8d5b5
+   ══════════════════════════════════════════ */
+[data-theme="ember"] {
+    --primary-color: #b84a32;
+    --bg-color: #1c1714;
+    --text-color: #e8d5b5;
+    --text-dim: #7a6560;
+    --card-width: 200px;
+    /* derived surfaces */
+    --surface-1: #251e1a;
+    --surface-2: #2c2420;
+    --surface-3: #362a25;
+    --search-bg: #141110;
+    --glow-rgb: 184, 74, 50;
+}
+
+/* ══════════════════════════════════════════
+   TEMA 3 — Blueprint
+   Fondo crema #f0ede6, acento azul #4a6cf7
+   texto marino #1a1f4e
+   ══════════════════════════════════════════ */
+[data-theme="blueprint"] {
+    --primary-color: #4a6cf7;
+    --bg-color: #e6e6e6;
+    --text-color: #e6e6e6;
+    --text-dim: #7a82a8;
+    --card-width: 200px;
+    --surface-1: #e4e0d8;
+    --surface-2: #d8d4cc;
+    --surface-3: #ccc8c0;
+    --search-bg: #eae7e0;
+    --glow-rgb: 74, 108, 247;
+}
+
+/* ══════════════════════════════════════════
+   TEMA 4 — Glitch
+   Fondo negro #0a0a0a, violeta #4d2dff
+   acento neón #c8ff00
+   ══════════════════════════════════════════ */
+[data-theme="glitch"] {
+    --primary-color: #4d2dff;
+    --bg-color: #0a0a0a;
+    --text-color: #ffffff;
+    --text-dim: #5a5a7a;
+    --card-width: 200px;
+    --surface-1: #111118;
+    --surface-2: #16161f;
+    --surface-3: #1e1e2e;
+    --search-bg: #07070d;
+    --glow-rgb: 77, 45, 255;
+}
+
+/* ══════════════════════════════════════════
+   TEMA 5 — Crimson
+   Fondo grafito #1a1a1e, acento rojo #d4163c
+   ══════════════════════════════════════════ */
+[data-theme="crimson"] {
+    --primary-color: #d4163c;
+    --bg-color: #111113;
+    --text-color: #e8ddea;
+    --text-dim: #6a6070;
+    --card-width: 200px;
+    --surface-1: #1c1c20;
+    --surface-2: #232328;
+    --surface-3: #2e2e34;
+    --search-bg: #0d0d0f;
+    --glow-rgb: 212, 22, 60;
+}
+
+/* ══════════════════════════════════════════
+   TEMA 6 — Aqua
+   Fondo azul marino #051824, menta #27e9b5
+   ══════════════════════════════════════════ */
+[data-theme="aqua"] {
+    --primary-color: #27e9b5;
+    --bg-color: #051824;
+    --text-color: #ffffff;
+    --text-dim: #3b5265;
+    --card-width: 200px;
+    --surface-1: #0d2233;
+    --surface-2: #162936;
+    --surface-3: #1e3545;
+    --search-bg: #030f18;
+    --glow-rgb: 39, 233, 181;
+}
+
+/* ══════════════════════════════════════════
+   TEMA 7 — Green
+   Fondo negro verdoso #101409, rosa #ed2161
+   ══════════════════════════════════════════ */
+[data-theme="green"] {
+    --primary-color: #21ed76;
+    --bg-color: #111419;
+    --text-color: #ffffff;
+    --text-dim: #5a5f4a;
+    --card-width: 200px;
+    --surface-1: #181c10;
+    --surface-2: #15241e;
+    --surface-3: #193524;
+    --search-bg: #0b0e06;
+    --glow-rgb: 33, 237, 118;
+}
+
+/* Blueprint theme overrides for light surfaces */
+[data-theme="blueprint"] .settings-panel-title,
+[data-theme="blueprint"] .settings-section-label,
+[data-theme="blueprint"] .theme-card-name,
+[data-theme="blueprint"] .theme-card-desc {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .settings-close-btn {
+    color: #1a1f4e;
+    border-color: rgba(26, 31, 78, 0.2);
+    background: rgba(26, 31, 78, 0.06);
+}
+
+[data-theme="blueprint"] .search-label {
+    color: #1a1f4e98 !important;
+}
+
+
+[data-theme="blueprint"] .search-bar-expandable.expanded .search-inline-input,
+[data-theme="blueprint"] .search-bar-expandable .search-clear-btn {
+    color: #1a1f4e !important;
+}
+
+[data-theme="blueprint"] .search-bar-expandable {
+    color: #1a1f4e !important;
+    border-color: rgba(26, 31, 78, 0.2);
+    background: rgba(26, 31, 78, 0.06);
+}
+
+[data-theme="blueprint"] .search-bar-expandable.expanded {
+    color: #1a1f4e !important;
+    border-color: rgba(26, 31, 78, 0.2);
+    background: rgba(26, 31, 78, 0.06);
+}
+
+[data-theme="blueprint"] .settings-close-btn:hover {
+    background: rgba(255, 80, 80, 0.15);
+    color: #c0392b;
+    border-color: rgba(255, 80, 80, 0.3);
+}
+
+[data-theme="blueprint"] .settings-btn {
+    color: #1a1f4e;
+    border-color: rgba(26, 31, 78, 0.2);
+    background: rgba(26, 31, 78, 0.05);
+}
+
+[data-theme="blueprint"] .settings-btn:hover {
+    background: rgba(26, 31, 78, 0.12);
+    border-color: rgba(26, 31, 78, 0.35);
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .nav-link {
+    color: #7a82a8;
+}
+
+[data-theme="blueprint"] .nav-link:hover,
+[data-theme="blueprint"] .nav-link.focused {
+    color: #1a1f4e;
+    background: rgba(26, 31, 78, 0.08);
+}
+
+[data-theme="blueprint"] .section-title {
+    color: #7a82a8;
+}
+
+[data-theme="blueprint"] .modal-box {
+    border-color: rgba(26, 31, 78, 0.12);
+}
+
+[data-theme="blueprint"] .modal-btn {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .search-pill {
+    color: #7a82a8;
+}
+
+[data-theme="blueprint"] .tv-search-overlay,
+[data-theme="blueprint"] .tv-search-left {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .tv-query-text,
+[data-theme="blueprint"] .tv-featured-title,
+[data-theme="blueprint"] .tv-empty-title {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .tv-key {
+    color: #1a1f4e;
+    background: rgba(26, 31, 78, 0.06);
+    border-color: rgba(26, 31, 78, 0.12);
+}
+
+[data-theme="blueprint"] .tv-key:hover {
+    background: rgba(74, 108, 247, 0.12);
+}
+
+[data-theme="blueprint"] .anime-card-v2-title,
+[data-theme="blueprint"] .anime-card-v2-title:hover {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .card-title,
+[data-theme="blueprint"] .profile-name {
+    color: #fcfcfc;
+}
+
+[data-theme="blueprint"] .side-panel h2 {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .edit-field label {
+    color: #7a82a8;
+}
+
+[data-theme="blueprint"] .edit-field input {
+    color: #1a1f4e;
+    background: rgba(26, 31, 78, 0.05);
+    border-color: rgba(26, 31, 78, 0.15);
+}
+
+[data-theme="blueprint"] .search-input,
+[data-theme="blueprint"] .episode-search-input {
+    color: #1a1f4e;
+}
+
+[data-theme="blueprint"] .profiles-title {
+    color: #1a1f4e;
+}
+
+/* ══════════════════════════════════════════
+   SETTINGS PANEL
+   ══════════════════════════════════════════ */
+.settings-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 2000;
+    display: flex;
+    justify-content: flex-end;
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.2s ease;
+}
+
+.settings-panel {
+    width: 380px;
+    background: var(--surface-1);
+    height: 100%;
+    padding: 40px 36px;
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    animation: slideInRight 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow-y: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.settings-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 36px;
+}
+
+.settings-panel-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.3px;
+    margin: 0;
+}
+
+.settings-close-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.settings-close-btn:hover {
+    background: rgba(255, 80, 80, 0.18);
+    color: white;
+    border-color: rgba(255, 80, 80, 0.35);
+    transform: rotate(90deg);
+}
+
+.settings-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+}
+
+.theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.theme-card {
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-card:hover {
+    transform: translateY(-2px);
+}
+
+.theme-card.active {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(var(--glow-rgb), 0.3);
+}
+
+.theme-card-preview {
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-card-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.theme-card-desc {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.theme-active-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: #000;
+    font-weight: 900;
+}
+
+/* Settings gear button in header */
+.settings-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: rotate(30deg);
 }
 
 * {
@@ -106,7 +524,7 @@ header {
     display: flex;
     align-items: center;
     gap: 10px;
-    background-color: #1f1f25;
+    background-color: var(--surface-2);
     padding: 10px 25px;
     border-radius: 30px;
     color: #a0a0a0;
@@ -117,7 +535,7 @@ header {
 
 .search-pill:hover,
 .search-pill.focused {
-    background-color: #2a2a35;
+    background-color: var(--surface-3);
     color: white;
 }
 
@@ -386,7 +804,7 @@ header {
 }
 
 .modal-box {
-    background-color: #1a1a24;
+    background-color: var(--surface-1);
     padding: 30px;
     border-radius: 20px;
     width: 90%;
@@ -427,7 +845,7 @@ header {
     width: 100%;
     padding: 15px;
     margin-top: 15px;
-    background: #2a2a35;
+    background: var(--surface-3);
     border: none;
     border-radius: 10px;
     color: white;
@@ -753,7 +1171,7 @@ header {
 .episode-card.focused {
     /* transform: scale(1.01); */
     border-color: var(--primary-color);
-    box-shadow: 0 8px 25px rgba(0, 229, 255, 0.25);
+    /* box-shadow: 0 8px 25px rgba(var(--glow-rgb), 0.25); */
     z-index: 5;
 }
 
@@ -1215,7 +1633,7 @@ header {
 
 .side-panel {
     width: 400px;
-    background: #1a1a1c;
+    background: var(--surface-1);
     height: 100%;
     padding: 40px;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
@@ -1378,7 +1796,7 @@ header {
 }
 
 .search-card {
-    background: #2a2a2d;
+    background: var(--surface-3);
     border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
@@ -1783,7 +2201,7 @@ header {
     transform: translateY(-5px);
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--primary-color);
-    box-shadow: 0 10px 20px rgba(0, 229, 255, 0.15);
+    box-shadow: 0 10px 20px rgba(var(--glow-rgb), 0.15);
 }
 
 .news-img {
@@ -1871,7 +2289,7 @@ header {
 
 .news-key-input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    box-shadow: 0 0 10px rgba(var(--glow-rgb), 0.2);
 }
 
 /* Empty servers (no playback options) styling */
@@ -1906,13 +2324,13 @@ header {
     100% {
         transform: scale(1);
         opacity: 0.8;
-        filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.3));
+        filter: drop-shadow(0 0 10px rgba(var(--glow-rgb), 0.3));
     }
 
     50% {
         transform: scale(1.05);
         opacity: 1;
-        filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.7));
+        filter: drop-shadow(0 0 25px rgba(var(--glow-rgb), 0.7));
     }
 }
 
@@ -2056,7 +2474,7 @@ header {
     50% {
         transform: scale(1.08) rotate(5deg);
         opacity: 1;
-        filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.6));
+        filter: drop-shadow(0 0 25px rgba(var(--glow-rgb), 0.6));
     }
 }
 
@@ -2109,7 +2527,7 @@ header {
     color: white;
     background: var(--primary-color);
     border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.35);
+    box-shadow: 0 0 15px rgba(var(--glow-rgb), 0.35);
 }
 
 .recent-anime-grid {
@@ -2152,7 +2570,7 @@ header {
 .anime-card-v2:hover .anime-card-v2-img-container,
 .anime-card-v2.focused .anime-card-v2-img-container {
     border-color: var(--primary-color);
-    box-shadow: 0 0 25px rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 25px rgba(var(--glow-rgb), 0.5);
 }
 
 .anime-card-v2:hover .anime-card-v2-img {
@@ -2263,7 +2681,7 @@ header {
 .details-close-btn:hover {
     background: rgba(255, 255, 255, 0.15);
     border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+    /* box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); */
     transform: scale(1.08);
 }
 
@@ -2298,14 +2716,14 @@ header {
         border-radius: 10px;
         gap: 16px;
         height: auto;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); */
     }
 
     .episode-card:hover,
     .episode-card.focused {
         background: rgba(255, 255, 255, 0.08);
         border-color: var(--primary-color);
-        box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        /* box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); */
     }
 
     .episode-thumbnail-container {
@@ -2352,7 +2770,7 @@ header {
     inset: 0;
     z-index: 500;
     display: flex;
-    background-color: #0e0e12;
+    background-color: var(--bg-color);
     animation: fadeIn 0.25s ease;
     overflow: hidden;
 }
@@ -2365,7 +2783,7 @@ header {
     flex-direction: column;
     padding: 36px 28px 28px 36px;
     border-right: 1px solid rgba(255, 255, 255, 0.06);
-    background: #0a0a0e;
+    background: var(--search-bg);
 }
 
 /* Query display */
@@ -2645,7 +3063,7 @@ header {
 .tv-result-card.focused {
     border-color: var(--primary-color);
     transform: scale(1.04);
-    box-shadow: 0 6px 24px rgba(0, 229, 255, 0.2);
+    box-shadow: 0 6px 24px rgba(var(--glow-rgb), 0.2);
 }
 
 .tv-result-img-wrap {
