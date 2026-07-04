@@ -55,7 +55,7 @@ function App() {
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
     const [view, setView] = useState(STATES.PROFILES);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
-    const [currentSource, setCurrentSource] = useState('animeflv');
+    const [currentSource, setCurrentSource] = useState('animeav1');
     const [latest, setLatest] = useState([]);
     const [gridAnimes, setGridAnimes] = useState([]); // First 24 from catalog for the home grid
     const [catalogResults, setCatalogResults] = useState([]);
@@ -71,6 +71,7 @@ function App() {
     const [status, setStatus] = useState('');
     const [clock, setClock] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
     const [previousView, setPreviousView] = useState(STATES.HOME);
+    const [detailsPreviousView, setDetailsPreviousView] = useState(STATES.HOME);
 
     // News API states
     const [newsApiKey, setNewsApiKey] = useState(() => localStorage.getItem('news_api_key') || '');
@@ -214,6 +215,9 @@ function App() {
 
     const openDetails = async (anime) => {
         setStatus('Cargando detalles...');
+        if (view !== STATES.DETAILS) {
+            setDetailsPreviousView(view);
+        }
         try {
             const animeSource = anime.source || currentSource;
             setCurrentSource(animeSource);
@@ -476,7 +480,7 @@ function App() {
     const goBack = () => {
         if (view === STATES.PLAYER) setView(STATES.SERVER_MODAL);
         else if (view === STATES.SERVER_MODAL) setView(details ? STATES.DETAILS : STATES.HOME);
-        else if (view === STATES.DETAILS) setView(catalogResults.length > 0 && view !== STATES.HOME ? STATES.CATALOG : STATES.HOME);
+        else if (view === STATES.DETAILS) setView(detailsPreviousView);
         else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
         else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
@@ -1252,9 +1256,13 @@ function App() {
                                                 className={`card large-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'expanded' : ''}`}
                                                 onClick={() => { setRowIndex(0); setColIndex(latest.length); loadCatalog(1); }}
                                             >
-                                                <div className="card-overlay-gradient"></div>
                                                 <div className="see-more-content">
-                                                    <div className="see-more-icon"><span>+</span></div>
+                                                    <div className="see-more-icon">
+                                                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                                        </svg>
+                                                    </div>
                                                     <div className="see-more-text">Ver Catálogo</div>
                                                 </div>
                                             </div>
