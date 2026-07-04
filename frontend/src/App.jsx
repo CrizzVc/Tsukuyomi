@@ -19,6 +19,7 @@ const STATES = {
 const EXTENSIONS = [
     { id: 'animeflv', name: 'AnimeFLV', icon: 'AF', color: '#ff8a00' },
     { id: 'animeav1', name: 'AnimeAV1', icon: 'A1', color: '#6366f1' },
+    { id: 'animeonlineninja', name: 'Ninja', icon: 'AN', color: '#ff2a2a' },
     // { id: 'monoschinos', name: 'MonoChinos', icon: 'MC', color: '#00e5ff' },
     // { id: 'tioanime', name: 'TioAnime', icon: 'TA', color: '#ff00e5' }
 ];

@@ -4,14 +4,14 @@ var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).expor
 //#region electron/services/sources/animeflv.js
 var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var axios$6 = require("axios");
-	var cheerio$1 = require("cheerio");
+	var cheerio$2 = require("cheerio");
 	var BASE_URL = "https://www4.animeflv.net";
 	module.exports = {
 		name: "AnimeFLV",
 		id: "animeflv",
 		getLatest: async () => {
 			const response = await axios$6.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const $ = cheerio$2.load(response.data);
 			const results = [];
 			$(".ListEpisodios li a").each((index, element) => {
 				const urlPath = $(element).attr("href");
@@ -44,11 +44,11 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			let animeUrl = url;
 			if (url.includes("/ver/")) {
 				const epResponse = await axios$6.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-				const animePath = cheerio$1.load(epResponse.data)(".CapNvLs").attr("href");
+				const animePath = cheerio$2.load(epResponse.data)(".CapNvLs").attr("href");
 				if (animePath) animeUrl = BASE_URL + animePath;
 			}
 			const response = await axios$6.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const $ = cheerio$2.load(response.data);
 			const title = $("h1.Title").text().trim();
 			const synopsis = $(".Description p").text().trim();
 			let cover = $(".AnimeCover .Image figure img").attr("src");
@@ -102,7 +102,7 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		},
 		getServers: async (url) => {
 			const response = await axios$6.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const $ = cheerio$2.load(response.data);
 			let servers = [];
 			$("script").each((index, element) => {
 				const scriptContent = $(element).html();
@@ -118,7 +118,7 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		},
 		search: async (query) => {
 			const response = await axios$6.get(`${BASE_URL}/browse?q=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const $ = cheerio$2.load(response.data);
 			const results = [];
 			$(".ListAnimes li article").each((i, el) => {
 				const title = $(el).find("h3.Title").text().trim();
@@ -135,7 +135,7 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		},
 		browse: async (page = 1) => {
 			const response = await axios$6.get(`${BASE_URL}/browse?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const $ = cheerio$2.load(response.data);
 			const results = [];
 			$(".ListAnimes li article").each((i, el) => {
 				const title = $(el).find("h3.Title").text().trim();
@@ -156,14 +156,14 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#region electron/services/sources/animeav1.js
 var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var axios$5 = require("axios");
-	var cheerio = require("cheerio");
+	var cheerio$1 = require("cheerio");
 	var BASE_URL = "https://animeav1.com";
 	module.exports = {
 		name: "AnimeAV1",
 		id: "animeav1",
 		getLatest: async () => {
 			const response = await axios$5.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio.load(response.data);
+			const $ = cheerio$1.load(response.data);
 			const results = [];
 			$(".grid.grid-cols-2").first().children().each((i, el) => {
 				const link = $(el).find("a[href*=\"/media/\"]").first();
@@ -194,7 +194,7 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			let animeUrl = url;
 			if (parts.length > 4) animeUrl = BASE_URL + "/media/" + parts[parts.length - 2];
 			const response = await axios$5.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio.load(response.data);
+			const $ = cheerio$1.load(response.data);
 			const title = $("h1").first().text().trim();
 			const synopsis = $(".text-subs.leading-relaxed").text().trim() || $("p").first().text().trim();
 			const cover = $("img[alt*=\"Poster\"]").attr("src") || $("img[alt*=\"Poster\"]").attr("data-src") || $("img").eq(2).attr("src");
@@ -260,7 +260,7 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		},
 		search: async (query) => {
 			const response = await axios$5.get(`${BASE_URL}/catalogo?search=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio.load(response.data);
+			const $ = cheerio$1.load(response.data);
 			const results = [];
 			$(".grid.grid-cols-2").last().children().each((i, el) => {
 				const link = $(el).find("a[href*=\"/media/\"]").first();
@@ -276,7 +276,7 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		},
 		browse: async (page = 1) => {
 			const response = await axios$5.get(`${BASE_URL}/catalogo?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio.load(response.data);
+			const $ = cheerio$1.load(response.data);
 			const results = [];
 			$(".grid.grid-cols-2").last().children().each((i, el) => {
 				const link = $(el).find("a[href*=\"/media/\"]").first();
@@ -293,13 +293,257 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	};
 }));
 //#endregion
+//#region electron/services/cfScraper.js
+var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	/**
+	* cfScraper.js – Uses a hidden Electron BrowserWindow to bypass Cloudflare
+	* challenges by loading pages in a real Chromium engine.
+	* 
+	* Cookies are persisted in a dedicated session partition so that after the
+	* first successful challenge solve, subsequent requests are usually instant.
+	*/
+	var { app: app$1, BrowserWindow: BrowserWindow$1, session: session$1 } = require("electron");
+	var CF_TITLES = [
+		"just a moment",
+		"un momento",
+		"attention required",
+		"cloudflare"
+	];
+	var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+	/**
+	* Fetch the fully-rendered HTML of a URL using a hidden BrowserWindow.
+	* If Cloudflare is detected, the window is shown so the user can solve the
+	* interactive challenge manually. Cookies are persisted for reuse.
+	*
+	* @param {string} url - The URL to fetch.
+	* @param {object} [opts] - Options.
+	* @param {number} [opts.timeout=30000] - Max wait time in ms.
+	* @param {string} [opts.waitForSelector] - CSS selector to wait for before resolving.
+	* @returns {Promise<string>} Fully-rendered HTML of the page.
+	*/
+	function fetchWithCF(url, opts = {}) {
+		const { timeout = 3e4, waitForSelector } = opts;
+		return new Promise(async (resolve, reject) => {
+			if (!app$1.isReady()) await app$1.whenReady();
+			let resolved = false;
+			let pollTimer = null;
+			let timeoutTimer = null;
+			const win = new BrowserWindow$1({
+				show: false,
+				width: 1024,
+				height: 768,
+				webPreferences: {
+					nodeIntegration: false,
+					contextIsolation: true,
+					partition: "persist:animeonlineninja"
+				}
+			});
+			const cleanup = () => {
+				if (pollTimer) clearInterval(pollTimer);
+				if (timeoutTimer) clearTimeout(timeoutTimer);
+				if (win && !win.isDestroyed()) win.close();
+			};
+			const done = (html) => {
+				if (resolved) return;
+				resolved = true;
+				cleanup();
+				resolve(html);
+			};
+			const fail = (err) => {
+				if (resolved) return;
+				resolved = true;
+				cleanup();
+				reject(err);
+			};
+			timeoutTimer = setTimeout(() => {
+				fail(/* @__PURE__ */ new Error(`cfScraper timeout after ${timeout}ms for ${url}`));
+			}, timeout);
+			win.webContents.on("did-finish-load", () => {
+				if (resolved) return;
+				if (pollTimer) clearInterval(pollTimer);
+				pollTimer = setInterval(async () => {
+					if (resolved) return;
+					try {
+						const title = await win.webContents.executeJavaScript("document.title");
+						if (CF_TITLES.some((t) => title.toLowerCase().includes(t))) {
+							if (!win.isVisible()) {
+								console.log("[cfScraper] Cloudflare challenge detected, showing window for user.");
+								win.show();
+								win.focus();
+							}
+							return;
+						}
+						if (waitForSelector) {
+							if (!await win.webContents.executeJavaScript(`!!document.querySelector('${waitForSelector.replace(/'/g, "\\'")}')`)) return;
+						}
+						done(await win.webContents.executeJavaScript("document.documentElement.outerHTML"));
+					} catch (e) {}
+				}, 1e3);
+			});
+			win.webContents.on("did-fail-load", (_event, errorCode, errorDescription) => {
+				if (errorCode === -3) return;
+				fail(/* @__PURE__ */ new Error(`did-fail-load: ${errorCode} ${errorDescription}`));
+			});
+			win.loadURL(url, { userAgent: USER_AGENT });
+		});
+	}
+	module.exports = { fetchWithCF };
+}));
+//#endregion
+//#region electron/services/sources/animeonlineninja.js
+var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var cheerio = require("cheerio");
+	var { fetchWithCF } = require_cfScraper();
+	var BASE_URL = "https://ww3.animeonline.ninja";
+	module.exports = {
+		name: "AnimeOnline Ninja",
+		id: "animeonlineninja",
+		getLatest: async () => {
+			const html = await fetchWithCF(`${BASE_URL}/inicio/`, { waitForSelector: "article.episodes" });
+			const $ = cheerio.load(html);
+			const results = [];
+			$("article.episodes").each((i, el) => {
+				const url = $(el).find("a").attr("href");
+				let image = $(el).find("img").attr("data-src") || $(el).find("img").attr("src");
+				const title = $(el).find(".data h3").text().trim();
+				let episodeText = $(el).find(".epiposter h4").text().trim();
+				episodeText = episodeText.replace("Episodio", "").trim();
+				if (url) results.push({
+					title,
+					episode: episodeText ? `Episodio ${episodeText}` : "",
+					image,
+					url,
+					animeUrl: url
+				});
+			});
+			return results;
+		},
+		getDetails: async (url) => {
+			const html = await fetchWithCF(url, { waitForSelector: "#seasons, .sheader" });
+			const $ = cheerio.load(html);
+			const title = $(".sheader .data h1").text().trim() || $("h1").first().text().trim();
+			const synopsis = $(".wp-content p").text().trim();
+			let cover = $(".sheader .poster img").attr("data-src") || $(".sheader .poster img").attr("src");
+			const status = $(".status .text").text().trim() || $("span:contains(\"Estado\")").next().text().trim();
+			const genres = [];
+			$(".sgeneros a").each((i, el) => {
+				genres.push($(el).text().trim());
+			});
+			const related = [];
+			const episodes = [];
+			$("#seasons .se-c .episodios li").each((i, el) => {
+				let epNum = $(el).find(".numerando").text().trim();
+				if (epNum.includes("-")) epNum = epNum.split("-")[1].trim();
+				const epUrl = $(el).find(".episodiotitle a").attr("href");
+				let image = $(el).find(".imagen img").attr("data-src") || $(el).find(".imagen img").attr("src");
+				if (epUrl) episodes.push({
+					episode: epNum,
+					url: epUrl,
+					image
+				});
+			});
+			return {
+				title,
+				synopsis,
+				cover,
+				status,
+				genres,
+				related,
+				episodes
+			};
+		},
+		getServers: async (url) => {
+			const html = await fetchWithCF(url, { waitForSelector: "#playeroptions" });
+			const $ = cheerio.load(html);
+			const servers = [];
+			$("#playeroptions ul li").each((i, el) => {
+				const serverName = $(el).find(".title").text().trim();
+				const dataType = $(el).attr("data-type");
+				const dataPost = $(el).attr("data-post");
+				const dataNume = $(el).attr("data-nume");
+				if (dataPost && dataNume) servers.push({
+					title: serverName,
+					resolve: {
+						type: dataType,
+						post: dataPost,
+						nume: dataNume
+					}
+				});
+			});
+			for (const s of servers) if (s.resolve) try {
+				const formData = new URLSearchParams();
+				formData.append("action", "doo_player_ajax");
+				formData.append("post", s.resolve.post);
+				formData.append("nume", s.resolve.nume);
+				formData.append("type", s.resolve.type);
+				const ajaxUrl = `${BASE_URL}/wp-admin/admin-ajax.php`;
+				`${ajaxUrl}${formData.toString()}`;
+				const { session: electronSession } = require("electron");
+				const cookieStr = (await electronSession.fromPartition("persist:animeonlineninja").cookies.get({ domain: ".animeonline.ninja" })).map((c) => `${c.name}=${c.value}`).join("; ");
+				const pRes = await require("axios").post(ajaxUrl, formData.toString(), { headers: {
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+					"Content-Type": "application/x-www-form-urlencoded",
+					"Referer": url,
+					"Cookie": cookieStr
+				} });
+				if (pRes.data && pRes.data.embed_url) {
+					const embedHtml = pRes.data.embed_url;
+					const iframeSrcMatch = embedHtml.match(/src="([^"]+)"/);
+					if (iframeSrcMatch) s.code = iframeSrcMatch[1];
+					else s.code = embedHtml;
+				}
+			} catch (e) {
+				console.log(`[AnimeOnlineNinja] Failed to resolve server ${s.title}: ${e.message}`);
+			}
+			return servers.filter((s) => s.code).map((s) => ({
+				title: s.title,
+				code: s.code
+			}));
+		},
+		search: async (query) => {
+			const html = await fetchWithCF(`${BASE_URL}/?s=${encodeURIComponent(query)}`, { waitForSelector: "article.item" });
+			const $ = cheerio.load(html);
+			const results = [];
+			$("article.item").each((i, el) => {
+				const url = $(el).find("a").attr("href");
+				let image = $(el).find("img").attr("data-src") || $(el).find("img").attr("src");
+				const title = $(el).find(".data h3").text().trim() || $(el).find(".data h4").text().trim();
+				if (url) results.push({
+					title,
+					image,
+					url
+				});
+			});
+			return results;
+		},
+		browse: async (page = 1) => {
+			const html = await fetchWithCF(`${BASE_URL}/online/page/${page}/`, { waitForSelector: "article.item" });
+			const $ = cheerio.load(html);
+			const results = [];
+			$("article.item").each((i, el) => {
+				const url = $(el).find("a").attr("href");
+				let image = $(el).find("img").attr("data-src") || $(el).find("img").attr("src");
+				const title = $(el).find(".data h3").text().trim() || $(el).find(".data h4").text().trim();
+				if (url) results.push({
+					title,
+					image,
+					url
+				});
+			});
+			return results;
+		}
+	};
+}));
+//#endregion
 //#region electron/services/sources/index.js
 var require_sources = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var animeflv = require_animeflv();
 	var animeav1 = require_animeav1();
+	var animeonlineninja = require_animeonlineninja();
 	var sources = {
 		[animeflv.id]: animeflv,
-		[animeav1.id]: animeav1
+		[animeav1.id]: animeav1,
+		[animeonlineninja.id]: animeonlineninja
 	};
 	module.exports = {
 		getSource: (id) => sources[id || "animeflv"] || sources["animeflv"],
