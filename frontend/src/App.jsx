@@ -106,6 +106,50 @@ function App() {
     const [isEpisodeSearchVisible, setIsEpisodeSearchVisible] = useState(false);
     const [episodeSortOrder, setEpisodeSortOrder] = useState('desc');
 
+    // Watched episodes state (persisted per profile in localStorage)
+    const [watchedEpisodes, setWatchedEpisodes] = useState(() => {
+        try {
+            const saved = localStorage.getItem('watched_episodes');
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
+
+    const getWatchedKey = (animeUrl, epNumber) => `${animeUrl}::ep${epNumber}`;
+
+    const isEpisodeWatched = (animeUrl, epNumber) => {
+        if (!activeProfile) return false;
+        const profileWatched = watchedEpisodes[activeProfile.id] || {};
+        return !!profileWatched[getWatchedKey(animeUrl, epNumber)];
+    };
+
+    const markEpisodeWatched = (animeUrl, epNumber) => {
+        if (!activeProfile) return;
+        setWatchedEpisodes(prev => {
+            const profileWatched = { ...(prev[activeProfile.id] || {}) };
+            profileWatched[getWatchedKey(animeUrl, epNumber)] = Date.now();
+            const next = { ...prev, [activeProfile.id]: profileWatched };
+            localStorage.setItem('watched_episodes', JSON.stringify(next));
+            return next;
+        });
+    };
+
+    const toggleEpisodeWatched = (e, animeUrl, epNumber) => {
+        e.stopPropagation();
+        if (!activeProfile) return;
+        setWatchedEpisodes(prev => {
+            const profileWatched = { ...(prev[activeProfile.id] || {}) };
+            const key = getWatchedKey(animeUrl, epNumber);
+            if (profileWatched[key]) {
+                delete profileWatched[key];
+            } else {
+                profileWatched[key] = Date.now();
+            }
+            const next = { ...prev, [activeProfile.id]: profileWatched };
+            localStorage.setItem('watched_episodes', JSON.stringify(next));
+            return next;
+        });
+    };
+
     const handleTouchStart = (e, row) => {
         touchStartX.current = e.touches[0].clientX;
         if (rowIndex !== row) setRowIndex(row);
@@ -976,6 +1020,47 @@ function App() {
                     border-radius: 5px;
                     z-index: 2;
                 }
+
+                /* Watched episode badge */
+                .episode-watched-badge {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 50%;
+                    background: #22c55e;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 3;
+                    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.45), 0 0 0 2px rgba(255,255,255,0.15);
+                    animation: watchedBadgePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    cursor: pointer;
+                    transition: transform 0.15s ease, background 0.15s ease;
+                }
+                .episode-watched-badge:hover {
+                    transform: scale(1.15);
+                    background: #16a34a;
+                }
+                .episode-watched-badge svg {
+                    width: 16px;
+                    height: 16px;
+                    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+                }
+                @keyframes watchedBadgePop {
+                    0% { transform: scale(0); opacity: 0; }
+                    60% { transform: scale(1.2); opacity: 1; }
+                    100% { transform: scale(1); }
+                }
+                .episode-card.watched-episode {
+                    opacity: 0.7;
+                    transition: opacity 0.3s ease, border-color 0.2s, box-shadow 0.2s;
+                }
+                .episode-card.watched-episode:hover,
+                .episode-card.watched-episode.focused {
+                    opacity: 1;
+                }
                 .episodes-row-wrapper .episodes-header-container {
                     display: flex;
                     align-items: center;
@@ -1694,12 +1779,15 @@ function App() {
                                 .map((ep, idx) => {
                                     const isFocused = detailsActiveIndex === idx;
                                     const epThumb = ep.image || details.backdrop || details.cover;
+                                    const animeUrl = selectedAnime?.url || details?.url || '';
+                                    const watched = isEpisodeWatched(animeUrl, ep.episode);
                                     return (
                                         <div
                                             key={idx}
-                                            className={`episode-card ${isFocused ? 'focused' : ''}`}
+                                            className={`episode-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-episode' : ''}`}
                                             onClick={() => {
                                                 setDetailsActiveIndex(idx);
+                                                markEpisodeWatched(animeUrl, ep.episode);
                                                 openServers(ep.url);
                                             }}
                                         >
@@ -1715,6 +1803,17 @@ function App() {
                                                     }}
                                                 />
                                             </div>
+                                            {watched && (
+                                                <div
+                                                    className="episode-watched-badge"
+                                                    title="Marcar como no visto"
+                                                    onClick={(e) => toggleEpisodeWatched(e, animeUrl, ep.episode)}
+                                                >
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                </div>
+                                            )}
                                             <div className="episode-badge">
                                                 Episodio {ep.episode}
                                             </div>
@@ -2076,10 +2175,14 @@ function App() {
                         episodes={details?.episodes}
                         currentEpisodeIndex={detailsActiveIndex}
                         episodeSortOrder={episodeSortOrder}
+                        animeUrl={selectedAnime?.url || details?.url || ''}
+                        isEpisodeWatched={isEpisodeWatched}
+                        markEpisodeWatched={markEpisodeWatched}
                         onPlayEpisodeIndex={(idx) => {
                             if (details?.episodes && details.episodes[idx]) {
                                 const ep = details.episodes[idx];
                                 setDetailsActiveIndex(idx);
+                                markEpisodeWatched(selectedAnime?.url || details?.url || '', ep.episode);
                                 openServers(ep.url);
                             }
                         }}

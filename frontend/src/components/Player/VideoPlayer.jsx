@@ -13,7 +13,10 @@ const VideoPlayer = ({
     episodes = [],
     currentEpisodeIndex = -1,
     onPlayEpisodeIndex,
-    episodeSortOrder = 'desc'
+    episodeSortOrder = 'desc',
+    animeUrl = '',
+    isEpisodeWatched = () => false,
+    markEpisodeWatched = () => {}
 }) => {
     const videoRef = useRef(null);
     const hlsRef = useRef(null);
@@ -628,6 +631,7 @@ const VideoPlayer = ({
                                         const isActive = idx === focusedEpisodeIndex;
                                         const isCurrent = idx === currentEpisodeIndex;
                                         const epThumb = ep.image;
+                                        const watched = isEpisodeWatched(animeUrl, ep.episode);
                                         return (
                                             <button
                                                 key={idx}
@@ -652,6 +656,13 @@ const VideoPlayer = ({
                                                 ) : (
                                                     <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-xs text-white/40">
                                                         Episodio {ep.episode}
+                                                    </div>
+                                                )}
+                                                {watched && (
+                                                    <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#22c55e] flex items-center justify-center z-10 border border-white/20 shadow-md">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                                        </svg>
                                                     </div>
                                                 )}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-1.5 justify-center">
