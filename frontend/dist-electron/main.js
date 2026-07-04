@@ -309,7 +309,51 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		"attention required",
 		"cloudflare"
 	];
-	var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+	var CLEAN_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+	var STEALTH_JS = `
+    // Remove webdriver flag
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+
+    // Remove Electron-specific globals
+    delete window.process;
+    delete window.require;
+    delete window.__electron_log;
+
+    // Fake plugins (real Chrome has at least a couple)
+    Object.defineProperty(navigator, 'plugins', {
+        get: () => [
+            { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+            { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai' },
+            { name: 'Native Client', filename: 'internal-nacl-plugin' }
+        ]
+    });
+
+    // Fake languages
+    Object.defineProperty(navigator, 'languages', {
+        get: () => ['es-ES', 'es', 'en-US', 'en']
+    });
+
+    // Chrome runtime stub (Turnstile checks for window.chrome)
+    if (!window.chrome) {
+        window.chrome = {
+            runtime: {},
+            loadTimes: function() {},
+            csi: function() {},
+            app: {}
+        };
+    }
+
+    // Permissions API patch
+    const originalQuery = window.navigator.permissions?.query;
+    if (originalQuery) {
+        window.navigator.permissions.query = (parameters) => {
+            if (parameters.name === 'notifications') {
+                return Promise.resolve({ state: Notification.permission });
+            }
+            return originalQuery(parameters);
+        };
+    }
+`;
 	/**
 	* Fetch the fully-rendered HTML of a URL using a hidden BrowserWindow.
 	* If Cloudflare is detected, the window is shown so the user can solve the
@@ -317,27 +361,34 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	*
 	* @param {string} url - The URL to fetch.
 	* @param {object} [opts] - Options.
-	* @param {number} [opts.timeout=30000] - Max wait time in ms.
+	* @param {number} [opts.timeout=45000] - Max wait time in ms.
 	* @param {string} [opts.waitForSelector] - CSS selector to wait for before resolving.
 	* @returns {Promise<string>} Fully-rendered HTML of the page.
 	*/
 	function fetchWithCF(url, opts = {}) {
-		const { timeout = 3e4, waitForSelector } = opts;
+		const { timeout = 45e3, waitForSelector } = opts;
 		return new Promise(async (resolve, reject) => {
 			if (!app$1.isReady()) await app$1.whenReady();
 			let resolved = false;
 			let pollTimer = null;
 			let timeoutTimer = null;
+			const sess = session$1.fromPartition("persist:animeonlineninja");
+			sess.setUserAgent(CLEAN_UA);
 			const win = new BrowserWindow$1({
 				show: false,
-				width: 1024,
-				height: 768,
+				width: 1280,
+				height: 900,
 				webPreferences: {
 					nodeIntegration: false,
 					contextIsolation: true,
-					partition: "persist:animeonlineninja"
+					sandbox: false,
+					session: sess
 				}
 			});
+			win.webContents.on("dom-ready", () => {
+				win.webContents.executeJavaScript(STEALTH_JS).catch(() => {});
+			});
+			win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 			const cleanup = () => {
 				if (pollTimer) clearInterval(pollTimer);
 				if (timeoutTimer) clearTimeout(timeoutTimer);
@@ -384,7 +435,7 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				if (errorCode === -3) return;
 				fail(/* @__PURE__ */ new Error(`did-fail-load: ${errorCode} ${errorDescription}`));
 			});
-			win.loadURL(url, { userAgent: USER_AGENT });
+			win.loadURL(url, { userAgent: CLEAN_UA });
 		});
 	}
 	module.exports = { fetchWithCF };
@@ -800,6 +851,7 @@ var { app, BrowserWindow, ipcMain, session } = require("electron");
 var path = require("path");
 var sources = require_sources();
 var { animeProvider } = require_animeProvider();
+app.commandLine.appendSwitch("disable-blink-features", "AutomationControlled");
 function createWindow() {
 	const win = new BrowserWindow({
 		width: 1480,

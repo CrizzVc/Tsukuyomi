@@ -3,6 +3,9 @@ const path = require('path');
 const sources = require('./services/sources');
 const { animeProvider } = require('./services/providers/animeProvider');
 
+// Anti-bot-detection: must be set before app is ready
+app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1480,
