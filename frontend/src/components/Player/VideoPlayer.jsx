@@ -450,7 +450,7 @@ const VideoPlayer = ({
                     />
 
                     {/* Saltar Intro Floating Button */}
-                    {isControlsVisible && !isEpisodeListOpen && (
+                    {isControlsVisible && !isEpisodeListOpen && isDirectVideo && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -593,25 +593,7 @@ const VideoPlayer = ({
                         </div>
                     </div>
 
-                    {/* Saltar Intro Floating Button */}
-                    {isControlsVisible && !isEpisodeListOpen && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // Force iframe reload at 88s by changing key (React remounts with new src)
-                                const base = src.split('#')[0];
-                                setIframeSrc(base + '#t=88');
-                                setIframeKey(k => k + 1);
-                            }}
-                            className="absolute bottom-28 right-8 z-50 flex items-center gap-2 px-5 py-2.5 bg-black/85 hover:bg-white hover:text-black border border-white/10 rounded-lg backdrop-blur-md transition-all duration-300 font-semibold hover:scale-105 active:scale-95 text-white text-sm pointer-events-auto"
-                        >
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
-                                <line x1="19" y1="5" x2="19" y2="19"></line>
-                            </svg>
-                            <span>Saltar Intro</span>
-                        </button>
-                    )}
+
 
                     {/* Horizontal Episode List bottom overlay for IFrames */}
                     {isEpisodeListOpen && isControlsVisible && (
