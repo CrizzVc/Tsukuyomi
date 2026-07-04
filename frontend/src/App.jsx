@@ -67,6 +67,8 @@ function App() {
     const [details, setDetails] = useState(null);
     const [servers, setServers] = useState([]);
     const [playerUrl, setPlayerUrl] = useState('');
+    const [isDirectStream, setIsDirectStream] = useState(false);
+    const [playerMode, setPlayerMode] = useState('interno');
     const [playerSubtitles, setPlayerSubtitles] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -251,23 +253,32 @@ function App() {
         }
     };
 
-    const playVideo = async (server, animeTitle = '') => {
+    const playVideo = async (server, animeTitle = '', useExternal = false) => {
         setStatus('Resolviendo enlace de video...');
         setDetails(prev => ({ ...prev, currentServer: server, animeTitle: animeTitle }));
 
-        try {
-            const extracted = await api.extractStream(server.code);
-            if (extracted && extracted.streamUrl) {
-                setPlayerUrl(extracted.streamUrl);
-                setPlayerSubtitles(extracted.subtitles || []);
-                console.log("Enlace resuelto desde backend:", extracted.streamUrl);
-            } else {
-                throw new Error("Extracción fallida");
+        if (!useExternal) {
+            try {
+                const extracted = await api.extractStream(server.code);
+                if (extracted && extracted.streamUrl) {
+                    setPlayerUrl(extracted.streamUrl);
+                    setPlayerSubtitles(extracted.subtitles || []);
+                    setIsDirectStream(true);
+                    console.log("Enlace resuelto desde backend:", extracted.streamUrl);
+                } else {
+                    throw new Error("Extracción fallida");
+                }
+            } catch (e) {
+                console.log("Usando iframe como fallback para:", server.code);
+                setPlayerUrl(server.code);
+                setPlayerSubtitles([]);
+                setIsDirectStream(false);
             }
-        } catch (e) {
-            console.log("Usando iframe como fallback para:", server.code);
+        } else {
+            console.log("Usando iframe explícitamente para:", server.code);
             setPlayerUrl(server.code);
             setPlayerSubtitles([]);
+            setIsDirectStream(false);
         }
 
         setStatus('');
@@ -1505,11 +1516,32 @@ function App() {
             {view === STATES.SERVER_MODAL && (
                 <div className="modal-overlay">
                     <div className="modal-box">
-                        <h2>Seleccionar Servidor</h2>
+                        <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                            <button 
+                                onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')} 
+                                className="text-white/50 hover:text-white text-2xl transition-colors p-2"
+                                title="Cambiar reproductor"
+                            >
+                                ❮
+                            </button>
+                            <h2 className="m-0 text-xl font-bold flex flex-col items-center">
+                                <span>Reproductores</span>
+                                <span className="text-sm font-normal text-anime-primary mt-1">
+                                    Modo {playerMode === 'interno' ? 'Interno' : 'Externo'}
+                                </span>
+                            </h2>
+                            <button 
+                                onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')} 
+                                className="text-white/50 hover:text-white text-2xl transition-colors p-2"
+                                title="Cambiar reproductor"
+                            >
+                                ❯
+                            </button>
+                        </div>
                         {servers && servers.length > 0 ? (
                             <div className="server-grid">
                                 {servers.map((s, idx) => (
-                                    <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title)}>
+                                    <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title, playerMode === 'externo')}>
                                         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                                             <path d="M8 5v14l11-7z" />
                                         </svg>
@@ -2035,6 +2067,7 @@ function App() {
                 <div id="player-overlay" className="fixed inset-0 z-[100] bg-black">
                     <VideoPlayer
                         src={playerUrl}
+                        isDirect={isDirectStream}
                         title={`${details?.title} - Servidor: ${details?.currentServer?.title}`}
                         subtitles={playerSubtitles}
                         onBack={() => setView(STATES.SERVER_MODAL)}

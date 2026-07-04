@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Hls from 'hls.js';
 import VideoControls from './VideoControls';
 
-const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisode, onBack, onEnded }) => {
+const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisode, onBack, onEnded, isDirect }) => {
     const videoRef = useRef(null);
     const hlsRef = useRef(null);
     const containerRef = useRef(null);
@@ -41,7 +41,17 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
         const video = videoRef.current;
         if (!video) return;
 
-        if (Hls.isSupported()) {
+        const isMp4 = src && src.includes('.mp4');
+
+        if (isMp4) {
+            video.src = src;
+            // Resume from saved progress if available
+            const savedProgress = localStorage.getItem(`progress-${src}`);
+            if (savedProgress) {
+                video.currentTime = parseFloat(savedProgress);
+            }
+            video.play().catch(e => console.log("Autoplay blocked", e));
+        } else if (Hls.isSupported()) {
             const hls = new Hls({
                 enableWorker: true,
                 lowLatencyMode: true,
@@ -77,13 +87,27 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
                 if (data.fatal) {
                     switch (data.type) {
                         case Hls.ErrorTypes.NETWORK_ERROR:
-                            hls.startLoad();
+                            console.log("HLS Network Error, trying to recover...");
+                            // If it's a manifest load error (CORS or not HLS), fallback might be better than infinite loop
+                            if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR || data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
+                                console.log("Manifest load failed (possibly CORS or MP4 without extension). Falling back to native.");
+                                hls.destroy();
+                                video.src = src;
+                                video.play().catch(e => console.log("Autoplay blocked on fallback", e));
+                            } else {
+                                hls.startLoad();
+                            }
                             break;
                         case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log("HLS Media Error, trying to recover...");
                             hls.recoverMediaError();
                             break;
                         default:
+                            console.log("HLS Error unrecoverable, falling back to native playback...");
                             hls.destroy();
+                            // Fallback a reproductor nativo
+                            video.src = src;
+                            video.play().catch(e => console.log("Autoplay blocked on fallback", e));
                             break;
                     }
                 }
@@ -194,7 +218,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isFullscreen]);
 
-    const isDirectVideo = src && (src.includes('.m3u8') || src.includes('.mp4'));
+    const isDirectVideo = isDirect !== undefined ? isDirect : (src && (src.includes('.m3u8') || src.includes('.mp4')));
 
     // Mouse/Touch movement to show/hide controls
     const showControls = useCallback(() => {
