@@ -2,12 +2,26 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Hls from 'hls.js';
 import VideoControls from './VideoControls';
 
-const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisode, onBack, onEnded, isDirect }) => {
+const VideoPlayer = ({
+    src,
+    title,
+    subtitles: externalSubtitles = [],
+    nextEpisode,
+    onBack,
+    onEnded,
+    isDirect,
+    episodes = [],
+    currentEpisodeIndex = -1,
+    onPlayEpisodeIndex,
+    episodeSortOrder = 'desc'
+}) => {
     const videoRef = useRef(null);
     const hlsRef = useRef(null);
     const containerRef = useRef(null);
     const hideTimeoutRef = useRef(null);
     const isTouchDevice = useRef('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+    const isDirectVideo = isDirect !== undefined ? isDirect : (src && (src.includes('.m3u8') || src.includes('.mp4')));
 
     // State
     const [isPlaying, setIsPlaying] = useState(false);
@@ -25,6 +39,45 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
     const [subtitles, setSubtitles] = useState([]);
     const [currentSubtitle, setCurrentSubtitle] = useState(-1);
     const [isBuffering, setIsBuffering] = useState(true);
+    const [isEpisodeListOpen, setIsEpisodeListOpen] = useState(false);
+    const [focusedEpisodeIndex, setFocusedEpisodeIndex] = useState(-1);
+    const episodeRefs = useRef({});
+    const [iframeSrc, setIframeSrc] = useState(src);
+    const [iframeKey, setIframeKey] = useState(0);
+    const wasPlayingRef = useRef(false);
+
+    // Initial focus when opening episode list
+    useEffect(() => {
+        if (isEpisodeListOpen) {
+            setFocusedEpisodeIndex(currentEpisodeIndex >= 0 ? currentEpisodeIndex : 0);
+        }
+    }, [isEpisodeListOpen, currentEpisodeIndex]);
+
+    // Scroll and focus on the selected episode
+    useEffect(() => {
+        if (isEpisodeListOpen && focusedEpisodeIndex >= 0 && episodeRefs.current[focusedEpisodeIndex]) {
+            episodeRefs.current[focusedEpisodeIndex].focus();
+            episodeRefs.current[focusedEpisodeIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }, [focusedEpisodeIndex, isEpisodeListOpen]);
+
+    // Pause/Resume video on opening/closing episode list
+    useEffect(() => {
+        if (!isDirectVideo) return;
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (isEpisodeListOpen) {
+            wasPlayingRef.current = !video.paused;
+            if (!video.paused) {
+                video.pause();
+            }
+        } else {
+            if (wasPlayingRef.current) {
+                video.play().catch(e => console.log("Play failed on resume:", e));
+            }
+        }
+    }, [isEpisodeListOpen, isDirectVideo]);
 
     // Sync external subtitles
     useEffect(() => {
@@ -35,6 +88,11 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
             setCurrentSubtitle(-1);
         }
     }, [externalSubtitles]);
+
+    // Sync iframeSrc when src changes
+    useEffect(() => {
+        setIframeSrc(src);
+    }, [src]);
 
     // Initialize HLS or native player
     useEffect(() => {
@@ -67,13 +125,13 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
                     bitrate: l.bitrate
                 }));
                 setQualities(levels);
-                
+
                 // Resume from saved progress if available
                 const savedProgress = localStorage.getItem(`progress-${src}`);
                 if (savedProgress) {
                     video.currentTime = parseFloat(savedProgress);
                 }
-                
+
                 video.play().catch(e => console.log("Autoplay blocked", e));
             });
 
@@ -137,7 +195,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
         };
 
         const onDurationChange = () => setDuration(video.duration);
-        
+
         const onProgress = () => {
             if (video.buffered.length > 0) {
                 setBuffered(video.buffered.end(video.buffered.length - 1));
@@ -180,7 +238,34 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
         const handleKeyDown = (e) => {
             // Prevent scrolling
             if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                e.preventDefault();
+                if (!(e.key === ' ' && isEpisodeListOpen)) {
+                    e.preventDefault();
+                }
+            }
+
+            if (isEpisodeListOpen) {
+                switch (e.key.toLowerCase()) {
+                    case 'arrowleft':
+                        e.preventDefault();
+                        setFocusedEpisodeIndex(prev => Math.max(0, prev - 1));
+                        break;
+                    case 'arrowright':
+                        e.preventDefault();
+                        setFocusedEpisodeIndex(prev => Math.min((episodes?.length || 1) - 1, prev + 1));
+                        break;
+                    case 'enter':
+                        e.preventDefault();
+                        if (focusedEpisodeIndex >= 0 && focusedEpisodeIndex < (episodes?.length || 0)) {
+                            if (onPlayEpisodeIndex) onPlayEpisodeIndex(focusedEpisodeIndex);
+                            setIsEpisodeListOpen(false);
+                        }
+                        break;
+                    case 'escape':
+                        e.preventDefault();
+                        setIsEpisodeListOpen(false);
+                        break;
+                }
+                return;
             }
 
             switch (e.key.toLowerCase()) {
@@ -216,23 +301,23 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isFullscreen]);
+    }, [isFullscreen, isEpisodeListOpen, focusedEpisodeIndex, episodes, onPlayEpisodeIndex]);
 
-    const isDirectVideo = isDirect !== undefined ? isDirect : (src && (src.includes('.m3u8') || src.includes('.mp4')));
 
     // Mouse/Touch movement to show/hide controls
     const showControls = useCallback(() => {
         setIsControlsVisible(true);
         if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-        
+
         // On touch devices, always auto-hide after 3s (regardless of play state)
         // On desktop, hide only if playing or if it's an iframe
-        if (isTouchDevice.current || isPlaying || !isDirectVideo) {
+        // Do not auto-hide if episode list is open
+        if (!isEpisodeListOpen && (isTouchDevice.current || isPlaying || !isDirectVideo)) {
             hideTimeoutRef.current = setTimeout(() => {
                 setIsControlsVisible(false);
             }, 3000);
         }
-    }, [isPlaying, isDirectVideo]);
+    }, [isPlaying, isDirectVideo, isEpisodeListOpen]);
 
     // Toggle controls on touch tap (show if hidden, hide if visible)
     const handleTouchTap = useCallback(() => {
@@ -271,6 +356,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
     };
 
     const togglePlay = () => {
+        if (!videoRef.current) return;
         if (videoRef.current.paused) {
             videoRef.current.play().catch(e => console.log("Play failed:", e));
         } else {
@@ -279,11 +365,13 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
     };
 
     const seek = (time) => {
+        if (!videoRef.current) return;
         videoRef.current.currentTime = time;
         setProgress(time);
     };
 
     const skip = (seconds) => {
+        if (!videoRef.current) return;
         videoRef.current.currentTime += seconds;
     };
 
@@ -301,7 +389,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
     };
 
     return (
-        <div 
+        <div
             ref={containerRef}
             className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden group"
             onMouseMove={isTouchDevice.current ? undefined : showControls}
@@ -310,9 +398,14 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
             onTouchStart={isTouchDevice.current ? undefined : showControls}
             onMouseLeave={() => !isTouchDevice.current && isPlaying && setIsControlsVisible(false)}
         >
+            {/* Background darkening overlay when episode list is open */}
+            {isEpisodeListOpen && (
+                <div className="absolute inset-0 bg-black/70 z-40 transition-opacity duration-300 pointer-events-none" />
+            )}
+
             {isDirectVideo ? (
                 <>
-                    <video 
+                    <video
                         ref={videoRef}
                         className="w-full h-full object-contain"
                         playsInline
@@ -327,7 +420,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
                     )}
 
                     {/* Controls Layer */}
-                    <VideoControls 
+                    <VideoControls
                         isPlaying={isPlaying}
                         progress={progress}
                         duration={duration}
@@ -351,17 +444,109 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
                         onSubtitleChange={setCurrentSubtitle}
                         onBack={onBack}
                         onNextEpisode={nextEpisode}
+                        isEpisodeListOpen={isEpisodeListOpen}
+                        onToggleEpisodeList={() => setIsEpisodeListOpen(prev => !prev)}
+                        hasEpisodes={episodes && episodes.length > 0}
                     />
+
+                    {/* Saltar Intro Floating Button */}
+                    {isControlsVisible && !isEpisodeListOpen && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                skip(88);
+                            }}
+                            className="absolute bottom-28 right-8 z-50 flex items-center gap-2 px-5 py-2.5 bg-black/85 hover:bg-white hover:text-black border border-white/10 rounded-lg backdrop-blur-md transition-all duration-300 font-semibold shadow-lg hover:scale-105 active:scale-95 text-white text-sm"
+                        >
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19"></line>
+                            </svg>
+                            <span>Saltar Intro</span>
+                        </button>
+                    )}
+
+                    {/* Horizontal Episode List bottom overlay */}
+                    {isEpisodeListOpen && isControlsVisible && (
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute bottom-28 left-0 right-0 z-50 p-4 transition-all duration-300 flex flex-col gap-2"
+                        >
+                            <div className="flex items-center justify-between px-2">
+                                <span className="text-white font-medium text-sm tracking-wider uppercase opacity-80 drop-shadow-md">Lista de Capítulos</span>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsEpisodeListOpen(false);
+                                    }}
+                                    className="text-white/60 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div className="flex overflow-x-auto gap-3 pb-2 pt-1 px-2 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                {[...(episodes || [])]
+                                    .sort((a, b) => {
+                                        const numA = parseFloat(a.episode);
+                                        const numB = parseFloat(b.episode);
+                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                    })
+                                    .map((ep, idx) => {
+                                        const origIdx = (episodes || []).indexOf(ep);
+                                        const isActive = idx === focusedEpisodeIndex;
+                                        const isCurrent = idx === currentEpisodeIndex;
+                                        const epThumb = ep.image;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                ref={(el) => episodeRefs.current[idx] = el}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onPlayEpisodeIndex) {
+                                                        onPlayEpisodeIndex(origIdx);
+                                                    }
+                                                    setIsEpisodeListOpen(false);
+                                                }}
+                                                className={`flex-shrink-0 w-36 aspect-video rounded-md overflow-hidden relative border transition-all duration-200 hover:scale-105 active:scale-95 outline-none ${isActive ? 'border-[#ff8a00] scale-105' :
+                                                        isCurrent ? 'border-[#ff8a00]/50' : 'border-white/10 hover:border-white/40'
+                                                    }`}
+                                            >
+                                                {epThumb ? (
+                                                    <img
+                                                        src={epThumb}
+                                                        className="w-full h-full object-cover"
+                                                        alt={`Episodio ${ep.episode}`}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-xs text-white/40">
+                                                        Episodio {ep.episode}
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-1.5 justify-center">
+                                                    <span className={`text-[11px] font-bold ${isCurrent ? 'text-[#ff8a00]' : 'text-white'}`}>
+                                                        Episodio {ep.episode}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    )}
                 </>
             ) : (
                 <>
                     <iframe
-                        src={src}
+                        key={iframeKey}
+                        src={iframeSrc}
                         className="w-full h-full border-none"
                         allowFullScreen
                         allow="autoplay; fullscreen"
                     ></iframe>
-                    
+
                     {/* Simplified Top Bar for iFrames */}
                     <div className={`
                         absolute inset-x-0 top-0 z-40 flex flex-col justify-between transition-opacity duration-500 pointer-events-none
@@ -369,7 +554,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
                     `}>
                         <div className="h-32 bg-gradient-to-b from-black/80 to-transparent p-6 flex items-start justify-between pointer-events-auto">
                             <div className="flex items-center gap-4">
-                                <button 
+                                <button
                                     onClick={onBack}
                                     className="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
                                 >
@@ -383,8 +568,121 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
                                     <p className="text-white/60 text-sm">Servidor Externo</p>
                                 </div>
                             </div>
+                            {episodes && episodes.length > 0 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsEpisodeListOpen(prev => !prev);
+                                    }}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all text-sm pointer-events-auto ${isEpisodeListOpen
+                                            ? 'bg-[#ff8a00] text-white shadow-[0_0_10px_rgba(255,138,0,0.4)]'
+                                            : 'bg-white/10 hover:bg-white/20 text-white'
+                                        }`}
+                                >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                    </svg>
+                                    <span>Capítulos</span>
+                                </button>
+                            )}
                         </div>
                     </div>
+
+                    {/* Saltar Intro Floating Button */}
+                    {isControlsVisible && !isEpisodeListOpen && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                // Force iframe reload at 88s by changing key (React remounts with new src)
+                                const base = src.split('#')[0];
+                                setIframeSrc(base + '#t=88');
+                                setIframeKey(k => k + 1);
+                            }}
+                            className="absolute bottom-28 right-8 z-50 flex items-center gap-2 px-5 py-2.5 bg-black/85 hover:bg-white hover:text-black border border-white/10 rounded-lg backdrop-blur-md transition-all duration-300 font-semibold hover:scale-105 active:scale-95 text-white text-sm pointer-events-auto"
+                        >
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19"></line>
+                            </svg>
+                            <span>Saltar Intro</span>
+                        </button>
+                    )}
+
+                    {/* Horizontal Episode List bottom overlay for IFrames */}
+                    {isEpisodeListOpen && isControlsVisible && (
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute bottom-12 left-0 right-0 z-50 p-4 transition-all duration-300 flex flex-col gap-2 pointer-events-auto"
+                        >
+                            <div className="flex items-center justify-between px-2">
+                                <span className="text-white font-medium text-sm tracking-wider uppercase opacity-80 drop-shadow-md">Lista de Capítulos</span>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsEpisodeListOpen(false);
+                                    }}
+                                    className="text-white/60 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div className="flex overflow-x-auto gap-3 pb-2 pt-1 px-2 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                {[...(episodes || [])]
+                                    .sort((a, b) => {
+                                        const numA = parseFloat(a.episode);
+                                        const numB = parseFloat(b.episode);
+                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                    })
+                                    .map((ep, idx) => {
+                                        const origIdx = (episodes || []).indexOf(ep);
+                                        const isActive = idx === focusedEpisodeIndex;
+                                        const isCurrent = idx === currentEpisodeIndex;
+                                        const epThumb = ep.image;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                ref={(el) => episodeRefs.current[idx] = el}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onPlayEpisodeIndex) {
+                                                        onPlayEpisodeIndex(origIdx);
+                                                    }
+                                                    setIsEpisodeListOpen(false);
+                                                }}
+                                                className={`flex-shrink-0 w-36 aspect-video rounded-md overflow-hidden relative border transition-all duration-200 hover:scale-105 active:scale-95 outline-none ${isActive ? 'border-[#ff8a00] scale-105' :
+                                                        isCurrent ? 'border-[#ff8a00]/50' : 'border-white/10 hover:border-white/40'
+                                                    }`}
+                                            >
+                                                {epThumb ? (
+                                                    <img
+                                                        src={epThumb}
+                                                        className="w-full h-full object-cover"
+                                                        alt={`Episodio ${ep.episode}`}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-xs text-white/40">
+                                                        Episodio {ep.episode}
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-1.5 justify-center">
+                                                    <span className={`text-[11px] font-bold ${isCurrent ? 'text-[#ff8a00]' : 'text-white'}`}>
+                                                        Episodio {ep.episode}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, SkipForward, ArrowLeft } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, SkipForward, ArrowLeft, List } from 'lucide-react';
 import ProgressBar from './ProgressBar';
 import VolumeControl from './VolumeControl';
 import SettingsMenu from './SettingsMenu';
@@ -27,7 +27,10 @@ const VideoControls = ({
     onQualityChange,
     onSubtitleChange,
     onBack,
-    onNextEpisode
+    onNextEpisode,
+    isEpisodeListOpen,
+    onToggleEpisodeList,
+    hasEpisodes
 }) => {
 
     const formatTime = (seconds) => {
@@ -104,6 +107,23 @@ const VideoControls = ({
 
                     {/* Right Controls */}
                     <div className="flex items-center gap-4">
+                        {hasEpisodes && (
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleEpisodeList();
+                                }}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all text-sm ${
+                                    isEpisodeListOpen 
+                                        ? 'bg-[#ff8a00] text-white shadow-[0_0_10px_rgba(255,138,0,0.4)]' 
+                                        : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                            >
+                                <List size={18} />
+                                <span>Capítulos</span>
+                            </button>
+                        )}
+
                         {onNextEpisode && (
                             <button 
                                 onClick={onNextEpisode}

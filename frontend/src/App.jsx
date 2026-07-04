@@ -725,14 +725,7 @@ function App() {
         const focused = row.querySelector('.episode-card.focused');
         if (!focused) return;
 
-        const rowRect = row.getBoundingClientRect();
-        const cardRect = focused.getBoundingClientRect();
-
-        // Centra la card enfocada dentro del row horizontalmente
-        const scrollTarget = row.scrollLeft + cardRect.left - rowRect.left
-            - (rowRect.width / 2) + (cardRect.width / 2);
-
-        row.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+        focused.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }, [detailsActiveIndex, view]);
 
     const renderPagination = () => {
@@ -2075,6 +2068,16 @@ function App() {
                         isDirect={isDirectStream}
                         title={`${details?.title} - Servidor: ${details?.currentServer?.title}`}
                         subtitles={playerSubtitles}
+                        episodes={details?.episodes}
+                        currentEpisodeIndex={detailsActiveIndex}
+                        episodeSortOrder={episodeSortOrder}
+                        onPlayEpisodeIndex={(idx) => {
+                            if (details?.episodes && details.episodes[idx]) {
+                                const ep = details.episodes[idx];
+                                setDetailsActiveIndex(idx);
+                                openServers(ep.url);
+                            }
+                        }}
                         onBack={() => setView(STATES.SERVER_MODAL)}
                         onEnded={() => {
                             console.log("Video ended");
