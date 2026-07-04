@@ -725,7 +725,12 @@ function App() {
         const focused = row.querySelector('.episode-card.focused');
         if (!focused) return;
 
-        focused.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        // Only scroll the row container horizontally, never touch the page scroll
+        const rowRect = row.getBoundingClientRect();
+        const cardRect = focused.getBoundingClientRect();
+        const cardOffsetInRow = cardRect.left - rowRect.left;
+        const scrollTarget = row.scrollLeft + cardOffsetInRow - (rowRect.width / 2) + (cardRect.width / 2);
+        row.scrollTo({ left: scrollTarget, behavior: 'smooth' });
     }, [detailsActiveIndex, view]);
 
     const renderPagination = () => {
