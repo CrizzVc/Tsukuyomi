@@ -3,15 +3,15 @@ var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).expor
 //#endregion
 //#region electron/services/sources/animeflv.js
 var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var axios$6 = require("axios");
-	var cheerio$2 = require("cheerio");
+	var axios$7 = require("axios");
+	var cheerio$3 = require("cheerio");
 	var BASE_URL = "https://www4.animeflv.net";
 	module.exports = {
 		name: "AnimeFLV",
 		id: "animeflv",
 		getLatest: async () => {
-			const response = await axios$6.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$2.load(response.data);
+			const response = await axios$7.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$3.load(response.data);
 			const results = [];
 			$(".ListEpisodios li a").each((index, element) => {
 				const urlPath = $(element).attr("href");
@@ -43,12 +43,12 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		getDetails: async (url) => {
 			let animeUrl = url;
 			if (url.includes("/ver/")) {
-				const epResponse = await axios$6.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-				const animePath = cheerio$2.load(epResponse.data)(".CapNvLs").attr("href");
+				const epResponse = await axios$7.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+				const animePath = cheerio$3.load(epResponse.data)(".CapNvLs").attr("href");
 				if (animePath) animeUrl = BASE_URL + animePath;
 			}
-			const response = await axios$6.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$2.load(response.data);
+			const response = await axios$7.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$3.load(response.data);
 			const title = $("h1.Title").text().trim();
 			const synopsis = $(".Description p").text().trim();
 			let cover = $(".AnimeCover .Image figure img").attr("src");
@@ -101,8 +101,8 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			};
 		},
 		getServers: async (url) => {
-			const response = await axios$6.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$2.load(response.data);
+			const response = await axios$7.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$3.load(response.data);
 			let servers = [];
 			$("script").each((index, element) => {
 				const scriptContent = $(element).html();
@@ -117,8 +117,8 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			return servers;
 		},
 		search: async (query) => {
-			const response = await axios$6.get(`${BASE_URL}/browse?q=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$2.load(response.data);
+			const response = await axios$7.get(`${BASE_URL}/browse?q=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$3.load(response.data);
 			const results = [];
 			$(".ListAnimes li article").each((i, el) => {
 				const title = $(el).find("h3.Title").text().trim();
@@ -134,8 +134,8 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			return results;
 		},
 		browse: async (page = 1) => {
-			const response = await axios$6.get(`${BASE_URL}/browse?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$2.load(response.data);
+			const response = await axios$7.get(`${BASE_URL}/browse?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$3.load(response.data);
 			const results = [];
 			$(".ListAnimes li article").each((i, el) => {
 				const title = $(el).find("h3.Title").text().trim();
@@ -155,15 +155,15 @@ var require_animeflv = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region electron/services/sources/animeav1.js
 var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var axios$5 = require("axios");
-	var cheerio$1 = require("cheerio");
+	var axios$6 = require("axios");
+	var cheerio$2 = require("cheerio");
 	var BASE_URL = "https://animeav1.com";
 	module.exports = {
 		name: "AnimeAV1",
 		id: "animeav1",
 		getLatest: async () => {
-			const response = await axios$5.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const response = await axios$6.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$2.load(response.data);
 			const results = [];
 			$(".grid.grid-cols-2").first().children().each((i, el) => {
 				const link = $(el).find("a[href*=\"/media/\"]").first();
@@ -193,8 +193,8 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			const parts = url.split("/").filter((p) => p);
 			let animeUrl = url;
 			if (parts.length > 4) animeUrl = BASE_URL + "/media/" + parts[parts.length - 2];
-			const response = await axios$5.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const response = await axios$6.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$2.load(response.data);
 			const title = $("h1").first().text().trim();
 			const synopsis = $(".text-subs.leading-relaxed").text().trim() || $("p").first().text().trim();
 			const cover = $("img[alt*=\"Poster\"]").attr("src") || $("img[alt*=\"Poster\"]").attr("data-src") || $("img").eq(2).attr("src");
@@ -243,7 +243,7 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			};
 		},
 		getServers: async (url) => {
-			const html = (await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+			const html = (await axios$6.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
 			const servers = [];
 			const serverRegex = /{server:"([^"]+)",url:"([^"]+)"}/g;
 			let match;
@@ -259,8 +259,8 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			return servers;
 		},
 		search: async (query) => {
-			const response = await axios$5.get(`${BASE_URL}/catalogo?search=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const response = await axios$6.get(`${BASE_URL}/catalogo?search=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$2.load(response.data);
 			const results = [];
 			$(".grid.grid-cols-2").last().children().each((i, el) => {
 				const link = $(el).find("a[href*=\"/media/\"]").first();
@@ -275,8 +275,8 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			return results;
 		},
 		browse: async (page = 1) => {
-			const response = await axios$5.get(`${BASE_URL}/catalogo?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
-			const $ = cheerio$1.load(response.data);
+			const response = await axios$6.get(`${BASE_URL}/catalogo?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$2.load(response.data);
 			const results = [];
 			$(".grid.grid-cols-2").last().children().each((i, el) => {
 				const link = $(el).find("a[href*=\"/media/\"]").first();
@@ -458,7 +458,7 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region electron/services/sources/animeonlineninja.js
 var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var cheerio = require("cheerio");
+	var cheerio$1 = require("cheerio");
 	var { fetchWithCF } = require_cfScraper();
 	var BASE_URL = "https://ww3.animeonline.ninja";
 	module.exports = {
@@ -466,7 +466,7 @@ var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) 
 		id: "animeonlineninja",
 		getLatest: async () => {
 			const html = await fetchWithCF(`${BASE_URL}/inicio/`, { waitForSelector: "article.episodes" });
-			const $ = cheerio.load(html);
+			const $ = cheerio$1.load(html);
 			const results = [];
 			$("article.episodes").each((i, el) => {
 				const url = $(el).find("a").attr("href");
@@ -486,7 +486,7 @@ var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) 
 		},
 		getDetails: async (url) => {
 			const html = await fetchWithCF(url, { waitForSelector: "#seasons, .sheader" });
-			const $ = cheerio.load(html);
+			const $ = cheerio$1.load(html);
 			const title = $(".sheader .data h1").text().trim() || $("h1").first().text().trim();
 			const synopsis = $(".wp-content p").text().trim();
 			let cover = $(".sheader .poster img").attr("data-src") || $(".sheader .poster img").attr("src");
@@ -520,7 +520,7 @@ var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) 
 		},
 		getServers: async (url) => {
 			const html = await fetchWithCF(url, { waitForSelector: "#playeroptions" });
-			const $ = cheerio.load(html);
+			const $ = cheerio$1.load(html);
 			const servers = [];
 			$("#playeroptions ul li").each((i, el) => {
 				const serverName = $(el).find(".title").text().trim();
@@ -568,7 +568,7 @@ var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) 
 		},
 		search: async (query) => {
 			const html = await fetchWithCF(`${BASE_URL}/?s=${encodeURIComponent(query)}`, { waitForSelector: "article.item" });
-			const $ = cheerio.load(html);
+			const $ = cheerio$1.load(html);
 			const results = [];
 			$("article.item").each((i, el) => {
 				const url = $(el).find("a").attr("href");
@@ -584,7 +584,7 @@ var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) 
 		},
 		browse: async (page = 1) => {
 			const html = await fetchWithCF(`${BASE_URL}/online/page/${page}/`, { waitForSelector: "article.item" });
-			const $ = cheerio.load(html);
+			const $ = cheerio$1.load(html);
 			const results = [];
 			$("article.item").each((i, el) => {
 				const url = $(el).find("a").attr("href");
@@ -601,15 +601,171 @@ var require_animeonlineninja = /* @__PURE__ */ __commonJSMin(((exports, module) 
 	};
 }));
 //#endregion
+//#region electron/services/sources/jkanime.js
+var require_jkanime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$5 = require("axios");
+	var cheerio = require("cheerio");
+	var BASE_URL = "https://jkanime.net";
+	module.exports = {
+		name: "JKAnime",
+		id: "jkanime",
+		getLatest: async () => {
+			const response = await axios$5.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio.load(response.data);
+			const results = [];
+			$(".card.ml-2.mr-2").each((i, el) => {
+				const a = $(el).find("a").first();
+				const urlPath = a.attr("href");
+				let image = a.find("img").attr("data-animepic") || a.find("img").attr("src");
+				const title = a.find("h5").text().trim();
+				const episode = a.find(".badge-primary").text().trim().replace("Ep ", "");
+				let cover = image;
+				let animeUrl = urlPath;
+				if (urlPath) {
+					const match = urlPath.match(/(https:\/\/jkanime\.net\/[^\/]+\/)\d+\/$/);
+					if (match) animeUrl = match[1];
+				}
+				results.push({
+					title,
+					episode,
+					image,
+					cover,
+					animeUrl,
+					url: urlPath
+				});
+			});
+			return results;
+		},
+		getDetails: async (url) => {
+			const response = await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio.load(response.data);
+			const title = $("title").first().text().replace(" - anime ", "").replace(" online JkAnime", "").split(" - ")[0].trim();
+			const synopsis = $("p[rel=\"sinopsis\"]").text().trim() || $("p").filter((i, el) => $(el).text().length > 50).first().text().trim();
+			const cover = $("img[src*=\"/image/\"]").first().attr("src") || $("img").filter((i, el) => $(el).attr("src") && $(el).attr("src").includes("image")).attr("src") || $(".anime__details__pic").attr("data-setbg") || $(".d-thumb img").attr("src");
+			const status = $(".anime-status").text().trim() || $(".enemision.finished").text().trim() || "En emisión";
+			const genres = [];
+			$("a[href*=\"/genero/\"]").each((i, el) => {
+				genres.push($(el).text().trim());
+			});
+			const uniqueGenres = [...new Set(genres)];
+			const related = [];
+			$("#aditional").each((i, el) => {
+				let nextEl = $(el).next();
+				const type = $(el).text().trim();
+				while (nextEl.length && nextEl[0].tagName.toLowerCase() === "a") {
+					related.push({
+						title: nextEl.text().trim(),
+						url: nextEl.attr("href"),
+						image: "",
+						type
+					});
+					nextEl = nextEl.next().next();
+				}
+			});
+			let totalEpisodes = 0;
+			const epsTextMatch = $(".anime_data li:contains(\"Episodios:\")").text().match(/\d+/);
+			if (epsTextMatch) totalEpisodes = parseInt(epsTextMatch[0]);
+			if (totalEpisodes === 0) {
+				const uepHref = $("#uep").attr("href");
+				if (uepHref) {
+					const epMatch = uepHref.match(/\/(\d+)\/$/);
+					if (epMatch) totalEpisodes = parseInt(epMatch[1]);
+				}
+			}
+			const episodes = [];
+			if (totalEpisodes > 0) {
+				const baseAnimeUrl = url.endsWith("/") ? url : url + "/";
+				for (let i = totalEpisodes; i >= 1; i--) episodes.push({
+					episode: i,
+					url: baseAnimeUrl + i + "/",
+					image: cover
+				});
+			}
+			return {
+				title,
+				synopsis,
+				cover,
+				status,
+				genres: uniqueGenres,
+				related,
+				episodes
+			};
+		},
+		getServers: async (url) => {
+			const html = (await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+			const $ = cheerio.load(html);
+			const servers = [];
+			const regex = /video\[\d+\]\s*=\s*'[^']*src="([^"]+)"/g;
+			let match;
+			const serverUrls = [];
+			while ((match = regex.exec(html)) !== null) serverUrls.push(match[1]);
+			const serverNames = [];
+			$("a[href^=\"#option\"]").each((i, el) => {
+				serverNames.push($(el).text().trim());
+			});
+			for (let i = 0; i < Math.min(serverUrls.length, serverNames.length); i++) servers.push({
+				server: serverNames[i],
+				title: serverNames[i],
+				url: serverUrls[i]
+			});
+			return servers;
+		},
+		search: async (query) => {
+			const response = await axios$5.get(`${BASE_URL}/buscar/${encodeURIComponent(query)}/`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio.load(response.data);
+			const results = [];
+			$(".anime__item").each((i, el) => {
+				const href = $(el).find("a").first().attr("href");
+				const image = $(el).find(".anime__item__pic").attr("data-setbg") || $(el).find("img").attr("src");
+				const title = $(el).find("h5 a").text().trim() || $(el).find(".anime__item__text h5").text().trim();
+				if (href) results.push({
+					title,
+					url: href,
+					image
+				});
+			});
+			if (results.length === 0) {
+				const scriptMatch = response.data.match(/var animes = (\{.*?\});/s);
+				if (scriptMatch) try {
+					const parsed = JSON.parse(scriptMatch[1]);
+					if (parsed.data) parsed.data.forEach((a) => {
+						results.push({
+							title: a.title,
+							url: a.url,
+							image: a.image
+						});
+					});
+				} catch (e) {}
+			}
+			return results;
+		},
+		browse: async (page = 1) => {
+			const url = page <= 1 ? `${BASE_URL}/directorio/1/` : `${BASE_URL}/directorio/1?p=${page}`;
+			const scriptMatch = (await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data.match(/var animes = (\{.*?\});/s);
+			if (scriptMatch) try {
+				const parsed = JSON.parse(scriptMatch[1]);
+				if (parsed.data) return parsed.data.map((a) => ({
+					title: a.title,
+					url: a.url,
+					image: a.image
+				}));
+			} catch (e) {}
+			return [];
+		}
+	};
+}));
+//#endregion
 //#region electron/services/sources/index.js
 var require_sources = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var animeflv = require_animeflv();
 	var animeav1 = require_animeav1();
 	var animeonlineninja = require_animeonlineninja();
+	var jkanime = require_jkanime();
 	var sources = {
 		[animeflv.id]: animeflv,
 		[animeav1.id]: animeav1,
-		[animeonlineninja.id]: animeonlineninja
+		[animeonlineninja.id]: animeonlineninja,
+		[jkanime.id]: jkanime
 	};
 	module.exports = {
 		getSource: (id) => sources[id || "animeflv"] || sources["animeflv"],
