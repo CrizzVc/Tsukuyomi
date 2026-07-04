@@ -303,13 +303,17 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	* first successful challenge solve, subsequent requests are usually instant.
 	*/
 	var { app: app$1, BrowserWindow: BrowserWindow$1, session: session$1 } = require("electron");
+	var path$1 = require("path");
+	var fs = require("fs");
 	var CF_TITLES = [
 		"just a moment",
 		"un momento",
 		"attention required",
 		"cloudflare"
 	];
-	var CLEAN_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+	function getCleanUA() {
+		return session$1.defaultSession.getUserAgent().replace(/Electron\/[\d\.]+\s/, "").replace(/tsukuyomi\/[\d\.]+\s/i, "").replace(/AnimeWB\/[\d\.]+\s/i, "");
+	}
 	var STEALTH_JS = `
     // Remove webdriver flag
     Object.defineProperty(navigator, 'webdriver', { get: () => false });
@@ -354,6 +358,14 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
         };
     }
 `;
+	var stealthPreloadPath = null;
+	function getStealthPreloadPath() {
+		if (!stealthPreloadPath) {
+			stealthPreloadPath = path$1.join(app$1.getPath("userData"), "stealth-preload.js");
+			fs.writeFileSync(stealthPreloadPath, STEALTH_JS, "utf8");
+		}
+		return stealthPreloadPath;
+	}
 	/**
 	* Fetch the fully-rendered HTML of a URL using a hidden BrowserWindow.
 	* If Cloudflare is detected, the window is shown so the user can solve the
@@ -373,7 +385,13 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			let pollTimer = null;
 			let timeoutTimer = null;
 			const sess = session$1.fromPartition("persist:animeonlineninja");
-			sess.setUserAgent(CLEAN_UA);
+			sess.setUserAgent(getCleanUA());
+			const preloadPath = getStealthPreloadPath();
+			try {
+				sess.setPreloads([preloadPath]);
+			} catch (e) {
+				console.error("Failed to set preload:", e);
+			}
 			const win = new BrowserWindow$1({
 				show: false,
 				width: 1280,
@@ -384,9 +402,6 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 					sandbox: false,
 					session: sess
 				}
-			});
-			win.webContents.on("dom-ready", () => {
-				win.webContents.executeJavaScript(STEALTH_JS).catch(() => {});
 			});
 			win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 			const cleanup = () => {
@@ -435,7 +450,7 @@ var require_cfScraper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				if (errorCode === -3) return;
 				fail(/* @__PURE__ */ new Error(`did-fail-load: ${errorCode} ${errorDescription}`));
 			});
-			win.loadURL(url, { userAgent: CLEAN_UA });
+			win.loadURL(url, { userAgent: getCleanUA() });
 		});
 	}
 	module.exports = { fetchWithCF };

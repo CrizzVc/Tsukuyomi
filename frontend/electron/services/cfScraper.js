@@ -6,18 +6,19 @@
  * first successful challenge solve, subsequent requests are usually instant.
  */
 const { app, BrowserWindow, session } = require('electron');
+const path = require('path');
+const fs = require('fs');
 
 const CF_TITLES = ['just a moment', 'un momento', 'attention required', 'cloudflare'];
 
-// Build a clean user-agent without the "Electron/xx" token
-const CLEAN_UA = (() => {
-    const base = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
-    return base;
-})();
+function getCleanUA() {
+    return session.defaultSession.getUserAgent()
+        .replace(/Electron\/[\d\.]+\s/, '')
+        .replace(/tsukuyomi\/[\d\.]+\s/i, '')
+        .replace(/AnimeWB\/[\d\.]+\s/i, '');
+}
 
 // Anti-detection script injected into every page before any other script runs.
-// It patches navigator.webdriver, removes Electron-specific properties, and
-// fakes missing browser APIs that Cloudflare Turnstile checks for.
 const STEALTH_JS = `
     // Remove webdriver flag
     Object.defineProperty(navigator, 'webdriver', { get: () => false });
@@ -63,6 +64,16 @@ const STEALTH_JS = `
     }
 `;
 
+// Helper to ensure stealth preload is written to disk (required for setPreloads)
+let stealthPreloadPath = null;
+function getStealthPreloadPath() {
+    if (!stealthPreloadPath) {
+        stealthPreloadPath = path.join(app.getPath('userData'), 'stealth-preload.js');
+        fs.writeFileSync(stealthPreloadPath, STEALTH_JS, 'utf8');
+    }
+    return stealthPreloadPath;
+}
+
 /**
  * Fetch the fully-rendered HTML of a URL using a hidden BrowserWindow.
  * If Cloudflare is detected, the window is shown so the user can solve the
@@ -87,7 +98,11 @@ function fetchWithCF(url, opts = {}) {
 
         // Get or create the persistent session and override its user-agent
         const sess = session.fromPartition('persist:animeonlineninja');
-        sess.setUserAgent(CLEAN_UA);
+        sess.setUserAgent(getCleanUA());
+        
+        // Inject stealth script via preloads so it runs before ANY page scripts
+        const preloadPath = getStealthPreloadPath();
+        try { sess.setPreloads([preloadPath]); } catch (e) { console.error('Failed to set preload:', e); }
 
         const win = new BrowserWindow({
             show: false,
@@ -99,11 +114,6 @@ function fetchWithCF(url, opts = {}) {
                 sandbox: false,
                 session: sess
             }
-        });
-
-        // Inject stealth script before any page script runs
-        win.webContents.on('dom-ready', () => {
-            win.webContents.executeJavaScript(STEALTH_JS).catch(() => {});
         });
 
         // Block popups
@@ -183,7 +193,7 @@ function fetchWithCF(url, opts = {}) {
             fail(new Error(`did-fail-load: ${errorCode} ${errorDescription}`));
         });
 
-        win.loadURL(url, { userAgent: CLEAN_UA });
+        win.loadURL(url, { userAgent: getCleanUA() });
     });
 }
 
