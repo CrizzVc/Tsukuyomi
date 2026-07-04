@@ -3129,3 +3129,115 @@ header {
     color: rgba(255, 255, 255, 0.25);
     margin: 0;
 }
+
+/* Sidebar Styles */
+.sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9998;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.sidebar-container.open {
+    pointer-events: auto;
+    visibility: visible;
+}
+
+.sidebar-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.726);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-container.open .sidebar-backdrop {
+    opacity: 1;
+}
+
+.sidebar-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: rgba(22, 22, 22, 0.692);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sidebar-container.open .sidebar-panel {
+    transform: translateX(0);
+}
+
+.sidebar-header {
+    padding: 40px 20px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.02), transparent);
+}
+
+.sidebar-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    object-fit: cover;
+    margin-bottom: 15px;
+    /* box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); */
+}
+
+.sidebar-username {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-menu {
+    flex: 1;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-item {
+    padding: 16px 30px;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 500;
+}
+
+.sidebar-item:hover,
+.sidebar-item.sidebar-focused {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--accent);
+    padding-left: 35px;
+    border-left: 4px solid var(--accent);
+}
+
+.sidebar-footer {
+    padding: 20px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.1);
+}

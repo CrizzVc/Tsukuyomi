@@ -49,6 +49,8 @@ function App() {
     });
     const [theme, setTheme] = useState(() => localStorage.getItem('app_theme') || 'cyber');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [sidebarIndex, setSidebarIndex] = useState(0);
     const episodesRowRef = useRef(null);
     const [activeProfile, setActiveProfile] = useState(null);
     const [editingProfile, setEditingProfile] = useState(null);
@@ -490,7 +492,38 @@ function App() {
     // Keyboard navigation simulation
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') goBack();
+            if (isSidebarOpen) {
+                if (e.key === 'Escape') {
+                    setIsSidebarOpen(false);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSidebarIndex(prev => Math.min(prev + 1, 2));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSidebarIndex(prev => Math.max(prev - 1, 0));
+                } else if (e.key === 'Enter') {
+                    if (sidebarIndex === 0) {
+                        setView(STATES.HOME);
+                        setIsSidebarOpen(false);
+                    } else if (sidebarIndex === 1) {
+                        loadCatalog(1);
+                        setIsSidebarOpen(false);
+                    } else if (sidebarIndex === 2) {
+                        setView(STATES.PROFILES);
+                        setIsSidebarOpen(false);
+                    }
+                }
+                return; // Prevent background navigation
+            }
+
+            if (e.key === 'Escape') {
+                if (view === STATES.HOME) {
+                    setIsSidebarOpen(true);
+                    setSidebarIndex(0);
+                } else {
+                    goBack();
+                }
+            }
 
             if (document.activeElement && document.activeElement.id === 'news-key-input') {
                 if (e.key === 'Escape') {
@@ -654,7 +687,7 @@ function App() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
@@ -1137,9 +1170,34 @@ function App() {
                 </div>
             ) : (
                 <div id="app-container">
+                    <div className={`sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
+                        <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
+                        <div className="sidebar-panel">
+                            <div className="sidebar-header">
+                                <img src={activeProfile?.avatar} className="sidebar-avatar" alt="User" />
+                                <span className="sidebar-username">{activeProfile?.name}</span>
+                            </div>
+                            <div className="sidebar-menu">
+                                <div className={`sidebar-item ${sidebarIndex === 0 ? 'sidebar-focused' : ''}`} onClick={() => { setView(STATES.HOME); setIsSidebarOpen(false); }}>
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                    Home
+                                </div>
+                                <div className={`sidebar-item ${sidebarIndex === 1 ? 'sidebar-focused' : ''}`} onClick={() => { loadCatalog(1); setIsSidebarOpen(false); }}>
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                    Catálogo
+                                </div>
+                            </div>
+                            <div className="sidebar-footer">
+                                <div className={`sidebar-item ${sidebarIndex === 2 ? 'sidebar-focused' : ''}`} onClick={() => { setView(STATES.PROFILES); setIsSidebarOpen(false); }}>
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                    Cambiar de usuario
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <header>
                         <div className="header-left">
-                            <div className="header-user" onClick={() => changeAvatar(activeProfile.id)}>
+                            <div className="header-user" onClick={() => setIsSidebarOpen(true)}>
                                 <img src={activeProfile?.avatar} className="header-avatar" alt="User" />
                             </div>
                             <span
