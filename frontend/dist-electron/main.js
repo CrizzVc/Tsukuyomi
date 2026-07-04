@@ -639,15 +639,15 @@ var require_jkanime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		getDetails: async (url) => {
 			const response = await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
 			const $ = cheerio.load(response.data);
-			const title = $("title").first().text().replace(" - anime ", "").replace(" online JkAnime", "").split(" - ")[0].trim();
-			const synopsis = $("p[rel=\"sinopsis\"]").text().trim() || $("p").filter((i, el) => $(el).text().length > 50).first().text().trim();
-			const cover = $("img[src*=\"/image/\"]").first().attr("src") || $("img").filter((i, el) => $(el).attr("src") && $(el).attr("src").includes("image")).attr("src") || $(".anime__details__pic").attr("data-setbg") || $(".d-thumb img").attr("src");
-			const status = $(".anime-status").text().trim() || $(".enemision.finished").text().trim() || "En emisión";
-			const genres = [];
+			const title = $(".anime_info h3").first().text().trim() || $("title").first().text().replace(/ - anime .* online JkAnime$/i, "").replace(" - JkAnime", "").trim();
+			const synopsis = $(".anime_info p.scroll").first().text().trim() || $("p[rel=\"sinopsis\"]").text().trim();
+			const cover = $("meta[property=\"og:image\"]").attr("content") || $("img[src*=\"/image/\"]").first().attr("src");
+			const status = $(".anime_data").first().find(".enemision").first().text().trim() || "En emisión";
+			const genreSet = /* @__PURE__ */ new Set();
 			$("a[href*=\"/genero/\"]").each((i, el) => {
-				genres.push($(el).text().trim());
+				genreSet.add($(el).text().trim());
 			});
-			const uniqueGenres = [...new Set(genres)];
+			const uniqueGenres = Array.from(genreSet);
 			const related = [];
 			$("#aditional").each((i, el) => {
 				let nextEl = $(el).next();
@@ -663,8 +663,11 @@ var require_jkanime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				}
 			});
 			let totalEpisodes = 0;
-			const epsTextMatch = $(".anime_data li:contains(\"Episodios:\")").text().match(/\d+/);
-			if (epsTextMatch) totalEpisodes = parseInt(epsTextMatch[0]);
+			const epsLi = $(".anime_data").first().find("li").filter((i, el) => $(el).text().includes("Episodios:"));
+			if (epsLi.length) {
+				const epsMatch = epsLi.first().text().match(/\d+/);
+				if (epsMatch) totalEpisodes = parseInt(epsMatch[0]);
+			}
 			if (totalEpisodes === 0) {
 				const uepHref = $("#uep").attr("href");
 				if (uepHref) {

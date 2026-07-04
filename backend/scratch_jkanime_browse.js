@@ -1,14 +1,22 @@
 const jkanime = require('./sources/jkanime');
 
 async function test() {
-    console.log('--- Browse page 1 ---');
-    const results = await jkanime.browse(1);
-    console.log('Total:', results.length);
-    console.log('First 3:', results.slice(0, 3));
+    // Test a current-season anime
+    console.log('--- Testing episode count detection ---');
+    const urls = [
+        'https://jkanime.net/one-piece/',
+        'https://jkanime.net/mairimashita-iruma-kun-4th-season/',
+        'https://jkanime.net/black-torch/',
+    ];
     
-    console.log('\n--- Browse page 2 ---');
-    const results2 = await jkanime.browse(2);
-    console.log('Total:', results2.length);
-    console.log('First 1:', results2.slice(0, 1));
+    for (const url of urls) {
+        const details = await jkanime.getDetails(url);
+        console.log(`\nURL: ${url}`);
+        console.log(`  Title: ${details.title}`);
+        console.log(`  Episodes: ${details.episodes.length}`);
+        if (details.episodes.length > 0) {
+            console.log(`  Sample ep:`, details.episodes[0]);
+        }
+    }
 }
 test().catch(console.error);

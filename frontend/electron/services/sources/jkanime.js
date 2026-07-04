@@ -40,20 +40,31 @@ const jkanime = {
         const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const $ = cheerio.load(response.data);
         
-        const title = $('title').first().text().replace(' - anime ', '').replace(' online JkAnime', '').split(' - ')[0].trim();
-        const synopsis = $('p[rel="sinopsis"]').text().trim() || $('p').filter((i, el) => $(el).text().length > 50).first().text().trim();
-        const cover = $('img[src*="/image/"]').first().attr('src') || $('img').filter((i, el) => $(el).attr('src') && $(el).attr('src').includes('image')).attr('src') || $('.anime__details__pic').attr('data-setbg') || $('.d-thumb img').attr('src');
+        // Title: use the h3 inside .anime_info (the main visible block), not the page title
+        const title = $('.anime_info h3').first().text().trim()
+            || $('title').first().text().replace(/ - anime .* online JkAnime$/i, '').replace(' - JkAnime', '').trim();
         
-        const status = $('.anime-status').text().trim() || $('.enemision.finished').text().trim() || 'En emisión';
+        // Synopsis: use the .scroll paragraph inside .anime_info
+        const synopsis = $('.anime_info p.scroll').first().text().trim()
+            || $('p[rel="sinopsis"]').text().trim();
+        
+        // Cover: prefer og:image meta tag (reliable and not duplicated)
+        const cover = $('meta[property="og:image"]').attr('content')
+            || $('img[src*="/image/"]').first().attr('src');
+        
+        // Status: pick from the first .anime_data block only
+        const statusEl = $('.anime_data').first().find('.enemision').first();
+        const status = statusEl.text().trim() || 'En emisión';
+
         const genres = [];
+        // Deduplicate by using a Set — genres appear in two blocks
+        const genreSet = new Set();
         $('a[href*="/genero/"]').each((i, el) => {
-            genres.push($(el).text().trim());
+            genreSet.add($(el).text().trim());
         });
-        // Deduplicate genres
-        const uniqueGenres = [...new Set(genres)];
+        const uniqueGenres = Array.from(genreSet);
 
         const related = [];
-        // JKAnime usually links related anime in <h5> related blocks
         $('#aditional').each((i, el) => {
             let nextEl = $(el).next();
             const type = $(el).text().trim();
@@ -68,32 +79,33 @@ const jkanime = {
             }
         });
 
-        // Determine number of episodes
+        // Determine total episodes: first try the li with "Episodios:" text
         let totalEpisodes = 0;
-        const epsTextMatch = $('.anime_data li:contains("Episodios:")').text().match(/\d+/);
-        if (epsTextMatch) {
-            totalEpisodes = parseInt(epsTextMatch[0]);
+        // There are two .anime_data blocks; only use the first one
+        const firstDataBlock = $('.anime_data').first();
+        const epsLi = firstDataBlock.find('li').filter((i, el) => $(el).text().includes('Episodios:'));
+        if (epsLi.length) {
+            const epsMatch = epsLi.first().text().match(/\d+/);
+            if (epsMatch) totalEpisodes = parseInt(epsMatch[0]);
         }
         
+        // Fallback: use #uep link (latest episode href)
         if (totalEpisodes === 0) {
             const uepHref = $('#uep').attr('href');
             if (uepHref) {
                 const epMatch = uepHref.match(/\/(\d+)\/$/);
-                if (epMatch) {
-                    totalEpisodes = parseInt(epMatch[1]);
-                }
+                if (epMatch) totalEpisodes = parseInt(epMatch[1]);
             }
         }
 
         const episodes = [];
         if (totalEpisodes > 0) {
-            // Anime urls usually end with /
             const baseAnimeUrl = url.endsWith('/') ? url : url + '/';
             for (let i = totalEpisodes; i >= 1; i--) {
                 episodes.push({
                     episode: i,
                     url: baseAnimeUrl + i + '/',
-                    image: cover // JkAnime doesn't usually provide separate episode thumbnails
+                    image: cover
                 });
             }
         }
