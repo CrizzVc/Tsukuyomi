@@ -1538,27 +1538,30 @@ function App() {
                                 ❯
                             </button>
                         </div>
-                        {servers && servers.length > 0 ? (
-                            <div className="server-grid">
-                                {servers.map((s, idx) => (
-                                    <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title, playerMode === 'externo')}>
-                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                        {s.title}
-                                    </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="empty-servers">
-                                <div className="empty-servers-icon">
-                                    <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
+                        {(() => {
+                            const filteredServers = servers ? servers.filter(s => playerMode === 'interno' ? s.canExtract : true) : [];
+                            return filteredServers.length > 0 ? (
+                                <div className="server-grid">
+                                    {filteredServers.map((s, idx) => (
+                                        <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title, playerMode === 'externo')}>
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                                <path d="M8 5v14l11-7z" />
+                                            </svg>
+                                            {s.title}
+                                        </button>
+                                    ))}
                                 </div>
-                                <p className="empty-servers-text">No se encontraron opciones de reproducción</p>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="empty-servers">
+                                    <div className="empty-servers-icon">
+                                        <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </div>
+                                    <p className="empty-servers-text">No hay servidores compatibles con este modo</p>
+                                </div>
+                            );
+                        })()}
                         <button className="modal-btn" onClick={() => setView(details ? STATES.DETAILS : STATES.HOME)}>Atrás</button>
                     </div>
                 </div>

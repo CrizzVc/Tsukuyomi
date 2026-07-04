@@ -527,23 +527,28 @@ var require_animeProvider = /* @__PURE__ */ __commonJSMin(((exports, module) => 
 		require_maru(),
 		require_mp4upload()
 	];
-	module.exports = { animeProvider: { extract: async (url) => {
-		for (const provider of providers) if (provider.canHandle(url)) {
-			console.log(`[AnimeProvider] Usando extractor: ${provider.name} para ${url}`);
-			try {
-				return {
-					...await provider.extract(url),
-					provider: provider.name,
-					originalUrl: url
-				};
-			} catch (e) {
-				console.warn(`[AnimeProvider] Fallo la extraccion con ${provider.name}:`, e.message);
-				throw e;
+	module.exports = { animeProvider: {
+		extract: async (url) => {
+			for (const provider of providers) if (provider.canHandle(url)) {
+				console.log(`[AnimeProvider] Usando extractor: ${provider.name} para ${url}`);
+				try {
+					return {
+						...await provider.extract(url),
+						provider: provider.name,
+						originalUrl: url
+					};
+				} catch (e) {
+					console.warn(`[AnimeProvider] Fallo la extraccion con ${provider.name}:`, e.message);
+					throw e;
+				}
 			}
+			console.log(`[AnimeProvider] Ningun extractor soportado para: ${url}`);
+			throw new Error("Proveedor no soportado");
+		},
+		canExtract: (url) => {
+			return providers.some((p) => p.canHandle(url));
 		}
-		console.log(`[AnimeProvider] Ningun extractor soportado para: ${url}`);
-		throw new Error("Proveedor no soportado");
-	} } };
+	} };
 }));
 //#endregion
 //#region electron/main.js
@@ -577,7 +582,10 @@ ipcMain.handle("api-details", async (event, { url, sourceId }) => {
 	return await sources.getSource(sourceId).getDetails(url);
 });
 ipcMain.handle("api-servers", async (event, { url, sourceId }) => {
-	return await sources.getSource(sourceId).getServers(url);
+	return (await sources.getSource(sourceId).getServers(url)).map((server) => ({
+		...server,
+		canExtract: animeProvider.canExtract(server.code)
+	}));
 });
 ipcMain.handle("api-search", async (event, { query, sourceId }) => {
 	return await sources.getSource(sourceId).search(query);

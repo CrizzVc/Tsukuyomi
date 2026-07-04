@@ -33,6 +33,9 @@ const animeProvider = {
         
         console.log(`[AnimeProvider] Ningun extractor soportado para: ${url}`);
         throw new Error("Proveedor no soportado");
+    },
+    canExtract: (url) => {
+        return providers.some(p => p.canHandle(url));
     }
 };
 

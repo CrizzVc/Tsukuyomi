@@ -41,7 +41,11 @@ ipcMain.handle('api-details', async (event, { url, sourceId }) => {
 
 ipcMain.handle('api-servers', async (event, { url, sourceId }) => {
   const source = sources.getSource(sourceId);
-  return await source.getServers(url);
+  const servers = await source.getServers(url);
+  return servers.map(server => ({
+    ...server,
+    canExtract: animeProvider.canExtract(server.code)
+  }));
 });
 
 ipcMain.handle('api-search', async (event, { query, sourceId }) => {
