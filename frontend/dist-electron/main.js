@@ -547,7 +547,7 @@ var require_animeProvider = /* @__PURE__ */ __commonJSMin(((exports, module) => 
 }));
 //#endregion
 //#region electron/main.js
-var { app, BrowserWindow, ipcMain } = require("electron");
+var { app, BrowserWindow, ipcMain, session } = require("electron");
 var path = require("path");
 var sources = require_sources();
 var { animeProvider } = require_animeProvider();
@@ -599,6 +599,10 @@ ipcMain.handle("api-news", async (event, { apiKey }) => {
 	}
 });
 app.whenReady().then(() => {
+	session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ["*://*.mp4upload.com/*"] }, (details, callback) => {
+		details.requestHeaders["Referer"] = "https://www.mp4upload.com/";
+		callback({ requestHeaders: details.requestHeaders });
+	});
 	createWindow();
 	app.on("activate", () => {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();

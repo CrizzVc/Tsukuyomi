@@ -272,7 +272,7 @@ const VideoPlayer = ({ src, title, subtitles: externalSubtitles = [], nextEpisod
 
     const togglePlay = () => {
         if (videoRef.current.paused) {
-            videoRef.current.play();
+            videoRef.current.play().catch(e => console.log("Play failed:", e));
         } else {
             videoRef.current.pause();
         }

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 const sources = require('./services/sources');
 const { animeProvider } = require('./services/providers/animeProvider');
@@ -74,6 +74,14 @@ ipcMain.handle('api-news', async (event, { apiKey }) => {
 });
 
 app.whenReady().then(() => {
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ['*://*.mp4upload.com/*'] },
+    (details, callback) => {
+      details.requestHeaders['Referer'] = 'https://www.mp4upload.com/';
+      callback({ requestHeaders: details.requestHeaders });
+    }
+  );
+
   createWindow();
 
   app.on('activate', () => {
