@@ -1,7 +1,7 @@
 {
   "name": "tsukuyomi",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.3",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -23,7 +23,8 @@
       "dist-electron/**/*"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "src/assets/logotemp.png"
     },
     "nsis": {
       "oneClick": false,
