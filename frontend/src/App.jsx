@@ -13,7 +13,8 @@ const STATES = {
     PLAYER: 'PLAYER',
     SEARCH: 'SEARCH',
     EXTENSIONS_MODAL: 'EXTENSIONS_MODAL',
-    CATALOG: 'CATALOG'
+    CATALOG: 'CATALOG',
+    FAVORITES: 'FAVORITES'
 };
 
 const EXTENSIONS = [
@@ -197,6 +198,7 @@ function App() {
             setFavorites(filteredFavs);
         }
     }, [activeProfile, currentSource]);
+
 
     const loadNews = async (key = newsApiKey) => {
         if (!key) return;
@@ -554,7 +556,7 @@ function App() {
                     setIsSidebarOpen(false);
                 } else if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    setSidebarIndex(prev => Math.min(prev + 1, 2));
+                    setSidebarIndex(prev => Math.min(prev + 1, 3));
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
                     setSidebarIndex(prev => Math.max(prev - 1, 0));
@@ -566,6 +568,9 @@ function App() {
                         loadCatalog(1);
                         setIsSidebarOpen(false);
                     } else if (sidebarIndex === 2) {
+                        setView(STATES.FAVORITES);
+                        setIsSidebarOpen(false);
+                    } else if (sidebarIndex === 3) {
                         setView(STATES.PROFILES);
                         setIsSidebarOpen(false);
                     }
@@ -714,6 +719,36 @@ function App() {
                     }
                     if (e.key === 'Enter' && results[searchIndex]) handleAnimeClick(results[searchIndex]);
                 }
+            } else if (view === STATES.FAVORITES) {
+                if (rowIndex === -1) {
+                    if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, 3));
+                    if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
+                    if (e.key === 'ArrowDown') {
+                        setRowIndex(0);
+                        setSearchIndex(prev => prev >= 0 ? prev : 0);
+                    }
+                    if (e.key === 'Enter') {
+                        if (colIndex === 0) setView(STATES.HOME);
+                        else if (colIndex === 1) loadCatalog(1);
+                        else if (colIndex === 2) activateSearch();
+                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                    }
+                } else {
+                    if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, favorites.length - 1));
+                    if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
+                    if (e.key === 'ArrowDown') {
+                        setSearchIndex(prev => prev + 5 < favorites.length ? prev + 5 : prev);
+                    }
+                    if (e.key === 'ArrowUp') {
+                        if (searchIndex < 5) {
+                            setRowIndex(-1);
+                            setColIndex(0); // Volver al home link
+                        } else {
+                            setSearchIndex(prev => Math.max(prev - 5, 0));
+                        }
+                    }
+                    if (e.key === 'Enter' && favorites[searchIndex]) handleAnimeClick(favorites[searchIndex]);
+                }
             } else if (view === STATES.DETAILS && details) {
                 const filteredEpisodes = (details.episodes || [])
                     .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
@@ -748,7 +783,7 @@ function App() {
 
     // Cinematic scroll to follow focus
     useEffect(() => {
-        if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS].includes(view)) return;
+        if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES].includes(view)) return;
 
         const timeout = setTimeout(() => {
             const activeEl = document.querySelector('.focused, .large-card.expanded');
@@ -1282,9 +1317,13 @@ function App() {
                                     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                                     Catálogo
                                 </div>
+                                <div className={`sidebar-item ${sidebarIndex === 2 ? 'sidebar-focused' : ''}`} onClick={() => { setView(STATES.FAVORITES); setIsSidebarOpen(false); }}>
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                    Mis Favoritos
+                                </div>
                             </div>
                             <div className="sidebar-footer">
-                                <div className={`sidebar-item ${sidebarIndex === 2 ? 'sidebar-focused' : ''}`} onClick={() => { setView(STATES.PROFILES); setIsSidebarOpen(false); }}>
+                                <div className={`sidebar-item ${sidebarIndex === 3 ? 'sidebar-focused' : ''}`} onClick={() => { setView(STATES.PROFILES); setIsSidebarOpen(false); }}>
                                     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                                     Cambiar de usuario
                                 </div>
@@ -1587,6 +1626,42 @@ function App() {
                                                 </button>
                                             );
                                         })}
+                                    </div>
+                                )}
+                            </div>
+                         )}
+
+                        {view === STATES.FAVORITES && (
+                            <div className="catalog-tab" style={{ padding: '20px 40px' }}>
+                                <h2 className="section-title">
+                                    <span className="title-marker"></span>
+                                    Mis Favoritos
+                                </h2>
+
+                                {favorites.length === 0 ? (
+                                    <div className="search-empty-container">
+                                        <div className="search-empty-icon">
+                                            <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="search-empty-text">No tienes animes favoritos guardados</h3>
+                                        <p className="search-empty-subtext">Agrega animes a tus favoritos desde la vista de detalles</p>
+                                    </div>
+                                ) : (
+                                    <div className="search-grid" style={{ marginTop: '20px' }}>
+                                        {favorites.map((anime, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`anime-card-v2 ${searchIndex === idx && rowIndex !== -1 ? 'focused' : ''}`}
+                                                onClick={() => handleAnimeClick(anime)}
+                                            >
+                                                <div className="anime-card-v2-img-container">
+                                                    <img src={anime.image} alt={anime.title} className="anime-card-v2-img" />
+                                                </div>
+                                                <div className="anime-card-v2-title">{anime.title}</div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
