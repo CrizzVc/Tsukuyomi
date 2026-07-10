@@ -61,6 +61,11 @@ ipcMain.handle('api-browse', async (event, { page, sourceId }) => {
   return await source.browse(page);
 });
 
+ipcMain.handle('api-recently-added', async (event, { sourceId }) => {
+  const source = sources.getSource(sourceId);
+  return await source.getRecentlyAdded();
+});
+
 ipcMain.handle('api-extract', async (event, { url }) => {
   return await animeProvider.extract(url);
 });

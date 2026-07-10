@@ -190,6 +190,51 @@ const animeav1 = {
             }
         });
         return results;
+    },
+
+    getRecentlyAdded: async () => {
+        const response = await axios.get(BASE_URL, {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        const $ = cheerio.load(response.data);
+        const results = [];
+
+        // The homepage has two sections: "Episodios - Recientemente Actualizado" (first)
+        // and "Animes - Recientemente Agregados" (second). We target the second one.
+        // We find it by looking for the section whose h2 text is "Animes"
+        let recentlyAddedSection = null;
+        $('section').each((i, el) => {
+            const h2 = $(el).find('h2').first().text().trim();
+            if (h2 === 'Animes') {
+                recentlyAddedSection = $(el);
+                return false; // break
+            }
+        });
+
+        if (!recentlyAddedSection) return results;
+
+        recentlyAddedSection.find('article').each((i, el) => {
+            const link = $(el).find('a[href*="/media/"]').first();
+            const href = link.attr('href') || '';
+            // Only include direct anime links (no episode number: /media/{slug})
+            const parts = href.split('/').filter(p => p);
+            if (parts.length !== 2) return; // skip episode links
+
+            const title = $(el).find('h3').first().text().trim();
+            const image = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
+            const badge = $(el).find('.bg-line').first().text().trim(); // e.g. "TV Anime"
+
+            if (link.length > 0 && title) {
+                results.push({
+                    title,
+                    image,
+                    url: BASE_URL + href,
+                    badge: badge || ''
+                });
+            }
+        });
+
+        return results;
     }
 };
 

@@ -289,6 +289,34 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				});
 			});
 			return results;
+		},
+		getRecentlyAdded: async () => {
+			const response = await axios$6.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$2.load(response.data);
+			const results = [];
+			let recentlyAddedSection = null;
+			$("section").each((i, el) => {
+				if ($(el).find("h2").first().text().trim() === "Animes") {
+					recentlyAddedSection = $(el);
+					return false;
+				}
+			});
+			if (!recentlyAddedSection) return results;
+			recentlyAddedSection.find("article").each((i, el) => {
+				const link = $(el).find("a[href*=\"/media/\"]").first();
+				const href = link.attr("href") || "";
+				if (href.split("/").filter((p) => p).length !== 2) return;
+				const title = $(el).find("h3").first().text().trim();
+				const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
+				const badge = $(el).find(".bg-line").first().text().trim();
+				if (link.length > 0 && title) results.push({
+					title,
+					image,
+					url: BASE_URL + href,
+					badge: badge || ""
+				});
+			});
+			return results;
 		}
 	};
 }));
@@ -1062,6 +1090,9 @@ ipcMain.handle("api-search", async (event, { query, sourceId }) => {
 });
 ipcMain.handle("api-browse", async (event, { page, sourceId }) => {
 	return await sources.getSource(sourceId).browse(page);
+});
+ipcMain.handle("api-recently-added", async (event, { sourceId }) => {
+	return await sources.getSource(sourceId).getRecentlyAdded();
 });
 ipcMain.handle("api-extract", async (event, { url }) => {
 	return await animeProvider.extract(url);

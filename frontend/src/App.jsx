@@ -253,7 +253,7 @@ function App() {
 
     const loadGridAnimes = async (source = currentSource) => {
         try {
-            const data = await api.fetchCatalog(1, source);
+            const data = await api.fetchRecentlyAdded(source);
             setGridAnimes(data.slice(0, 24));
         } catch (e) {
             console.error('Error al cargar grid de animes:', e);

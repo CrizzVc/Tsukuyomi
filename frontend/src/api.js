@@ -50,6 +50,16 @@ export const fetchCatalog = async (page = 1, source = 'animeflv') => {
     }
 };
 
+export const fetchRecentlyAdded = async (source = 'animeav1') => {
+    try {
+        const data = await ipcRenderer.invoke('api-recently-added', { sourceId: source });
+        return data || [];
+    } catch (e) {
+        console.error('IPC Recently Added error:', e);
+        return [];
+    }
+};
+
 export const extractStream = async (url) => {
     try {
         const data = await ipcRenderer.invoke('api-extract', { url });
