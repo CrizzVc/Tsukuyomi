@@ -65,6 +65,7 @@ function App() {
     const [gridAnimes, setGridAnimes] = useState([]); // First 24 from catalog for the home grid
     const [catalogResults, setCatalogResults] = useState([]);
     const [catalogPage, setCatalogPage] = useState(1);
+    const [catalogLoading, setCatalogLoading] = useState(false);
     const [favorites, setFavorites] = useState([]);
     const [selectedAnime, setSelectedAnime] = useState(null);
     const [details, setDetails] = useState(null);
@@ -523,6 +524,8 @@ function App() {
     const loadCatalog = async (page = 1, source = currentSource) => {
         deactivateSearch();
         setStatus('Cargando catálogo...');
+        setCatalogLoading(true);
+        setCatalogResults([]);
         setView(STATES.CATALOG);
         try {
             const data = await api.fetchCatalog(page, source);
@@ -535,6 +538,8 @@ function App() {
         } catch (e) {
             console.error("Error al cargar catálogo:", e);
             setStatus('Error de conexión. Reinicia tu backend (node server.js).');
+        } finally {
+            setCatalogLoading(false);
         }
     };
 
@@ -1584,6 +1589,15 @@ function App() {
                                         </div>
                                         <h3 className="search-empty-text">No se encontraron resultados para "{searchQuery}"</h3>
                                         <p className="search-empty-subtext">Intenta con palabras clave diferentes o verifica la ortografía</p>
+                                    </div>
+                                ) : catalogLoading ? (
+                                    <div className="search-grid" style={{ marginTop: '20px' }}>
+                                        {Array.from({ length: 24 }).map((_, idx) => (
+                                            <div key={idx} className="anime-card-v2">
+                                                <div className="anime-card-v2-img-container anime-card-skeleton"></div>
+                                                <div className="anime-card-skeleton-title"></div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="search-grid" style={{ marginTop: '20px' }}>
