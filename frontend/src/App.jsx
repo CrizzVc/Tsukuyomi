@@ -584,7 +584,7 @@ function App() {
             }
 
             if (e.key === 'Escape') {
-                if (view === STATES.HOME) {
+                if (view === STATES.HOME || view === STATES.CATALOG || view === STATES.FAVORITES) {
                     setIsSidebarOpen(true);
                     setSidebarIndex(0);
                 } else {
@@ -1488,8 +1488,8 @@ function App() {
                                                 <div className="see-more-content">
                                                     <div className="see-more-icon">
                                                         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                                                         </svg>
                                                     </div>
                                                     <div className="see-more-text">Ver Catálogo</div>
@@ -1674,7 +1674,7 @@ function App() {
                                     </div>
                                 )}
                             </div>
-                         )}
+                        )}
 
                         {view === STATES.FAVORITES && (
                             <div className="catalog-tab" style={{ padding: '20px 40px' }}>
@@ -1722,8 +1722,8 @@ function App() {
                 <div className="modal-overlay">
                     <div className="modal-box">
                         <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-                            <button 
-                                onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')} 
+                            <button
+                                onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')}
                                 className="text-white/50 hover:text-white text-2xl transition-colors p-2"
                                 title="Cambiar reproductor"
                             >
@@ -1735,8 +1735,8 @@ function App() {
                                     Modo {playerMode === 'interno' ? 'Interno' : 'Externo'}
                                 </span>
                             </h2>
-                            <button 
-                                onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')} 
+                            <button
+                                onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')}
                                 className="text-white/50 hover:text-white text-2xl transition-colors p-2"
                                 title="Cambiar reproductor"
                             >
