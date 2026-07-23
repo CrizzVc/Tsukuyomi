@@ -135,7 +135,8 @@ const jkanime = {
             servers.push({
                 server: serverNames[i],
                 title: serverNames[i],
-                url: serverUrls[i]
+                url: serverUrls[i],
+                code: serverUrls[i]
             });
         }
 

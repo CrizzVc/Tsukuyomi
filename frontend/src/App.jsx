@@ -274,7 +274,7 @@ function App() {
         try {
             const animeSource = anime.source || currentSource;
             setCurrentSource(animeSource);
-            const data = await api.fetchDetails(anime.url, animeSource);
+            const data = await api.fetchDetails(anime.animeUrl || anime.url, animeSource);
             setDetails(data);
             setView(STATES.DETAILS);
             setDetailsActiveIndex(0);
@@ -1476,7 +1476,7 @@ function App() {
                                                     <div className="card-info">
                                                         <div className="card-title">{anime.title}</div>
                                                         <div className="card-rating">
-                                                            <span className="score"> {anime.episode || anime.number || '#'}</span>
+                                                            <span className="score">Ep. {(() => { const raw = String(anime.episode || anime.number || ''); const num = raw.replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim(); return num || '#'; })()}</span>
                                                         </div>
                                                     </div>
                                                 </div>
