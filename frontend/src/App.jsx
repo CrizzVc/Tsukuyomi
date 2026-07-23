@@ -604,8 +604,8 @@ function App() {
             }
 
             if (view === STATES.PROFILES) {
-                if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, profiles.length));
-                if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
+                if (e.key === 'ArrowDown') setColIndex(prev => Math.min(prev + 1, profiles.length));
+                if (e.key === 'ArrowUp') setColIndex(prev => Math.max(prev - 1, 0));
                 if (e.key === 'Enter') {
                     if (colIndex === profiles.length) addUser();
                     else selectProfile(profiles[colIndex]);
@@ -1240,6 +1240,17 @@ function App() {
                                 className={`profile-card ${colIndex === idx ? 'focused' : ''}`}
                                 onClick={() => selectProfile(p)}
                             >
+                                <button
+                                    className="profile-card-edit-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCreatingProfile(false);
+                                        setEditingProfile(p);
+                                    }}
+                                    title="Editar Perfil"
+                                >
+                                    ✎
+                                </button>
                                 <div className="profile-avatar-wrapper">
                                     <img src={p.avatar} alt={p.name} className="profile-avatar" />
                                 </div>
@@ -1258,8 +1269,6 @@ function App() {
                             </div>
                         )}
                     </div>
-
-                    <button className="edit-floating-btn" onClick={() => { setIsCreatingProfile(false); setEditingProfile(profiles[colIndex] || profiles[0]); }}>✎</button>
 
                     {editingProfile && (
                         <div className="side-panel-overlay" onClick={(e) => e.target.className === 'side-panel-overlay' && setEditingProfile(null)}>

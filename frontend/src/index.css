@@ -1305,9 +1305,11 @@ header {
 .profiles-screen {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     min-height: 100vh;
+    padding-left: 80px;
+    box-sizing: border-box;
     background-color: var(--bg-color);
     background-size: cover;
     background-position: center;
@@ -1323,7 +1325,7 @@ header {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle, rgba(20, 20, 22, 0.3) 0%, rgba(20, 20, 22, 0.8) 100%);
+    background: linear-gradient(to right, rgba(15, 15, 17, 0.95) 0%, rgba(15, 15, 17, 0.8) 35%, rgba(15, 15, 17, 0.4) 70%, rgba(15, 15, 17, 0.1) 100%);
     z-index: 1;
 }
 
@@ -1354,103 +1356,81 @@ header {
     transform: scale(1.05);
 }
 
-.edit-floating-btn {
-    position: absolute;
-    bottom: 30px;
-    right: 30px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    z-index: 100;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.edit-floating-btn:hover {
-    transform: scale(1.1) rotate(15deg);
-    background: var(--primary-color);
-    border-color: transparent;
-}
-
 .profiles-title {
     font-size: 3.5rem;
     font-weight: 600;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     color: white;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .profiles-container {
     display: flex;
-    gap: 40px;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .profile-card {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    gap: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    opacity: 0.7;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6;
     position: relative;
+    padding: 8px 16px 8px 60px;
 }
 
-.edit-profile-btn {
+.profile-card-edit-btn {
     position: absolute;
-    top: -10px;
-    right: -10px;
-    background: var(--primary-color);
-    border: none;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    cursor: pointer;
+    left: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
     opacity: 0;
-    transition: all 0.2s;
-    z-index: 10;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
 }
 
-.profile-card.focused .edit-profile-btn,
-.profile-card:hover .edit-profile-btn {
+.profile-card-edit-btn:hover {
+    color: var(--primary-color, #ff00e5);
+    transform: scale(1.2) rotate(15deg);
+}
+
+.profile-card.focused .profile-card-edit-btn {
     opacity: 1;
-    transform: scale(1.1);
+    visibility: visible;
 }
 
 .profile-card.focused,
 .profile-card:hover {
-    transform: scale(1.1);
+    transform: translateX(10px);
     opacity: 1;
 }
 
 .profile-avatar-wrapper {
-    width: 200px;
-    height: 200px;
+    width: 80px;
+    height: 80px;
     border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 15px;
-    border: 4px solid transparent;
+    border: 3px solid transparent;
     transition: all 0.3s ease;
     background: #2a2a2d;
+    flex-shrink: 0;
 }
 
 .profile-card.focused .profile-avatar-wrapper {
     border-color: white;
     transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
 }
 
 .profile-avatar {
@@ -1459,22 +1439,16 @@ header {
     object-fit: cover;
 }
 
-.profile-card.focused .profile-avatar,
-.profile-card:hover .profile-avatar {
-    border-color: white;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-}
-
 .profile-name {
-    margin-top: 15px;
     font-size: 1.5rem;
-    color: var(--text-dim);
-    transition: color 0.3s ease;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
 }
 
 .profile-card.focused .profile-name,
 .profile-card:hover .profile-name {
     color: white;
+    font-weight: 600;
 }
 
 /* Empty Favorites State */

@@ -1,7 +1,7 @@
 {
   "name": "tsukuyomi",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
