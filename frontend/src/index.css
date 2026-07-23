@@ -1311,11 +1311,29 @@ header {
     padding-left: 80px;
     box-sizing: border-box;
     background-color: var(--bg-color);
-    background-size: cover;
-    background-position: center;
     position: relative;
     animation: fadeIn 0.5s ease;
-    transition: background 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+/* Background layers for smooth cross-fade */
+.profile-bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    pointer-events: none;
+}
+
+.profile-bg-layer.active {
+    opacity: 1;
 }
 
 .profiles-screen::before {

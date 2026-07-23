@@ -1231,13 +1231,34 @@ function App() {
                 onChange={handleFileChange}
             />
             {view === STATES.PROFILES ? (
-                <div className="profiles-screen" style={{ backgroundImage: profiles[colIndex]?.background ? `url(${profiles[colIndex].background})` : 'none' }}>
+                <div className="profiles-screen">
+                    {/* Background layers for smooth cross-fade */}
+                    {profiles.map((p, idx) => (
+                        <div
+                            key={`bg-${p.id}`}
+                            className={`profile-bg-layer ${colIndex === idx ? 'active' : ''}`}
+                            style={{
+                                backgroundImage: p.background ? `url(${p.background})` : 'none',
+                                backgroundColor: 'var(--bg-color)'
+                            }}
+                        />
+                    ))}
+                    {/* Dynamic fallback layer when focusing Add Profile button */}
+                    <div
+                        className={`profile-bg-layer ${colIndex >= profiles.length ? 'active' : ''}`}
+                        style={{
+                            backgroundImage: 'none',
+                            backgroundColor: 'var(--bg-color)'
+                        }}
+                    />
+
                     <h1 className="profiles-title">¿Quién está viendo?</h1>
                     <div className="profiles-container">
                         {profiles.map((p, idx) => (
                             <div
                                 key={p.id}
                                 className={`profile-card ${colIndex === idx ? 'focused' : ''}`}
+                                onMouseEnter={() => setColIndex(idx)}
                                 onClick={() => selectProfile(p)}
                             >
                                 <button
@@ -1260,6 +1281,7 @@ function App() {
                         {profiles.length < 5 && (
                             <div
                                 className={`profile-card add-profile-card ${colIndex === profiles.length ? 'focused' : ''}`}
+                                onMouseEnter={() => setColIndex(profiles.length)}
                                 onClick={addUser}
                             >
                                 <div className="profile-avatar-wrapper add-icon">
