@@ -1475,9 +1475,6 @@ function App() {
                                                     <div className="card-overlay-gradient"></div>
                                                     <div className="card-info">
                                                         <div className="card-title">{anime.title}</div>
-                                                        <div className="card-rating">
-                                                            <span className="score">Ep. {(() => { const raw = String(anime.episode || anime.number || ''); const num = raw.replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim(); return num || '#'; })()}</span>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -1498,6 +1495,23 @@ function App() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Focused episode info — shown below the carousel when a card is focused */}
+                                {rowIndex === 0 && latest[colIndices[0]] && (() => {
+                                    const anime = latest[colIndices[0]];
+                                    const raw = String(anime.episode || anime.number || '');
+                                    const num = raw.replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#';
+                                    const season = anime.season || 1;
+                                    return (
+                                        <React.Fragment key={colIndices[0]}>
+                                            <div className="focused-episode-info">
+                                                <span className="focused-episode-anime-title">{anime.title}</span>
+                                                <span className="focused-episode-meta">T{season}: E{num} &ndash; Episodio {num}</span>
+                                                <span className="focused-episode-next">Comenzar episodio siguiente</span>
+                                            </div>
+                                        </React.Fragment>
+                                    );
+                                })()}
 
                                 <div className="carousel-container mt-10">
                                     <h2 className="section-title"><span className="title-marker"></span>Favoritos</h2>

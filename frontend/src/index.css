@@ -726,6 +726,58 @@ header {
     margin-bottom: 5px;
 }
 
+/* Focused episode info block — sits between the carousel and Favoritos */
+.focused-episode-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 20px 8px 20px;
+}
+
+/* Each child animates in with staggered delays */
+.focused-episode-anime-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    animation: epSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0s;
+}
+
+.focused-episode-meta {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #888;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    animation: epSlideUp 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.05s;
+}
+
+.focused-episode-next {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #eeeeee;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    animation: epSlideUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.1s;
+}
+
+@keyframes epSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
 .card-rating {
     display: flex;
     align-items: baseline;
