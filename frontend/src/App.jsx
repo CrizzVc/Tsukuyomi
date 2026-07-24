@@ -91,12 +91,21 @@ function App() {
     const [rowIndex, setRowIndex] = useState(0); // -1: Header, 0: Latest, 1: Favorites, 2: Recent Grid, 3: News
     const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0, 2: 0, 3: 0 });
     const colIndex = colIndices[rowIndex] || 0;
+    const [slideDirection, setSlideDirection] = useState('right'); // 'right' | 'left'
+    const prevColIndexRef = useRef(colIndices[0] || 0);
 
     const setColIndex = (updater) => {
-        setColIndices(prev => ({
-            ...prev,
-            [rowIndex]: typeof updater === 'function' ? updater(prev[rowIndex]) : updater
-        }));
+        setColIndices(prev => {
+            const currentCol = prev[rowIndex] || 0;
+            const nextCol = typeof updater === 'function' ? updater(currentCol) : updater;
+            if (rowIndex === 0 && nextCol !== currentCol) {
+                setSlideDirection(nextCol > currentCol ? 'right' : 'left');
+            }
+            return {
+                ...prev,
+                [rowIndex]: nextCol
+            };
+        });
     };
 
     const touchStartX = useRef(null);
@@ -1504,7 +1513,10 @@ function App() {
                                     return (
                                         <div className={`focused-episode-info-wrapper${isExpanded ? ' expanded' : ''}`}>
                                             {anime && (
-                                                <div className={`focused-episode-info${isExpanded ? ' visible' : ' exiting'}`}>
+                                                <div
+                                                    key={`${colIndices[0]}-${slideDirection}`}
+                                                    className={`focused-episode-info${isExpanded ? ' visible' : ' exiting'} slide-${slideDirection}`}
+                                                >
                                                     <span className="focused-episode-anime-title">{anime.title}</span>
                                                     <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
                                                     <span className="focused-episode-next">Comenzar episodio siguiente</span>

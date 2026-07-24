@@ -747,20 +747,13 @@ header {
     transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.focused-episode-info.exiting {
-    opacity: 0;
-    transform: translateY(-8px);
-}
-
-/* Each child animates in with staggered delays */
+/* Base typography and layout for child elements */
 .focused-episode-anime-title {
     font-size: 1.05rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.5);
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    animation: epSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: 0s;
 }
 
 .focused-episode-meta {
@@ -769,8 +762,6 @@ header {
     color: #888;
     letter-spacing: 0.04em;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-    animation: epSlideUp 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: 0.05s;
 }
 
 .focused-episode-next {
@@ -779,19 +770,61 @@ header {
     color: #eeeeee;
     letter-spacing: 0.02em;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-    animation: epSlideUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: 0.1s;
 }
 
-@keyframes epSlideUp {
+/* Each child animates in with staggered delays based on slide direction */
+.focused-episode-info.slide-right .focused-episode-anime-title {
+    animation: epSlideFromRight 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0s;
+}
+
+.focused-episode-info.slide-right .focused-episode-meta {
+    animation: epSlideFromRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.04s;
+}
+
+.focused-episode-info.slide-right .focused-episode-next {
+    animation: epSlideFromRight 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.08s;
+}
+
+.focused-episode-info.slide-left .focused-episode-anime-title {
+    animation: epSlideFromLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0s;
+}
+
+.focused-episode-info.slide-left .focused-episode-meta {
+    animation: epSlideFromLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.04s;
+}
+
+.focused-episode-info.slide-left .focused-episode-next {
+    animation: epSlideFromLeft 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.08s;
+}
+
+@keyframes epSlideFromRight {
     from {
         opacity: 0;
-        transform: translateY(14px);
-        filter: blur(3px);
+        transform: translateX(28px) scale(0.98);
+        filter: blur(4px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes epSlideFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-28px) scale(0.98);
+        filter: blur(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
         filter: blur(0);
     }
 }
