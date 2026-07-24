@@ -1497,19 +1497,20 @@ function App() {
                                 </div>
 
                                 {/* Focused episode info — shown below the carousel when a card is focused */}
-                                {rowIndex === 0 && latest[colIndices[0]] && (() => {
+                                {/* Wrapper always in DOM so max-height transition works smoothly */}
+                                {(() => {
                                     const anime = latest[colIndices[0]];
-                                    const raw = String(anime.episode || anime.number || '');
-                                    const num = raw.replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#';
-                                    const season = anime.season || 1;
+                                    const isExpanded = rowIndex === 0 && !!anime;
                                     return (
-                                        <React.Fragment key={colIndices[0]}>
-                                            <div className="focused-episode-info">
-                                                <span className="focused-episode-anime-title">{anime.title}</span>
-                                                <span className="focused-episode-meta">T{season}: E{num} &ndash; Episodio {num}</span>
-                                                <span className="focused-episode-next">Comenzar episodio siguiente</span>
-                                            </div>
-                                        </React.Fragment>
+                                        <div className={`focused-episode-info-wrapper${isExpanded ? ' expanded' : ''}`}>
+                                            {anime && (
+                                                <div className={`focused-episode-info${isExpanded ? ' visible' : ' exiting'}`}>
+                                                    <span className="focused-episode-anime-title">{anime.title}</span>
+                                                    <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
+                                                    <span className="focused-episode-next">Comenzar episodio siguiente</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     );
                                 })()}
 

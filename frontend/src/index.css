@@ -622,7 +622,7 @@ header {
 
 .small-card {
     width: 250px;
-    height: 150px;
+    height: 360px;
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -726,12 +726,30 @@ header {
     margin-bottom: 5px;
 }
 
-/* Focused episode info block — sits between the carousel and Favoritos */
+/* Wrapper — always in the DOM, controls the animated height slot */
+.focused-episode-info-wrapper {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focused-episode-info-wrapper.expanded {
+    /* 3 lines × ~22px + gaps + padding ≈ 110px */
+    max-height: 110px;
+}
+
+/* Inner info block — normal flow, smooth opacity/transform transition */
 .focused-episode-info {
     display: flex;
     flex-direction: column;
     gap: 5px;
     padding: 10px 20px 8px 20px;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.focused-episode-info.exiting {
+    opacity: 0;
+    transform: translateY(-8px);
 }
 
 /* Each child animates in with staggered delays */
