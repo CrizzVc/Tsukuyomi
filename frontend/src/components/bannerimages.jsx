@@ -9,8 +9,18 @@ function BannerImages(props) {
         <div className="mt-10 bannerImg">
 
             <div className='bannerText'>
-                <h1>Animes</h1>
-                <h3>Recientemente Agregados</h3>
+                {props.logoUrl ? (
+                    <img 
+                        src={props.logoUrl} 
+                        alt="Anime Logo" 
+                        style={{ maxHeight: '150px', maxWidth: '400px', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))', marginBottom: '10px' }} 
+                    />
+                ) : (
+                    <>
+                        <h1>Animes</h1>
+                        <h3>Recientemente Agregados</h3>
+                    </>
+                )}
                 <hr className='hrStyle' />
                 <button
                     className='bannerBtn'

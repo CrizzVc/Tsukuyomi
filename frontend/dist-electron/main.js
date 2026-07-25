@@ -1108,6 +1108,16 @@ ipcMain.handle("api-news", async (event, { apiKey }) => {
 		return { error: error.message };
 	}
 });
+ipcMain.handle("api-fanart", async (event, { tvdbId, apiKey }) => {
+	try {
+		const response = await fetch(`https://webservice.fanart.tv/v3/tv/${tvdbId}?api_key=${apiKey}`);
+		if (response.ok) return await response.json();
+		return null;
+	} catch (error) {
+		console.error("Fanart API error:", error.message);
+		return null;
+	}
+});
 app.whenReady().then(() => {
 	session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ["*://*.mp4upload.com/*"] }, (details, callback) => {
 		details.requestHeaders["Referer"] = "https://www.mp4upload.com/";

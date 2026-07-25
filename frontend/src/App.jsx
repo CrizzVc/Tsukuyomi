@@ -87,6 +87,9 @@ function App() {
     const [newsLoading, setNewsLoading] = useState(false);
     const [newsError, setNewsError] = useState('');
 
+    // Dynamic Hero Logo
+    const [heroLogo, setHeroLogo] = useState(null);
+
     // Navigation state for "spatial" focus simulation
     const [rowIndex, setRowIndex] = useState(0); // -1: Header, 0: Latest, 1: Favorites, 2: Recent Grid, 3: News
     const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0, 2: 0, 3: 0 });
@@ -209,6 +212,40 @@ function App() {
         }
     }, [activeProfile, currentSource]);
 
+    // Dynamic hero logo fetch
+    useEffect(() => {
+        if (view !== STATES.HOME) return;
+        
+        let focusedAnime = null;
+        if (rowIndex === 0 && latest[colIndex]) {
+            focusedAnime = latest[colIndex];
+        } else if (rowIndex === 1 && favorites[colIndex]) {
+            focusedAnime = favorites[colIndex];
+        } else if (rowIndex === 2 && gridAnimes[colIndex]) {
+            focusedAnime = gridAnimes[colIndex];
+        }
+
+        console.log("Focused Anime changed:", focusedAnime?.title);
+
+        if (focusedAnime && focusedAnime.title) {
+            const timer = setTimeout(async () => {
+                try {
+                    console.log("Fetching logo for:", focusedAnime.title);
+                    const url = await api.fetchFanartLogo(focusedAnime.title);
+                    console.log("Fetched logo URL:", url);
+                    setHeroLogo(url);
+                } catch (e) {
+                    console.error("Hero logo fetch error:", e);
+                    setHeroLogo(null);
+                }
+            }, 300); // 300ms debounce
+            return () => clearTimeout(timer);
+        } else {
+            setHeroLogo(null);
+        }
+    }, [view, rowIndex, colIndex, latest, favorites, gridAnimes]);
+
+
 
     const loadNews = async (key = newsApiKey) => {
         if (!key) return;
@@ -284,6 +321,7 @@ function App() {
             const animeSource = anime.source || currentSource;
             setCurrentSource(animeSource);
             const data = await api.fetchDetails(anime.animeUrl || anime.url, animeSource);
+            
             setDetails(data);
             setView(STATES.DETAILS);
             setDetailsActiveIndex(0);
@@ -291,6 +329,17 @@ function App() {
             setIsEpisodeSearchVisible(false);
             setEpisodeSortOrder('desc');
             setStatus('');
+
+            // Try fetching Fanart Logo asynchronously
+            if (data && data.title) {
+                api.fetchFanartLogo(data.title).then(logoUrl => {
+                    if (logoUrl) {
+                        setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                    }
+                }).catch(logoErr => {
+                    console.error("Logo fetch error:", logoErr);
+                });
+            }
         } catch (e) {
             setStatus('Error al cargar detalles.');
         }
@@ -1267,7 +1316,6 @@ function App() {
                             <div
                                 key={p.id}
                                 className={`profile-card ${colIndex === idx ? 'focused' : ''}`}
-                                onMouseEnter={() => setColIndex(idx)}
                                 onClick={() => selectProfile(p)}
                             >
                                 <button
@@ -1290,7 +1338,6 @@ function App() {
                         {profiles.length < 5 && (
                             <div
                                 className={`profile-card add-profile-card ${colIndex === profiles.length ? 'focused' : ''}`}
-                                onMouseEnter={() => setColIndex(profiles.length)}
                                 onClick={addUser}
                             >
                                 <div className="profile-avatar-wrapper add-icon">
@@ -1560,7 +1607,7 @@ function App() {
                                     </div>
                                 </div>
 
-                                <BannerImages onExplore={() => loadCatalog(1)} />
+                                <BannerImages onExplore={() => loadCatalog(1)} logoUrl={heroLogo} />
 
                                 <div className="recent-grid-section">
                                     <div className="recent-grid-header"></div>
@@ -1826,7 +1873,13 @@ function App() {
                         </div>
 
                         <div className="details-right">
-                            <h1 className="details-title">{details.title}</h1>
+                            {details.logo ? (
+                                <div className="details-logo-container mb-3">
+                                    <img src={details.logo} alt={details.title} className="details-title-logo" style={{ maxHeight: '120px', maxWidth: '320px', objectFit: 'contain' }} />
+                                </div>
+                            ) : (
+                                <h1 className="details-title">{details.title}</h1>
+                            )}
                             <div className="synopsis-box">
                                 <div className="synopsis-header">
                                     <h2>Sinopsis</h2>

@@ -829,6 +829,19 @@ header {
     }
 }
 
+.details-title-logo {
+    max-height: 120px;
+    max-width: 320px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.7));
+    transition: transform 0.3s ease;
+}
+
+.details-title-logo:hover {
+    transform: scale(1.03);
+}
+
+
 .card-rating {
     display: flex;
     align-items: baseline;
