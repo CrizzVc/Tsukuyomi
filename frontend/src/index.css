@@ -686,9 +686,10 @@ header {
     height: 360px;
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-size: cover;
+    background-position: center;
 }
 
-.small-card.focused,
 .small-card:hover {
     /* transform: scale(1.06); */
     /* border: 1px solid var(--primary-color); */
