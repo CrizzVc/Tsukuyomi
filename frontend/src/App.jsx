@@ -1475,7 +1475,7 @@ function App() {
 
                     <main>
                         {view === STATES.HOME && (
-                            <>
+                            <div className="home-view-content">
                                 <div className="carousel-container">
                                     <div
                                         className="carousel-wrapper"
@@ -1633,7 +1633,7 @@ function App() {
                                     handleTouchStart={handleTouchStart}
                                     handleTouchEnd={handleTouchEnd}
                                 /> */}
-                            </>
+                            </div>
                         )}
 
                         {view === STATES.CATALOG && (
