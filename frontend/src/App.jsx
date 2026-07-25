@@ -818,8 +818,12 @@ function App() {
             const activeEl = document.querySelector('.focused, .large-card.expanded');
             if (activeEl) {
                 const rect = activeEl.getBoundingClientRect();
-                const targetY = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
-                window.scrollTo({ top: targetY, behavior: 'smooth' });
+                const wrapperEl = document.querySelector('.focused-episode-info-wrapper');
+                const wrapperHeight = (rowIndex > 0 && wrapperEl) ? wrapperEl.getBoundingClientRect().height : 0;
+                const targetY = Math.max(0, window.scrollY + (rect.top - wrapperHeight) - (window.innerHeight / 2) + (rect.height / 2));
+                if (Math.abs(targetY - window.scrollY) > 2) {
+                    window.scrollTo({ top: targetY, behavior: 'smooth' });
+                }
             }
         }, 50);
         return () => clearTimeout(timeout);
