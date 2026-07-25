@@ -287,7 +287,7 @@ function App() {
             const animeSource = anime.source || currentSource;
             setCurrentSource(animeSource);
             const data = await api.fetchDetails(anime.animeUrl || anime.url, animeSource);
-            
+
             setDetails(data);
             setView(STATES.DETAILS);
             setDetailsActiveIndex(0);
@@ -1536,7 +1536,7 @@ function App() {
                                                 >
                                                     <span className="focused-episode-anime-title">{anime.title}</span>
                                                     <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
-                                                    <span className="focused-episode-next">Comenzar episodio siguiente</span>
+                                                    <span className="focused-episode-next">Comenzar episodio</span>
                                                 </div>
                                             )}
                                         </div>
