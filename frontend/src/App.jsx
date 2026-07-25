@@ -87,9 +87,6 @@ function App() {
     const [newsLoading, setNewsLoading] = useState(false);
     const [newsError, setNewsError] = useState('');
 
-    // Dynamic Hero Logo
-    const [heroLogo, setHeroLogo] = useState(null);
-
     // Navigation state for "spatial" focus simulation
     const [rowIndex, setRowIndex] = useState(0); // -1: Header, 0: Latest, 1: Favorites, 2: Recent Grid, 3: News
     const [colIndices, setColIndices] = useState({ '-1': 0, 0: 0, 1: 0, 2: 0, 3: 0 });
@@ -212,38 +209,7 @@ function App() {
         }
     }, [activeProfile, currentSource]);
 
-    // Dynamic hero logo fetch
-    useEffect(() => {
-        if (view !== STATES.HOME) return;
-        
-        let focusedAnime = null;
-        if (rowIndex === 0 && latest[colIndex]) {
-            focusedAnime = latest[colIndex];
-        } else if (rowIndex === 1 && favorites[colIndex]) {
-            focusedAnime = favorites[colIndex];
-        } else if (rowIndex === 2 && gridAnimes[colIndex]) {
-            focusedAnime = gridAnimes[colIndex];
-        }
 
-        console.log("Focused Anime changed:", focusedAnime?.title);
-
-        if (focusedAnime && focusedAnime.title) {
-            const timer = setTimeout(async () => {
-                try {
-                    console.log("Fetching logo for:", focusedAnime.title);
-                    const url = await api.fetchFanartLogo(focusedAnime.title);
-                    console.log("Fetched logo URL:", url);
-                    setHeroLogo(url);
-                } catch (e) {
-                    console.error("Hero logo fetch error:", e);
-                    setHeroLogo(null);
-                }
-            }, 300); // 300ms debounce
-            return () => clearTimeout(timer);
-        } else {
-            setHeroLogo(null);
-        }
-    }, [view, rowIndex, colIndex, latest, favorites, gridAnimes]);
 
 
 
@@ -1607,7 +1573,7 @@ function App() {
                                     </div>
                                 </div>
 
-                                <BannerImages onExplore={() => loadCatalog(1)} logoUrl={heroLogo} />
+                                <BannerImages onExplore={() => loadCatalog(1)} />
 
                                 <div className="recent-grid-section">
                                     <div className="recent-grid-header"></div>
