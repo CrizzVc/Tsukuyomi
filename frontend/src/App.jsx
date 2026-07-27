@@ -440,21 +440,47 @@ function App() {
         });
     };
 
+    const isAnimeFavorite = (animeObj) => {
+        if (!activeProfile || !animeObj || !activeProfile.favorites) return false;
+        const targetUrl = (animeObj.animeUrl || animeObj.url || '').replace(/\/$/, '');
+        const targetTitle = (animeObj.title || '').trim().toLowerCase();
+
+        return activeProfile.favorites.some(f => {
+            const fUrl = (f.animeUrl || f.url || '').replace(/\/$/, '');
+            const fTitle = (f.title || '').trim().toLowerCase();
+            const matchUrl = Boolean(targetUrl && fUrl && fUrl === targetUrl);
+            const matchTitle = Boolean(targetTitle && fTitle && fTitle === targetTitle);
+            return matchUrl || matchTitle;
+        });
+    };
+
     const toggleFavorite = (anime) => {
         if (!activeProfile) return;
 
-        const isFav = activeProfile.favorites.some(f => f.url === anime.url);
+        const animeUrl = anime.animeUrl || anime.url;
+        const targetUrl = (animeUrl || '').replace(/\/$/, '');
+        const targetTitle = (anime.title || '').trim().toLowerCase();
+
+        const isFav = isAnimeFavorite(anime);
         let newProfileFavorites;
 
         if (isFav) {
-            newProfileFavorites = activeProfile.favorites.filter(f => f.url !== anime.url);
+            newProfileFavorites = activeProfile.favorites.filter(f => {
+                const fUrl = (f.animeUrl || f.url || '').replace(/\/$/, '');
+                const fTitle = (f.title || '').trim().toLowerCase();
+                const matchUrl = Boolean(targetUrl && fUrl && fUrl === targetUrl);
+                const matchTitle = Boolean(targetTitle && fTitle && fTitle === targetTitle);
+                return !(matchUrl || matchTitle);
+            });
         } else {
             newProfileFavorites = [
                 {
                     title: anime.title,
-                    url: anime.url,
+                    url: animeUrl,
+                    animeUrl: animeUrl,
                     image: anime.image || anime.cover,
-                    source: currentSource
+                    cover: anime.cover || anime.image,
+                    source: anime.source || currentSource
                 },
                 ...activeProfile.favorites
             ];
@@ -1541,25 +1567,45 @@ function App() {
                                                         <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
                                                         <span className="focused-episode-next">Comenzar episodio</span>
                                                     </div>
-                                                    <button
-                                                        className="focused-episode-watch-btn"
-                                                        onClick={async () => {
-                                                            const epUrl = anime.episodeUrl || anime.url;
-                                                            const epNum = anime.episode || anime.number;
-                                                            if (epNum) {
-                                                                markEpisodeWatched(anime.animeUrl || anime.url, epNum);
-                                                            }
-                                                            setSelectedAnime(anime);
-                                                            // Cargamos los detalles completos en segundo plano sin cambiar de vista inmediatamente
-                                                            openDetails(anime, false);
-                                                            openServers(epUrl);
-                                                        }}
-                                                    >
-                                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                                            <path d="M8 5v14l11-7z" />
-                                                        </svg>
-                                                        Ver ahora
-                                                    </button>
+                                                    <div className="focused-episode-actions">
+                                                        <button
+                                                            className="focused-episode-watch-btn"
+                                                            onClick={async () => {
+                                                                const epUrl = anime.episodeUrl || anime.url;
+                                                                const epNum = anime.episode || anime.number;
+                                                                if (epNum) {
+                                                                    markEpisodeWatched(anime.animeUrl || anime.url, epNum);
+                                                                }
+                                                                setSelectedAnime(anime);
+                                                                // Cargamos los detalles completos en segundo plano sin cambiar de vista inmediatamente
+                                                                openDetails(anime, false);
+                                                                openServers(epUrl);
+                                                            }}
+                                                        >
+                                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                                                <path d="M8 5v14l11-7z" />
+                                                            </svg>
+                                                            Ver ahora
+                                                        </button>
+                                                        <button
+                                                            className={`focused-episode-fav-btn ${isAnimeFavorite(anime) ? 'active' : ''}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                e.currentTarget.blur();
+                                                                toggleFavorite({
+                                                                    title: anime.title,
+                                                                    url: anime.animeUrl || anime.url,
+                                                                    animeUrl: anime.animeUrl || anime.url,
+                                                                    image: anime.cover || anime.image
+                                                                });
+                                                            }}
+                                                            title={isAnimeFavorite(anime) ? "Quitar de favoritos" : "Guardar en favoritos"}
+                                                        >
+                                                            <svg viewBox="0 0 24 24" width="20" height="20" fill={isAnimeFavorite(anime) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -1858,11 +1904,14 @@ function App() {
                             <img src={details.cover} className="details-cover" alt="Cover" />
                             <div className="flex items-center gap-3 mt-4">
                                 <button
-                                    className={`modal-btn ${favorites.some(f => f.url === selectedAnime?.url) ? 'active' : ''}`}
-                                    onClick={() => toggleFavorite(selectedAnime || details)}
+                                    className={`modal-btn ${isAnimeFavorite(selectedAnime || details) ? 'active' : ''}`}
+                                    onClick={(e) => {
+                                        e.currentTarget.blur();
+                                        toggleFavorite(selectedAnime || details);
+                                    }}
                                     style={{ marginTop: 0, width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', borderRadius: '50%' }}
                                 >
-                                    {favorites.some(f => f.url === selectedAnime?.url) ? '❤' : '♡'}
+                                    {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
                                 </button>
                                 {details.status && (
                                     <div className={`status-badge ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`} style={{ marginTop: 0 }}>

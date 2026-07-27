@@ -874,6 +874,13 @@ header {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
+.focused-episode-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px;
+}
+
 .focused-episode-watch-btn {
     display: flex;
     align-items: center;
@@ -889,13 +896,43 @@ header {
     transition: all 0.25s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     white-space: nowrap;
-    margin-left: 20px;
 }
 
 .focused-episode-watch-btn:hover {
     transform: scale(1.05);
     filter: brightness(1.15);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.focused-episode-fav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: none;
+}
+
+.focused-episode-fav-btn:hover {
+    transform: scale(1.08);
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--primary-color, #00e5ff);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: none;
+}
+
+.focused-episode-fav-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--primary-color, #00e5ff);
+    border-color: var(--primary-color, #00e5ff);
+    box-shadow: none;
 }
 
 /* Each child animates in with staggered delays based on slide direction */
