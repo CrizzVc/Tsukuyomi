@@ -278,9 +278,9 @@ function App() {
         openDetails(anime); // Skip ACTION_MODAL
     };
 
-    const openDetails = async (anime) => {
+    const openDetails = async (anime, changeView = true) => {
         setStatus('Cargando detalles...');
-        if (view !== STATES.DETAILS) {
+        if (changeView && view !== STATES.DETAILS) {
             setDetailsPreviousView(view);
         }
         try {
@@ -289,7 +289,9 @@ function App() {
             const data = await api.fetchDetails(anime.animeUrl || anime.url, animeSource);
 
             setDetails(data);
-            setView(STATES.DETAILS);
+            if (changeView) {
+                setView(STATES.DETAILS);
+            }
             setDetailsActiveIndex(0);
             setEpisodeSearchQuery('');
             setIsEpisodeSearchVisible(false);
@@ -1500,7 +1502,7 @@ function App() {
                                                 >
                                                     <div className="card-overlay-gradient"></div>
                                                     <div className="card-info">
-                                                        <div className="card-title">{anime.title}</div>
+                                                        {/* <div className="card-title">{anime.title}</div> */}
                                                     </div>
                                                 </div>
                                             ))}
@@ -1534,9 +1536,30 @@ function App() {
                                                     key={`${colIndices[0]}-${slideDirection}`}
                                                     className={`focused-episode-info${isExpanded ? ' visible' : ' exiting'} slide-${slideDirection}`}
                                                 >
-                                                    <span className="focused-episode-anime-title">{anime.title}</span>
-                                                    <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
-                                                    <span className="focused-episode-next">Comenzar episodio</span>
+                                                    <div className="focused-episode-info-text">
+                                                        <span className="focused-episode-anime-title">{anime.title}</span>
+                                                        <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
+                                                        <span className="focused-episode-next">Comenzar episodio</span>
+                                                    </div>
+                                                    <button
+                                                        className="focused-episode-watch-btn"
+                                                        onClick={async () => {
+                                                            const epUrl = anime.episodeUrl || anime.url;
+                                                            const epNum = anime.episode || anime.number;
+                                                            if (epNum) {
+                                                                markEpisodeWatched(anime.animeUrl || anime.url, epNum);
+                                                            }
+                                                            setSelectedAnime(anime);
+                                                            // Cargamos los detalles completos en segundo plano sin cambiar de vista inmediatamente
+                                                            openDetails(anime, false);
+                                                            openServers(epUrl);
+                                                        }}
+                                                    >
+                                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                                            <path d="M8 5v14l11-7z" />
+                                                        </svg>
+                                                        Ver ahora
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>

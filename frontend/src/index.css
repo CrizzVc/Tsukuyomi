@@ -803,10 +803,17 @@ header {
 /* Inner info block — normal flow, smooth opacity/transform transition */
 .focused-episode-info {
     display: flex;
-    flex-direction: column;
-    gap: 5px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     padding: 10px 20px 8px 20px;
     transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.focused-episode-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 /* Base typography and layout for child elements */
@@ -832,6 +839,30 @@ header {
     color: #eeeeee;
     letter-spacing: 0.02em;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.focused-episode-watch-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-color);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 22px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    margin-left: 20px;
+}
+
+.focused-episode-watch-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Each child animates in with staggered delays based on slide direction */
