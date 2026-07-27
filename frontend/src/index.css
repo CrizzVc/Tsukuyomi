@@ -401,6 +401,7 @@
     font-size: 0.6rem;
     color: #000;
     font-weight: 900;
+    z-index: 10;
 }
 
 /* Settings gear button in header */
