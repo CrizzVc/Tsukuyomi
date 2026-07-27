@@ -446,6 +446,7 @@ function App() {
         const targetTitle = (animeObj.title || '').trim().toLowerCase();
 
         return activeProfile.favorites.some(f => {
+            if (f.source !== currentSource) return false;
             const fUrl = (f.animeUrl || f.url || '').replace(/\/$/, '');
             const fTitle = (f.title || '').trim().toLowerCase();
             const matchUrl = Boolean(targetUrl && fUrl && fUrl === targetUrl);
