@@ -1,6 +1,6 @@
 const { ipcRenderer } = window.require('electron');
 
-export const fetchLatest = async (source = 'animeflv') => {
+export const fetchLatest = async (source = 'animeav1') => {
     try {
         const data = await ipcRenderer.invoke('api-latest', { sourceId: source });
         return data || [];
@@ -10,7 +10,7 @@ export const fetchLatest = async (source = 'animeflv') => {
     }
 };
 
-export const fetchDetails = async (url, source = 'animeflv') => {
+export const fetchDetails = async (url, source = 'animeav1') => {
     try {
         const data = await ipcRenderer.invoke('api-details', { url, sourceId: source });
         return data || null;
@@ -20,7 +20,7 @@ export const fetchDetails = async (url, source = 'animeflv') => {
     }
 };
 
-export const fetchServers = async (url, source = 'animeflv') => {
+export const fetchServers = async (url, source = 'animeav1') => {
     try {
         const servers = await ipcRenderer.invoke('api-servers', { url, sourceId: source });
         return servers || [];
@@ -30,7 +30,7 @@ export const fetchServers = async (url, source = 'animeflv') => {
     }
 };
 
-export const searchAnime = async (query, source = 'animeflv') => {
+export const searchAnime = async (query, source = 'animeav1') => {
     try {
         const data = await ipcRenderer.invoke('api-search', { query, sourceId: source });
         return data || [];
@@ -40,7 +40,7 @@ export const searchAnime = async (query, source = 'animeflv') => {
     }
 };
 
-export const fetchCatalog = async (page = 1, source = 'animeflv') => {
+export const fetchCatalog = async (page = 1, source = 'animeav1') => {
     try {
         const data = await ipcRenderer.invoke('api-browse', { page, sourceId: source });
         return data || [];
