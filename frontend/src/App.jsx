@@ -1567,7 +1567,15 @@ function App() {
                                 })()}
 
                                 <div className="carousel-container mt-10">
-                                    <h2 className="section-title"><span className="title-marker"></span>Favoritos</h2>
+                                    <div className="section-header">
+                                        <h2 className="section-title"><span className="title-marker"></span>Favoritos</h2>
+                                        <button className="see-more-btn" onClick={() => setView(STATES.FAVORITES)}>
+                                            Ver más
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <div
                                         className="carousel-wrapper"
                                         onTouchStart={(e) => handleTouchStart(e, 1)}
