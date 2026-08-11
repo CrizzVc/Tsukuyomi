@@ -63,7 +63,12 @@ ipcMain.handle('api-browse', async (event, { page, sourceId }) => {
 
 ipcMain.handle('api-recently-added', async (event, { sourceId }) => {
   const source = sources.getSource(sourceId);
-  return await source.getRecentlyAdded();
+  if (typeof source.getRecentlyAdded === 'function') {
+    return await source.getRecentlyAdded();
+  } else if (typeof source.browse === 'function') {
+    return await source.browse(1);
+  }
+  return [];
 });
 
 ipcMain.handle('api-extract', async (event, { url }) => {

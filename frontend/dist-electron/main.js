@@ -174,7 +174,7 @@ var require_jkanime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var axios$5 = require("axios");
 	var cheerio = require("cheerio");
 	var BASE_URL = "https://jkanime.net";
-	module.exports = {
+	var jkanime = {
 		name: "JKAnime",
 		id: "jkanime",
 		getLatest: async () => {
@@ -319,12 +319,17 @@ var require_jkanime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 				if (parsed.data) return parsed.data.map((a) => ({
 					title: a.title,
 					url: a.url,
+					animeUrl: a.url,
 					image: a.image
 				}));
 			} catch (e) {}
 			return [];
+		},
+		getRecentlyAdded: async () => {
+			return await jkanime.browse(1);
 		}
 	};
+	module.exports = jkanime;
 }));
 //#endregion
 //#region electron/services/sources/index.js
@@ -629,7 +634,10 @@ ipcMain.handle("api-browse", async (event, { page, sourceId }) => {
 	return await sources.getSource(sourceId).browse(page);
 });
 ipcMain.handle("api-recently-added", async (event, { sourceId }) => {
-	return await sources.getSource(sourceId).getRecentlyAdded();
+	const source = sources.getSource(sourceId);
+	if (typeof source.getRecentlyAdded === "function") return await source.getRecentlyAdded();
+	else if (typeof source.browse === "function") return await source.browse(1);
+	return [];
 });
 ipcMain.handle("api-extract", async (event, { url }) => {
 	return await animeProvider.extract(url);

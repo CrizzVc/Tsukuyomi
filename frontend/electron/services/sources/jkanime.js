@@ -191,12 +191,17 @@ const jkanime = {
                     return parsed.data.map(a => ({
                         title: a.title,
                         url: a.url,
+                        animeUrl: a.url,
                         image: a.image
                     }));
                 }
             } catch (e) { }
         }
         return [];
+    },
+
+    getRecentlyAdded: async () => {
+        return await jkanime.browse(1);
     }
 };
 
