@@ -1,4 +1,4 @@
-# Tsukuyomi 🎬
+# Tsukuyomi
 
 **Tsukuyomi** is a desktop application designed for an ad-free and immersive anime streaming experience. Built with **Electron**, **React**, and **TailwindCSS**, it offers a Netflix-style interface with a focus on speed, aesthetics, and user experience.
 
@@ -7,18 +7,18 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 🍿 **Cinematic Experience**: A modern, dark-themed UI optimized for large screens and relaxed viewing.
-- 📺 **Advanced Video Player**: Custom HLS player with quality selection, playback progress, and keyboard shortcuts.
-- 👤 **Profile System**: Create multiple profiles with custom avatars and manage your personal favorites.
-- 🔍 **Global Search**: Find your favorite anime across multiple providers (AnimeFLV, AnimeAV1, and more).
-- 📦 **Modular Architecture**: Easily extensible source system to add new anime providers.
-- 🚫 **Ad-Free**: Direct stream extraction to bypass intrusive ads and popups from source websites.
+ **Cinematic Experience**: A modern, dark-themed UI optimized for large screens and relaxed viewing.
+- **Advanced Video Player**: Custom HLS player with quality selection, playback progress, and keyboard shortcuts.
+- **Profile System**: Create multiple profiles with custom avatars and manage your personal favorites.
+- **Global Search**: Find your favorite anime across multiple providers (AnimeFLV, AnimeAV1, and more).
+- **Modular Architecture**: Easily extensible source system to add new anime providers.
+- **Ad-Free**: Direct stream extraction to bypass intrusive ads and popups from source websites.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -57,7 +57,7 @@ npm run dist
 ```
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: [React](https://reactjs.org/), [Vite](https://vitejs.dev/), [TailwindCSS](https://tailwindcss.com/)
 - **Desktop Wrapper**: [Electron](https://www.electronjs.org/)
@@ -67,7 +67,7 @@ npm run dist
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 Tsukuyomi/
@@ -80,7 +80,7 @@ Tsukuyomi/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! If you have ideas for new features or want to add a new anime source, feel free to open a Pull Request.
 
@@ -91,4 +91,4 @@ Contributions are welcome! If you have ideas for new features or want to add a n
 
 ---
 
-Developed with ❤️ by [CrizzVc](https://github.com/CrizzVc)
+Developed by [CrizzVc](https://github.com/CrizzVc)
