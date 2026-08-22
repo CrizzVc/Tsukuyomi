@@ -2397,8 +2397,6 @@ function App() {
                     onClick={(e) => e.target.classList.contains('modmail-overlay') && setView(previousView)}
                 >
                     <div className="modmail-svg-wrap" role="dialog" aria-modal="true" aria-label="Selector de módulos">
-                        <button className="modmail-close-btn" onClick={() => setView(previousView)}>✕</button>
-
                         <svg className="modmail-svg" width="866" height="1084" viewBox="0 0 866 1084" fill="none" xmlns="http://www.w3.org/2000/svg">
                             {/* Tilted card silhouette */}
                             <rect width="858.226" height="1240.87" transform="matrix(0.986892 0.161383 -0.195072 0.980789 246.483 -197.766)" fill="#1F1F1F" />
@@ -2431,6 +2429,7 @@ function App() {
                                                     key={ext.id}
                                                     className={`modmail-item ${isActive ? 'modmail-item-active' : ''}`}
                                                     onClick={() => selectSource(ext.id)}
+                                                    style={{ background: isActive ? 'rgba(255, 255, 255, 0.9)' : '#161616', borderRadius: '8px' }}
                                                 >
                                                     {!isActive && <div className="modmail-item-flag">!</div>}
                                                     <div className="modmail-item-main">
@@ -2443,15 +2442,17 @@ function App() {
                                                                 <line x1="3" y1="12" x2="21" y2="12" stroke={ext.color} strokeWidth="1.1" opacity="0.85" />
                                                             </svg>
                                                         </div>
-                                                        <div className="modmail-item-message">
+                                                        <div className="modmail-item-message" style={{ color: isActive ? '#202020' : 'rgba(255, 255, 255, 0.9)' }}>
                                                             {isActive ? 'Módulo activo ahora mismo' : 'Toca para cambiar de módulo…'}
                                                         </div>
                                                     </div>
                                                     <div className="modmail-item-avatar" style={{ background: `${ext.color}26`, borderColor: ext.color }}>
+                                                        {/* agregar icono aquí. */}
+
                                                         <svg viewBox="0 0 24 24" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <circle cx="12" cy="12" r="9" stroke={ext.color} strokeWidth="1.4" />
-                                                            <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={ext.color} strokeWidth="1" opacity="0.8" />
-                                                            <line x1="3" y1="12" x2="21" y2="12" stroke={ext.color} strokeWidth="1" opacity="0.8" />
+                                                            <circle cx="12" cy="12" r="9" stroke={"#202020"} strokeWidth="1.4" />
+                                                            <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={"#202020"} strokeWidth="1" opacity="0.8" />
+                                                            <line x1="3" y1="12" x2="21" y2="12" stroke={"#202020"} strokeWidth="1" opacity="0.8" />
                                                         </svg>
                                                     </div>
                                                 </div>
