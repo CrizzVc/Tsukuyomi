@@ -1915,17 +1915,17 @@ function App() {
                     {/* SVG overlay for accent lines & triangles matching mockup */}
                     <svg className="persona-svg-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         {/* Diagonal split line */}
-                        <line x1="360" y1="0" x2="780" y2="1000" stroke="#ffcb05" strokeWidth="8" />
-                        <line x1="355" y1="0" x2="775" y2="1000" stroke="#000000" strokeWidth="4" />
+                        <line x1="180" y1="0" x2="700" y2="1000" stroke="#ffcb05" strokeWidth="8" />
+                        <line x1="175" y1="0" x2="695" y2="1000" stroke="#000000" strokeWidth="4" />
 
                         {/* Top center yellow triangle */}
-                        <polygon points="345,0 375,0 360,35" fill="#ffcb05" stroke="#000" strokeWidth="3" />
+                        <polygon points="165,0 195,0 180,35" fill="#ffcb05" stroke="#000" strokeWidth="3" />
 
                         {/* Bottom right yellow triangle */}
                         <polygon points="950,1000 1000,1000 1000,930" fill="#ffcb05" stroke="#000" strokeWidth="3" />
 
                         {/* Top right diagonal stripe */}
-                        <line x1="820" y1="0" x2="1000" y2="250" stroke="#ffcb05" strokeWidth="6" />
+                        <line x1="760" y1="0" x2="1000" y2="300" stroke="#ffcb05" strokeWidth="6" />
                     </svg>
 
                     {/* Top Right Header Controls (Search + Sort) to the left of Close (X) button */}
@@ -2103,9 +2103,9 @@ function App() {
                                     const animeUrl = selectedAnime?.url || details?.url || '';
                                     const watched = isEpisodeWatched(animeUrl, ep.episode);
 
-                                    // Adaptive diagonal trajectory math with increased gap
-                                    const translateX = `calc(clamp(30px, 3vw, 70px) + ${offset} * clamp(50px, 4.5vw, 85px))`;
-                                    const translateY = `calc(${offset} * clamp(130px, 16.5vh, 200px))`;
+                                    // Wide diagonal sweep aligned with right-shifted dark inclination (34% -> 74%)
+                                    const translateY = `calc(${offset} * clamp(125px, 16vh, 190px))`;
+                                    const translateX = `calc(clamp(140px, 11vw, 210px) + ${offset} * clamp(100px, 8.5vw, 155px))`;
                                     const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
                                     const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
                                     const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
