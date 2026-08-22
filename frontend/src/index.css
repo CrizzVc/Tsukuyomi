@@ -177,6 +177,31 @@
     --persona-text-on-accent: #000000;
 }
 
+/* ══════════════════════════════════════════
+   TEMA 8 — Golden
+   ══════════════════════════════════════════ */
+[data-theme="golden"] {
+    --primary-color: #FFC90E;
+    --bg-color: #1f1f1f;
+    --text-color: #f0e6d0;
+    --text-dim: #7a7060;
+    --card-width: 200px;
+    --surface-1: #272520;
+    --surface-2: #2e2b25;
+    --surface-3: #383530;
+    --search-bg: #161514;
+    --glow-rgb: 255, 201, 14;
+    --accent-color: #FFC90E;
+    --on-primary: #000000;
+    --header-bg: #141312;
+    --card-bg: #1f1f1f;
+    --section-title-color: #f0e6d0;
+    --wipe-accent: #FFC90E;
+    --persona-bg-accent: #FFC90E;
+    --persona-dark-bg: #141312;
+    --persona-text-on-accent: #000000;
+}
+
 /* Blueprint theme overrides for light surfaces */
 [data-theme="blueprint"] .settings-panel-title,
 [data-theme="blueprint"] .settings-section-label,

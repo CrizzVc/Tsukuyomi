@@ -1,1 +1,678 @@
-var e=(e,t)=>()=>(t||(e((t={exports:{}}).exports,t),e=null),t.exports),t=e(((e,t)=>{var n=require(`axios`),r=require(`cheerio`),i=`https://animeav1.com`;t.exports={name:`AnimeAV1`,id:`animeav1`,getLatest:async()=>{let e=await n.get(i,{headers:{"User-Agent":`Mozilla/5.0`}}),t=r.load(e.data),a=[];return t(`.grid.grid-cols-2`).first().children().each((e,n)=>{let r=t(n).find(`a[href*="/media/"]`).first(),o=t(n).find(`header div`).text().trim()||t(n).find(`div.font-bold`).text().trim(),s=t(n).find(`.text-lead`).text().trim()||t(n).find(`div.text-xs`).text().trim(),c=t(n).find(`img`).attr(`src`),l=c,u=r.length>0?i+r.attr(`href`):``,d=(r.attr(`href`)||``).split(`/`).filter(e=>e);if(d.length===3){u=`${i}/media/${d[1]}`;let e=t(n).find(`img[src*="poster"], img[src*="cover"], img[src*="Poster"]`).attr(`src`);e&&(l=e)}r.length>0&&a.push({title:o||r.text().replace(`Ver `,``).trim(),episode:s?`Episodio ${s}`:``,image:c,cover:l,animeUrl:u,url:i+r.attr(`href`)})}),a},getDetails:async e=>{let t=e.split(`/`).filter(e=>e),a=e;t.length>4&&(a=i+`/media/`+t[t.length-2]);let o=await n.get(a,{headers:{"User-Agent":`Mozilla/5.0`}}),s=r.load(o.data),c=s(`h1`).first().text().trim(),l=s(`.text-subs.leading-relaxed`).text().trim()||s(`p`).first().text().trim(),u=s(`img[alt*="Poster"]`).attr(`src`)||s(`img[alt*="Poster"]`).attr(`data-src`)||s(`img`).eq(2).attr(`src`),d=s(`img[alt*="Backdrop"]`).attr(`src`)||s(`img[alt*="Backdrop"]`).attr(`data-src`),f=s(`header .flex.flex-wrap.items-center.gap-2.text-sm span:last-child`).text().trim(),p=[];s(`a[href*="/catalogo?genre="]`).each((e,t)=>{let n=s(t).text().trim();n&&p.push(n)});let m=[];s(`.gradient-cut`).find(`.group\\/item`).each((e,t)=>{let n=s(t).find(`h3`).first().text().trim(),r=s(t).find(`a`).attr(`href`),a=s(t).find(`img`).attr(`src`),o=s(t).find(`span, div`).filter((e,t)=>s(t).text().includes(`(`)).first().text().trim();r&&m.push({title:n||s(t).text().split(`(`)[0].trim(),url:i+r,image:a,type:o||`Relacionado`})});let h=[];return s(`a[href*="/media/"]`).each((e,t)=>{let n=s(t).attr(`href`),r=n.split(`/`).filter(e=>e);if(r.length===3){let e=r[2];h.some(t=>t.episode===e)||h.push({episode:e,url:i+n})}}),h.sort((e,t)=>parseInt(t.episode)-parseInt(e.episode)),{title:c,synopsis:l,cover:u,backdrop:d,status:f,genres:p,related:m,episodes:h}},getServers:async e=>{let t=(await n.get(e,{headers:{"User-Agent":`Mozilla/5.0`}})).data,r=[],i=/{server:"([^"]+)",url:"([^"]+)"}/g,a,o={};for(;(a=i.exec(t))!==null;){let e=a[1];o[e]=(o[e]||0)+1,r.push({title:o[e]>1?`${e} ${o[e]}`:e,code:a[2].replace(/\\/g,``)})}return r},search:async e=>{let t=await n.get(`${i}/catalogo?search=${encodeURIComponent(e)}`,{headers:{"User-Agent":`Mozilla/5.0`}}),a=r.load(t.data),o=[];return a(`.grid.grid-cols-2`).last().children().each((e,t)=>{let n=a(t).find(`a[href*="/media/"]`).first(),r=a(t).find(`h3`).first().text().trim()||a(t).find(`header div, div.font-bold`).first().text().trim(),s=a(t).find(`img`).attr(`src`)||a(t).find(`img`).attr(`data-src`);n.length>0&&o.push({title:r||n.text().replace(`Ver `,``).trim(),image:s,url:i+n.attr(`href`)})}),o},browse:async(e=1)=>{let t=await n.get(`${i}/catalogo?page=${e}`,{headers:{"User-Agent":`Mozilla/5.0`}}),a=r.load(t.data),o=[];return a(`.grid.grid-cols-2`).last().children().each((e,t)=>{let n=a(t).find(`a[href*="/media/"]`).first(),r=a(t).find(`h3`).first().text().trim()||a(t).find(`header div, div.font-bold`).first().text().trim(),s=a(t).find(`img`).attr(`src`)||a(t).find(`img`).attr(`data-src`);n.length>0&&o.push({title:r||n.text().replace(`Ver `,``).trim(),image:s,url:i+n.attr(`href`)})}),o},getRecentlyAdded:async()=>{let e=await n.get(i,{headers:{"User-Agent":`Mozilla/5.0`}}),t=r.load(e.data),a=[],o=null;return t(`section`).each((e,n)=>{if(t(n).find(`h2`).first().text().trim()===`Animes`)return o=t(n),!1}),o&&o.find(`article`).each((e,n)=>{let r=t(n).find(`a[href*="/media/"]`).first(),o=r.attr(`href`)||``;if(o.split(`/`).filter(e=>e).length!==2)return;let s=t(n).find(`h3`).first().text().trim(),c=t(n).find(`img`).attr(`src`)||t(n).find(`img`).attr(`data-src`),l=t(n).find(`.bg-line`).first().text().trim();r.length>0&&s&&a.push({title:s,image:c,url:i+o,badge:l||``})}),a}}})),n=e(((e,t)=>{var n=require(`axios`),r=require(`cheerio`),i=`https://jkanime.net`,a={name:`JKAnime`,id:`jkanime`,getLatest:async()=>{let e=await n.get(i,{headers:{"User-Agent":`Mozilla/5.0`}}),t=r.load(e.data),a=[];return t(`.card.ml-2.mr-2`).each((e,n)=>{let r=t(n).find(`a`).first(),i=r.attr(`href`),o=r.find(`img`).attr(`data-animepic`)||r.find(`img`).attr(`src`),s=r.find(`h5`).text().trim(),c=r.find(`.badge-primary`).text().trim().replace(`Ep `,``),l=o,u=i;if(i){let e=i.match(/(https:\/\/jkanime\.net\/[^\/]+\/)\d+\/$/);e&&(u=e[1])}a.push({title:s,episode:c,image:o,cover:l,animeUrl:u,url:i})}),a},getDetails:async e=>{let t=await n.get(e,{headers:{"User-Agent":`Mozilla/5.0`}}),i=r.load(t.data),a=i(`.anime_info h3`).first().text().trim()||i(`title`).first().text().replace(/ - anime .* online JkAnime$/i,``).replace(` - JkAnime`,``).trim(),o=i(`.anime_info p.scroll`).first().text().trim()||i(`p[rel="sinopsis"]`).text().trim(),s=i(`meta[property="og:image"]`).attr(`content`)||i(`img[src*="/image/"]`).first().attr(`src`),c=i(`.anime_data`).first().find(`.enemision`).first().text().trim()||`En emisión`,l=new Set;i(`a[href*="/genero/"]`).each((e,t)=>{l.add(i(t).text().trim())});let u=Array.from(l),d=[];i(`#aditional`).each((e,t)=>{let n=i(t).next(),r=i(t).text().trim();for(;n.length&&n[0].tagName.toLowerCase()===`a`;)d.push({title:n.text().trim(),url:n.attr(`href`),image:``,type:r}),n=n.next().next()});let f=0,p=i(`.anime_data`).first().find(`li`).filter((e,t)=>i(t).text().includes(`Episodios:`));if(p.length){let e=p.first().text().match(/\d+/);e&&(f=parseInt(e[0]))}if(f===0){let e=i(`#uep`).attr(`href`);if(e){let t=e.match(/\/(\d+)\/$/);t&&(f=parseInt(t[1]))}}let m=[];if(f>0){let t=e.endsWith(`/`)?e:e+`/`;for(let e=f;e>=1;e--)m.push({episode:e,url:t+e+`/`,image:s})}return{title:a,synopsis:o,cover:s,status:c,genres:u,related:d,episodes:m}},getServers:async e=>{let t=(await n.get(e,{headers:{"User-Agent":`Mozilla/5.0`}})).data,i=r.load(t),a=[],o=/video\[\d+\]\s*=\s*'[^']*src="([^"]+)"/g,s,c=[];for(;(s=o.exec(t))!==null;)c.push(s[1]);let l=[];i(`a[href^="#option"]`).each((e,t)=>{l.push(i(t).text().trim())});for(let e=0;e<Math.min(c.length,l.length);e++)a.push({server:l[e],title:l[e],url:c[e],code:c[e]});return a},search:async e=>{let t=await n.get(`${i}/buscar/${encodeURIComponent(e)}/`,{headers:{"User-Agent":`Mozilla/5.0`}}),a=r.load(t.data),o=[];if(a(`.anime__item`).each((e,t)=>{let n=a(t).find(`a`).first().attr(`href`),r=a(t).find(`.anime__item__pic`).attr(`data-setbg`)||a(t).find(`img`).attr(`src`),i=a(t).find(`h5 a`).text().trim()||a(t).find(`.anime__item__text h5`).text().trim();n&&o.push({title:i,url:n,image:r})}),o.length===0){let e=t.data.match(/var animes = (\{.*?\});/s);if(e)try{let t=JSON.parse(e[1]);t.data&&t.data.forEach(e=>{o.push({title:e.title,url:e.url,image:e.image})})}catch{}}return o},browse:async(e=1)=>{let t=e<=1?`${i}/directorio/1/`:`${i}/directorio/1?p=${e}`,r=(await n.get(t,{headers:{"User-Agent":`Mozilla/5.0`}})).data.match(/var animes = (\{.*?\});/s);if(r)try{let e=JSON.parse(r[1]);if(e.data)return e.data.map(e=>({title:e.title,url:e.url,animeUrl:e.url,image:e.image}))}catch{}return[]},getRecentlyAdded:async()=>await a.browse(1)};t.exports=a})),r=e(((e,r)=>{var i=t(),a=n(),o={[i.id]:i,[a.id]:a};r.exports={getSource:e=>o[e||`animeav1`]||o.animeav1,getAllSources:()=>Object.values(o)}})),i=e(((e,t)=>{t.exports={extractM3U8FromText:e=>{let t=e.match(/(https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*)/i);return t?t[1]:null},extractMP4FromText:e=>{let t=e.match(/(https?:\/\/[^\s"'<>]+\.mp4[^\s"'<>]*)/i);return t?t[1]:null}}})),a=e(((e,t)=>{t.exports={parseJWPlayer:e=>{let t={sources:[],tracks:[]};try{let n=e.match(/sources:\s*(\[[^\]]+\])/);if(n){let e=n[1],r=/file\s*:\s*["']([^"']+)["']/g,i;for(;(i=r.exec(e))!==null;)t.sources.push({file:i[1]})}let r=e.match(/tracks:\s*(\[[^\]]+\])/);r&&r[1].split(`}`).filter(e=>e.includes(`file`)).forEach(e=>{let n=e.match(/file\s*:\s*["']([^"']+)["']/),r=e.match(/label\s*:\s*["']([^"']+)["']/),i=e.match(/kind\s*:\s*["']([^"']+)["']/);n&&(!i||i[1]===`captions`||i[1]===`subtitles`)&&t.tracks.push({file:n[1],label:r?r[1]:`Subtítulos`})})}catch(e){console.error(`Error parsing JWPlayer config:`,e)}return t}}})),o=e(((e,t)=>{var n=require(`axios`),{extractM3U8FromText:r}=i(),{parseJWPlayer:o}=a();t.exports={name:`Streamwish`,canHandle:e=>e.includes(`streamwish`)||e.includes(`strwish`)||e.includes(`swish`),extract:async e=>{try{let t=(await n.get(e,{headers:{"User-Agent":`Mozilla/5.0 (Windows NT 10.0; Win64; x64)`}})).data,{sources:i,tracks:a}=o(t);if(i.length>0&&i[0].file)return{streamUrl:i[0].file,isDirect:!0,subtitles:a||[]};let s=r(t);if(s)return{streamUrl:s,isDirect:!0,subtitles:[]};throw Error(`No stream found in Streamwish`)}catch(e){throw console.error(`Streamwish extractor error:`,e.message),e}}}})),s=e(((e,t)=>{t.exports={unpack:e=>e,extractPacked:e=>e.match(/eval\(function\(p,a,c,k,e,?[d]?\).*?\.split\('\|'\).*?\)/g)||[]}})),c=e(((e,t)=>{var n=require(`axios`),{extractM3U8FromText:r}=i(),{extractPacked:a}=s();t.exports={name:`Filemoon`,canHandle:e=>e.includes(`filemoon`)||e.includes(`fmoon`),extract:async e=>{try{let t=(await n.get(e,{headers:{"User-Agent":`Mozilla/5.0`}})).data,i=r(t);if(i)return{streamUrl:i,isDirect:!0,subtitles:[]};throw a(t).length>0&&console.log(`Filemoon stream is packed. Real extraction requires unpacker.`),Error(`No stream found in Filemoon or stream is obfuscated.`)}catch(e){throw console.error(`Filemoon extractor error:`,e.message),e}}}})),l=e(((e,t)=>{var n=require(`axios`),{extractMP4FromText:r}=i();t.exports={name:`YourUpload`,canHandle:e=>e.includes(`yourupload`),extract:async e=>{try{let t=e.includes(`/watch/`)?e.replace(`/watch/`,`/embed/`):e,i=(await n.get(t,{headers:{"User-Agent":`Mozilla/5.0`,Referer:`https://www.yourupload.com/`}})).data,a=i.match(/property="og:video"\s*content="([^"]+)"/);if(a)return{streamUrl:a[1],isDirect:!0,subtitles:[]};let o=r(i);if(o)return{streamUrl:o,isDirect:!0,subtitles:[]};throw Error(`No stream found in YourUpload`)}catch(e){throw console.error(`YourUpload extractor error:`,e.message),e}}}})),u=e(((e,t)=>{var n=require(`axios`);t.exports={name:`Maru`,canHandle:e=>e.includes(`ok.ru`)||e.includes(`maru`),extract:async e=>{try{let t=(await n.get(e,{headers:{"User-Agent":`Mozilla/5.0`}})).data.match(/data-options="([^"]+)"/);if(t){let e=t[1].replace(/&quot;/g,`"`),r=JSON.parse(e);if(r.flashvars&&r.flashvars.metadataUrl){let e=(await n.get(decodeURIComponent(r.flashvars.metadataUrl),{headers:{"User-Agent":`Mozilla/5.0`}})).data;if(e.hlsManifestUrl)return{streamUrl:e.hlsManifestUrl,isDirect:!0,subtitles:[]}}}throw Error(`No stream found in Maru/Ok.ru`)}catch(e){throw console.error(`Maru extractor error:`,e.message),e}}}})),d=e(((e,t)=>{var n=require(`axios`);t.exports={name:`MP4Upload`,canHandle:e=>e.includes(`mp4upload.com`),extract:async e=>{let t=e.includes(`embed-`)?e:e.replace(`.com/`,`.com/embed-`)+`.html`,r=(await n.get(t,{headers:{"User-Agent":`Mozilla/5.0`}})).data,i=r.match(/src:\s*"(https:\/\/.*?\.mp4)"/);if(i)return{streamUrl:i[1],type:`mp4`};let a=r.match(/script[\s\S]*?player\.src\("(.*?)"\)/);if(a)return{streamUrl:a[1],type:`mp4`};throw Error(`Could not find video source in MP4Upload`)}}})),f=e(((e,t)=>{var n=[o(),c(),l(),u(),d()];t.exports={animeProvider:{extract:async e=>{for(let t of n)if(t.canHandle(e)){console.log(`[AnimeProvider] Usando extractor: ${t.name} para ${e}`);try{return{...await t.extract(e),provider:t.name,originalUrl:e}}catch(e){throw console.warn(`[AnimeProvider] Fallo la extraccion con ${t.name}:`,e.message),e}}throw console.log(`[AnimeProvider] Ningun extractor soportado para: ${e}`),Error(`Proveedor no soportado`)},canExtract:e=>n.some(t=>t.canHandle(e))}}})),{app:p,BrowserWindow:m,ipcMain:h,session:g}=require(`electron`),_=require(`path`),v=r(),{animeProvider:y}=f();p.commandLine.appendSwitch(`disable-blink-features`,`AutomationControlled`);function b(){let e=new m({width:1480,height:915,minWidth:1480,minHeight:915,webPreferences:{nodeIntegration:!0,contextIsolation:!1},autoHideMenuBar:!0});process.env.VITE_DEV_SERVER_URL?e.loadURL(process.env.VITE_DEV_SERVER_URL):e.loadFile(_.join(__dirname,`../dist/index.html`)),e.webContents.setWindowOpenHandler(e=>(console.log(`Bloqueado popup hacia: ${e.url}`),{action:`deny`}))}h.handle(`api-latest`,async(e,{sourceId:t})=>await v.getSource(t).getLatest()),h.handle(`api-details`,async(e,{url:t,sourceId:n})=>await v.getSource(n).getDetails(t)),h.handle(`api-servers`,async(e,{url:t,sourceId:n})=>(await v.getSource(n).getServers(t)).map(e=>({...e,canExtract:y.canExtract(e.code)}))),h.handle(`api-search`,async(e,{query:t,sourceId:n})=>await v.getSource(n).search(t)),h.handle(`api-browse`,async(e,{page:t,sourceId:n})=>await v.getSource(n).browse(t)),h.handle(`api-recently-added`,async(e,{sourceId:t})=>{let n=v.getSource(t);return typeof n.getRecentlyAdded==`function`?await n.getRecentlyAdded():typeof n.browse==`function`?await n.browse(1):[]}),h.handle(`api-extract`,async(e,{url:t})=>await y.extract(t)),h.handle(`api-news`,async(e,{apiKey:t})=>{try{let e=await(await fetch(`https://newsapi.org/v2/everything?qInTitle=anime%20OR%20manga%20OR%20crunchyroll&sortBy=publishedAt&language=es&apiKey=${t}`)).json();if(e.status===`ok`)return e.articles;throw Error(e.message||`Error fetching news from NewsAPI`)}catch(e){return console.error(`News API error:`,e.message),{error:e.message}}}),h.handle(`api-fanart`,async(e,{tvdbId:t,apiKey:n})=>{try{let e=await fetch(`https://webservice.fanart.tv/v3/tv/${t}?api_key=${n}`);return e.ok?await e.json():null}catch(e){return console.error(`Fanart API error:`,e.message),null}}),p.whenReady().then(()=>{g.defaultSession.webRequest.onBeforeSendHeaders({urls:[`*://*.mp4upload.com/*`]},(e,t)=>{e.requestHeaders.Referer=`https://www.mp4upload.com/`,t({requestHeaders:e.requestHeaders})}),b(),p.on(`activate`,()=>{m.getAllWindows().length===0&&b()})}),p.on(`window-all-closed`,()=>{process.platform!==`darwin`&&p.quit()});
+//#region \0rolldown/runtime.js
+var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+//#endregion
+//#region electron/services/sources/animeav1.js
+var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$6 = require("axios");
+	var cheerio$1 = require("cheerio");
+	var BASE_URL = "https://animeav1.com";
+	module.exports = {
+		name: "AnimeAV1",
+		id: "animeav1",
+		getLatest: async () => {
+			const response = await axios$6.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$1.load(response.data);
+			const results = [];
+			$(".grid.grid-cols-2").first().children().each((i, el) => {
+				const link = $(el).find("a[href*=\"/media/\"]").first();
+				const title = $(el).find("header div").text().trim() || $(el).find("div.font-bold").text().trim();
+				const episode = $(el).find(".text-lead").text().trim() || $(el).find("div.text-xs").text().trim();
+				const image = $(el).find("img").attr("src");
+				let cover = image;
+				let animeUrl = link.length > 0 ? BASE_URL + link.attr("href") : "";
+				const parts = (link.attr("href") || "").split("/").filter((p) => p);
+				if (parts.length === 3) {
+					animeUrl = `${BASE_URL}/media/${parts[1]}`;
+					const posterImg = $(el).find("img[src*=\"poster\"], img[src*=\"cover\"], img[src*=\"Poster\"]").attr("src");
+					if (posterImg) cover = posterImg;
+				}
+				if (link.length > 0) results.push({
+					title: title || link.text().replace("Ver ", "").trim(),
+					episode: episode ? `Episodio ${episode}` : "",
+					image,
+					cover,
+					animeUrl,
+					url: BASE_URL + link.attr("href")
+				});
+			});
+			return results;
+		},
+		getDetails: async (url) => {
+			const parts = url.split("/").filter((p) => p);
+			let animeUrl = url;
+			if (parts.length > 4) animeUrl = BASE_URL + "/media/" + parts[parts.length - 2];
+			const response = await axios$6.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$1.load(response.data);
+			const title = $("h1").first().text().trim();
+			const synopsis = $(".text-subs.leading-relaxed").text().trim() || $("p").first().text().trim();
+			const cover = $("img[alt*=\"Poster\"]").attr("src") || $("img[alt*=\"Poster\"]").attr("data-src") || $("img").eq(2).attr("src");
+			const backdrop = $("img[alt*=\"Backdrop\"]").attr("src") || $("img[alt*=\"Backdrop\"]").attr("data-src");
+			const status = $("header .flex.flex-wrap.items-center.gap-2.text-sm span:last-child").text().trim();
+			const genres = [];
+			$("a[href*=\"/catalogo?genre=\"]").each((i, el) => {
+				const text = $(el).text().trim();
+				if (text) genres.push(text);
+			});
+			const related = [];
+			$(".gradient-cut").find(".group\\/item").each((i, el) => {
+				const title = $(el).find("h3").first().text().trim();
+				const url = $(el).find("a").attr("href");
+				const image = $(el).find("img").attr("src");
+				const relation = $(el).find("span, div").filter((i, e) => $(e).text().includes("(")).first().text().trim();
+				if (url) related.push({
+					title: title || $(el).text().split("(")[0].trim(),
+					url: BASE_URL + url,
+					image,
+					type: relation || "Relacionado"
+				});
+			});
+			const episodes = [];
+			$("a[href*=\"/media/\"]").each((i, el) => {
+				const href = $(el).attr("href");
+				const parts = href.split("/").filter((p) => p);
+				if (parts.length === 3) {
+					const epNum = parts[2];
+					if (!episodes.some((e) => e.episode === epNum)) episodes.push({
+						episode: epNum,
+						url: BASE_URL + href
+					});
+				}
+			});
+			episodes.sort((a, b) => parseInt(b.episode) - parseInt(a.episode));
+			return {
+				title,
+				synopsis,
+				cover,
+				backdrop,
+				status,
+				genres,
+				related,
+				episodes
+			};
+		},
+		getServers: async (url) => {
+			const html = (await axios$6.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+			const servers = [];
+			const serverRegex = /{server:"([^"]+)",url:"([^"]+)"}/g;
+			let match;
+			const counts = {};
+			while ((match = serverRegex.exec(html)) !== null) {
+				let title = match[1];
+				counts[title] = (counts[title] || 0) + 1;
+				servers.push({
+					title: counts[title] > 1 ? `${title} ${counts[title]}` : title,
+					code: match[2].replace(/\\/g, "")
+				});
+			}
+			return servers;
+		},
+		search: async (query) => {
+			const response = await axios$6.get(`${BASE_URL}/catalogo?search=${encodeURIComponent(query)}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$1.load(response.data);
+			const results = [];
+			$(".grid.grid-cols-2").last().children().each((i, el) => {
+				const link = $(el).find("a[href*=\"/media/\"]").first();
+				const title = $(el).find("h3").first().text().trim() || $(el).find("header div, div.font-bold").first().text().trim();
+				const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
+				if (link.length > 0) results.push({
+					title: title || link.text().replace("Ver ", "").trim(),
+					image,
+					url: BASE_URL + link.attr("href")
+				});
+			});
+			return results;
+		},
+		browse: async (page = 1) => {
+			const response = await axios$6.get(`${BASE_URL}/catalogo?page=${page}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$1.load(response.data);
+			const results = [];
+			$(".grid.grid-cols-2").last().children().each((i, el) => {
+				const link = $(el).find("a[href*=\"/media/\"]").first();
+				const title = $(el).find("h3").first().text().trim() || $(el).find("header div, div.font-bold").first().text().trim();
+				const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
+				if (link.length > 0) results.push({
+					title: title || link.text().replace("Ver ", "").trim(),
+					image,
+					url: BASE_URL + link.attr("href")
+				});
+			});
+			return results;
+		},
+		getRecentlyAdded: async () => {
+			const response = await axios$6.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio$1.load(response.data);
+			const results = [];
+			let recentlyAddedSection = null;
+			$("section").each((i, el) => {
+				if ($(el).find("h2").first().text().trim() === "Animes") {
+					recentlyAddedSection = $(el);
+					return false;
+				}
+			});
+			if (!recentlyAddedSection) return results;
+			recentlyAddedSection.find("article").each((i, el) => {
+				const link = $(el).find("a[href*=\"/media/\"]").first();
+				const href = link.attr("href") || "";
+				if (href.split("/").filter((p) => p).length !== 2) return;
+				const title = $(el).find("h3").first().text().trim();
+				const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
+				const badge = $(el).find(".bg-line").first().text().trim();
+				if (link.length > 0 && title) results.push({
+					title,
+					image,
+					url: BASE_URL + href,
+					badge: badge || ""
+				});
+			});
+			return results;
+		}
+	};
+}));
+//#endregion
+//#region electron/services/sources/jkanime.js
+var require_jkanime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$5 = require("axios");
+	var cheerio = require("cheerio");
+	var BASE_URL = "https://jkanime.net";
+	var jkanime = {
+		name: "JKAnime",
+		id: "jkanime",
+		getLatest: async () => {
+			const response = await axios$5.get(BASE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio.load(response.data);
+			const results = [];
+			$(".card.ml-2.mr-2").each((i, el) => {
+				const a = $(el).find("a").first();
+				const urlPath = a.attr("href");
+				let image = a.find("img").attr("data-animepic") || a.find("img").attr("src");
+				const title = a.find("h5").text().trim();
+				const episode = a.find(".badge-primary").text().trim().replace("Ep ", "");
+				let cover = image;
+				let animeUrl = urlPath;
+				if (urlPath) {
+					const match = urlPath.match(/(https:\/\/jkanime\.net\/[^\/]+\/)\d+\/$/);
+					if (match) animeUrl = match[1];
+				}
+				results.push({
+					title,
+					episode,
+					image,
+					cover,
+					animeUrl,
+					url: urlPath
+				});
+			});
+			return results;
+		},
+		getDetails: async (url) => {
+			const response = await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio.load(response.data);
+			const title = $(".anime_info h3").first().text().trim() || $("title").first().text().replace(/ - anime .* online JkAnime$/i, "").replace(" - JkAnime", "").trim();
+			const synopsis = $(".anime_info p.scroll").first().text().trim() || $("p[rel=\"sinopsis\"]").text().trim();
+			const cover = $("meta[property=\"og:image\"]").attr("content") || $("img[src*=\"/image/\"]").first().attr("src");
+			const status = $(".anime_data").first().find(".enemision").first().text().trim() || "En emisión";
+			const genreSet = /* @__PURE__ */ new Set();
+			$("a[href*=\"/genero/\"]").each((i, el) => {
+				genreSet.add($(el).text().trim());
+			});
+			const uniqueGenres = Array.from(genreSet);
+			const related = [];
+			$("#aditional").each((i, el) => {
+				let nextEl = $(el).next();
+				const type = $(el).text().trim();
+				while (nextEl.length && nextEl[0].tagName.toLowerCase() === "a") {
+					related.push({
+						title: nextEl.text().trim(),
+						url: nextEl.attr("href"),
+						image: "",
+						type
+					});
+					nextEl = nextEl.next().next();
+				}
+			});
+			let totalEpisodes = 0;
+			const epsLi = $(".anime_data").first().find("li").filter((i, el) => $(el).text().includes("Episodios:"));
+			if (epsLi.length) {
+				const epsMatch = epsLi.first().text().match(/\d+/);
+				if (epsMatch) totalEpisodes = parseInt(epsMatch[0]);
+			}
+			if (totalEpisodes === 0) {
+				const uepHref = $("#uep").attr("href");
+				if (uepHref) {
+					const epMatch = uepHref.match(/\/(\d+)\/$/);
+					if (epMatch) totalEpisodes = parseInt(epMatch[1]);
+				}
+			}
+			const episodes = [];
+			if (totalEpisodes > 0) {
+				const baseAnimeUrl = url.endsWith("/") ? url : url + "/";
+				for (let i = totalEpisodes; i >= 1; i--) episodes.push({
+					episode: i,
+					url: baseAnimeUrl + i + "/",
+					image: cover
+				});
+			}
+			return {
+				title,
+				synopsis,
+				cover,
+				status,
+				genres: uniqueGenres,
+				related,
+				episodes
+			};
+		},
+		getServers: async (url) => {
+			const html = (await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+			const $ = cheerio.load(html);
+			const servers = [];
+			const regex = /video\[\d+\]\s*=\s*'[^']*src="([^"]+)"/g;
+			let match;
+			const serverUrls = [];
+			while ((match = regex.exec(html)) !== null) serverUrls.push(match[1]);
+			const serverNames = [];
+			$("a[href^=\"#option\"]").each((i, el) => {
+				serverNames.push($(el).text().trim());
+			});
+			for (let i = 0; i < Math.min(serverUrls.length, serverNames.length); i++) servers.push({
+				server: serverNames[i],
+				title: serverNames[i],
+				url: serverUrls[i],
+				code: serverUrls[i]
+			});
+			return servers;
+		},
+		search: async (query) => {
+			const response = await axios$5.get(`${BASE_URL}/buscar/${encodeURIComponent(query)}/`, { headers: { "User-Agent": "Mozilla/5.0" } });
+			const $ = cheerio.load(response.data);
+			const results = [];
+			$(".anime__item").each((i, el) => {
+				const href = $(el).find("a").first().attr("href");
+				const image = $(el).find(".anime__item__pic").attr("data-setbg") || $(el).find("img").attr("src");
+				const title = $(el).find("h5 a").text().trim() || $(el).find(".anime__item__text h5").text().trim();
+				if (href) results.push({
+					title,
+					url: href,
+					image
+				});
+			});
+			if (results.length === 0) {
+				const scriptMatch = response.data.match(/var animes = (\{.*?\});/s);
+				if (scriptMatch) try {
+					const parsed = JSON.parse(scriptMatch[1]);
+					if (parsed.data) parsed.data.forEach((a) => {
+						results.push({
+							title: a.title,
+							url: a.url,
+							image: a.image
+						});
+					});
+				} catch (e) {}
+			}
+			return results;
+		},
+		browse: async (page = 1) => {
+			const url = page <= 1 ? `${BASE_URL}/directorio/1/` : `${BASE_URL}/directorio/1?p=${page}`;
+			const scriptMatch = (await axios$5.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data.match(/var animes = (\{.*?\});/s);
+			if (scriptMatch) try {
+				const parsed = JSON.parse(scriptMatch[1]);
+				if (parsed.data) return parsed.data.map((a) => ({
+					title: a.title,
+					url: a.url,
+					animeUrl: a.url,
+					image: a.image
+				}));
+			} catch (e) {}
+			return [];
+		},
+		getRecentlyAdded: async () => {
+			return await jkanime.browse(1);
+		}
+	};
+	module.exports = jkanime;
+}));
+//#endregion
+//#region electron/services/sources/index.js
+var require_sources = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var animeav1 = require_animeav1();
+	var jkanime = require_jkanime();
+	var sources = {
+		[animeav1.id]: animeav1,
+		[jkanime.id]: jkanime
+	};
+	module.exports = {
+		getSource: (id) => sources[id || "animeav1"] || sources["animeav1"],
+		getAllSources: () => Object.values(sources)
+	};
+}));
+//#endregion
+//#region electron/services/extractors/extractM3U8.js
+var require_extractM3U8 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var extractM3U8FromText = (text) => {
+		const match = text.match(/(https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*)/i);
+		return match ? match[1] : null;
+	};
+	var extractMP4FromText = (text) => {
+		const match = text.match(/(https?:\/\/[^\s"'<>]+\.mp4[^\s"'<>]*)/i);
+		return match ? match[1] : null;
+	};
+	module.exports = {
+		extractM3U8FromText,
+		extractMP4FromText
+	};
+}));
+//#endregion
+//#region electron/services/extractors/parseJWPlayer.js
+var require_parseJWPlayer = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var parseJWPlayer = (html) => {
+		const result = {
+			sources: [],
+			tracks: []
+		};
+		try {
+			const sourcesMatch = html.match(/sources:\s*(\[[^\]]+\])/);
+			if (sourcesMatch) {
+				const sourcesStr = sourcesMatch[1];
+				const fileRegex = /file\s*:\s*["']([^"']+)["']/g;
+				let match;
+				while ((match = fileRegex.exec(sourcesStr)) !== null) result.sources.push({ file: match[1] });
+			}
+			const tracksMatch = html.match(/tracks:\s*(\[[^\]]+\])/);
+			if (tracksMatch) tracksMatch[1].split("}").filter((b) => b.includes("file")).forEach((block) => {
+				const fileM = block.match(/file\s*:\s*["']([^"']+)["']/);
+				const labelM = block.match(/label\s*:\s*["']([^"']+)["']/);
+				const kindM = block.match(/kind\s*:\s*["']([^"']+)["']/);
+				if (fileM && (!kindM || kindM[1] === "captions" || kindM[1] === "subtitles")) result.tracks.push({
+					file: fileM[1],
+					label: labelM ? labelM[1] : "Subtítulos"
+				});
+			});
+		} catch (error) {
+			console.error("Error parsing JWPlayer config:", error);
+		}
+		return result;
+	};
+	module.exports = { parseJWPlayer };
+}));
+//#endregion
+//#region electron/services/providers/streamwish.js
+var require_streamwish = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$4 = require("axios");
+	var { extractM3U8FromText } = require_extractM3U8();
+	var { parseJWPlayer } = require_parseJWPlayer();
+	module.exports = {
+		name: "Streamwish",
+		canHandle: (url) => url.includes("streamwish") || url.includes("strwish") || url.includes("swish"),
+		extract: async (url) => {
+			try {
+				const html = (await axios$4.get(url, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" } })).data;
+				const { sources, tracks } = parseJWPlayer(html);
+				if (sources.length > 0 && sources[0].file) return {
+					streamUrl: sources[0].file,
+					isDirect: true,
+					subtitles: tracks || []
+				};
+				const m3u8 = extractM3U8FromText(html);
+				if (m3u8) return {
+					streamUrl: m3u8,
+					isDirect: true,
+					subtitles: []
+				};
+				throw new Error("No stream found in Streamwish");
+			} catch (e) {
+				console.error("Streamwish extractor error:", e.message);
+				throw e;
+			}
+		}
+	};
+}));
+//#endregion
+//#region electron/services/extractors/decodeSources.js
+var require_decodeSources = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var unpack = (script) => {
+		return script;
+	};
+	var extractPacked = (html) => {
+		return html.match(/eval\(function\(p,a,c,k,e,?[d]?\).*?\.split\('\|'\).*?\)/g) || [];
+	};
+	module.exports = {
+		unpack,
+		extractPacked
+	};
+}));
+//#endregion
+//#region electron/services/providers/filemoon.js
+var require_filemoon = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$3 = require("axios");
+	var { extractM3U8FromText } = require_extractM3U8();
+	var { extractPacked } = require_decodeSources();
+	module.exports = {
+		name: "Filemoon",
+		canHandle: (url) => url.includes("filemoon") || url.includes("fmoon"),
+		extract: async (url) => {
+			try {
+				const html = (await axios$3.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+				let m3u8 = extractM3U8FromText(html);
+				if (m3u8) return {
+					streamUrl: m3u8,
+					isDirect: true,
+					subtitles: []
+				};
+				if (extractPacked(html).length > 0) console.log("Filemoon stream is packed. Real extraction requires unpacker.");
+				throw new Error("No stream found in Filemoon or stream is obfuscated.");
+			} catch (e) {
+				console.error("Filemoon extractor error:", e.message);
+				throw e;
+			}
+		}
+	};
+}));
+//#endregion
+//#region electron/services/providers/yourupload.js
+var require_yourupload = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$2 = require("axios");
+	var { extractMP4FromText } = require_extractM3U8();
+	module.exports = {
+		name: "YourUpload",
+		canHandle: (url) => url.includes("yourupload"),
+		extract: async (url) => {
+			try {
+				const embedUrl = url.includes("/watch/") ? url.replace("/watch/", "/embed/") : url;
+				const html = (await axios$2.get(embedUrl, { headers: {
+					"User-Agent": "Mozilla/5.0",
+					"Referer": "https://www.yourupload.com/"
+				} })).data;
+				const metaMatch = html.match(/property="og:video"\s*content="([^"]+)"/);
+				if (metaMatch) return {
+					streamUrl: metaMatch[1],
+					isDirect: true,
+					subtitles: []
+				};
+				const mp4 = extractMP4FromText(html);
+				if (mp4) return {
+					streamUrl: mp4,
+					isDirect: true,
+					subtitles: []
+				};
+				throw new Error("No stream found in YourUpload");
+			} catch (e) {
+				console.error("YourUpload extractor error:", e.message);
+				throw e;
+			}
+		}
+	};
+}));
+//#endregion
+//#region electron/services/providers/maru.js
+var require_maru = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios$1 = require("axios");
+	module.exports = {
+		name: "Maru",
+		canHandle: (url) => url.includes("ok.ru") || url.includes("maru"),
+		extract: async (url) => {
+			try {
+				const match = (await axios$1.get(url, { headers: { "User-Agent": "Mozilla/5.0" } })).data.match(/data-options="([^"]+)"/);
+				if (match) {
+					const optionsStr = match[1].replace(/&quot;/g, "\"");
+					const options = JSON.parse(optionsStr);
+					if (options.flashvars && options.flashvars.metadataUrl) {
+						const metaJSON = (await axios$1.get(decodeURIComponent(options.flashvars.metadataUrl), { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+						if (metaJSON.hlsManifestUrl) return {
+							streamUrl: metaJSON.hlsManifestUrl,
+							isDirect: true,
+							subtitles: []
+						};
+					}
+				}
+				throw new Error("No stream found in Maru/Ok.ru");
+			} catch (e) {
+				console.error("Maru extractor error:", e.message);
+				throw e;
+			}
+		}
+	};
+}));
+//#endregion
+//#region electron/services/providers/mp4upload.js
+var require_mp4upload = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var axios = require("axios");
+	module.exports = {
+		name: "MP4Upload",
+		canHandle: (url) => url.includes("mp4upload.com"),
+		extract: async (url) => {
+			const embedUrl = url.includes("embed-") ? url : url.replace(".com/", ".com/embed-") + ".html";
+			const html = (await axios.get(embedUrl, { headers: { "User-Agent": "Mozilla/5.0" } })).data;
+			const srcMatch = html.match(/src:\s*"(https:\/\/.*?\.mp4)"/);
+			if (srcMatch) return {
+				streamUrl: srcMatch[1],
+				type: "mp4"
+			};
+			const scriptMatch = html.match(/script[\s\S]*?player\.src\("(.*?)"\)/);
+			if (scriptMatch) return {
+				streamUrl: scriptMatch[1],
+				type: "mp4"
+			};
+			throw new Error("Could not find video source in MP4Upload");
+		}
+	};
+}));
+//#endregion
+//#region electron/services/providers/animeProvider.js
+var require_animeProvider = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var providers = [
+		require_streamwish(),
+		require_filemoon(),
+		require_yourupload(),
+		require_maru(),
+		require_mp4upload()
+	];
+	module.exports = { animeProvider: {
+		extract: async (url) => {
+			for (const provider of providers) if (provider.canHandle(url)) {
+				console.log(`[AnimeProvider] Usando extractor: ${provider.name} para ${url}`);
+				try {
+					return {
+						...await provider.extract(url),
+						provider: provider.name,
+						originalUrl: url
+					};
+				} catch (e) {
+					console.warn(`[AnimeProvider] Fallo la extraccion con ${provider.name}:`, e.message);
+					throw e;
+				}
+			}
+			console.log(`[AnimeProvider] Ningun extractor soportado para: ${url}`);
+			throw new Error("Proveedor no soportado");
+		},
+		canExtract: (url) => {
+			return providers.some((p) => p.canHandle(url));
+		}
+	} };
+}));
+//#endregion
+//#region electron/main.js
+var { app, BrowserWindow, ipcMain, session } = require("electron");
+var path = require("path");
+var sources = require_sources();
+var { animeProvider } = require_animeProvider();
+app.commandLine.appendSwitch("disable-blink-features", "AutomationControlled");
+function createWindow() {
+	const win = new BrowserWindow({
+		width: 1480,
+		height: 915,
+		minWidth: 1480,
+		minHeight: 915,
+		webPreferences: {
+			nodeIntegration: true,
+			contextIsolation: false
+		},
+		autoHideMenuBar: true
+	});
+	if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
+	else win.loadFile(path.join(__dirname, "../dist/index.html"));
+	win.webContents.setWindowOpenHandler((details) => {
+		console.log(`Bloqueado popup hacia: ${details.url}`);
+		return { action: "deny" };
+	});
+}
+ipcMain.handle("api-latest", async (event, { sourceId }) => {
+	return await sources.getSource(sourceId).getLatest();
+});
+ipcMain.handle("api-details", async (event, { url, sourceId }) => {
+	return await sources.getSource(sourceId).getDetails(url);
+});
+ipcMain.handle("api-servers", async (event, { url, sourceId }) => {
+	return (await sources.getSource(sourceId).getServers(url)).map((server) => ({
+		...server,
+		canExtract: animeProvider.canExtract(server.code)
+	}));
+});
+ipcMain.handle("api-search", async (event, { query, sourceId }) => {
+	return await sources.getSource(sourceId).search(query);
+});
+ipcMain.handle("api-browse", async (event, { page, sourceId }) => {
+	return await sources.getSource(sourceId).browse(page);
+});
+ipcMain.handle("api-recently-added", async (event, { sourceId }) => {
+	const source = sources.getSource(sourceId);
+	if (typeof source.getRecentlyAdded === "function") return await source.getRecentlyAdded();
+	else if (typeof source.browse === "function") return await source.browse(1);
+	return [];
+});
+ipcMain.handle("api-extract", async (event, { url }) => {
+	return await animeProvider.extract(url);
+});
+ipcMain.handle("api-news", async (event, { apiKey }) => {
+	try {
+		const data = await (await fetch(`https://newsapi.org/v2/everything?qInTitle=anime%20OR%20manga%20OR%20crunchyroll&sortBy=publishedAt&language=es&apiKey=${apiKey}`)).json();
+		if (data.status === "ok") return data.articles;
+		else throw new Error(data.message || "Error fetching news from NewsAPI");
+	} catch (error) {
+		console.error("News API error:", error.message);
+		return { error: error.message };
+	}
+});
+ipcMain.handle("api-fanart", async (event, { tvdbId, apiKey }) => {
+	try {
+		const response = await fetch(`https://webservice.fanart.tv/v3/tv/${tvdbId}?api_key=${apiKey}`);
+		if (response.ok) return await response.json();
+		return null;
+	} catch (error) {
+		console.error("Fanart API error:", error.message);
+		return null;
+	}
+});
+app.whenReady().then(() => {
+	session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ["*://*.mp4upload.com/*"] }, (details, callback) => {
+		details.requestHeaders["Referer"] = "https://www.mp4upload.com/";
+		callback({ requestHeaders: details.requestHeaders });
+	});
+	createWindow();
+	app.on("activate", () => {
+		if (BrowserWindow.getAllWindows().length === 0) createWindow();
+	});
+});
+app.on("window-all-closed", () => {
+	if (process.platform !== "darwin") app.quit();
+});
+//#endregion

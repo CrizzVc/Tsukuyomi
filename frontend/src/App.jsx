@@ -2506,6 +2506,28 @@ function App() {
                                 <div className="theme-card-desc">Verde · Negro azulado</div>
                             </div>
 
+                            {/* Tema Golden */}
+                            <div
+                                className={`theme-card ${theme === 'golden' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'golden' ? 'rgba(255,201,14,0.12)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'golden' ? '#FFC90E' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('golden')}
+                            >
+                                {theme === 'golden' && (
+                                    <div className="theme-active-badge" style={{ background: '#FFC90E' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#1f1f1f' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#FFC90E' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#FFC90E', opacity: 0.9 }}></div>
+                                </div>
+                                <div className="theme-card-name">Golden</div>
+                                <div className="theme-card-desc">Dorado · Negro cálido</div>
+                            </div>
+
                             {/* Tema Blueprint */}
                             <div
                                 className={`theme-card ${theme === 'blueprint' ? 'active' : ''}`}
