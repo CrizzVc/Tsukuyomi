@@ -2393,166 +2393,85 @@ function App() {
 
             {view === STATES.EXTENSIONS_MODAL && (
                 <div
-                    className="modal-overlay stellar-overlay"
-                    onClick={(e) => e.target.classList.contains('stellar-overlay') && setView(previousView)}
+                    className="modal-overlay modmail-overlay"
+                    onClick={(e) => e.target.classList.contains('modmail-overlay') && setView(previousView)}
                 >
-                    <div className="stellar-card">
+                    <div className="modmail-svg-wrap">
+                        <button className="modmail-close-btn" onClick={() => setView(previousView)}>✕</button>
 
-                        {/* Crosshair lines */}
-                        <div className="stellar-crosshair stellar-crosshair-v"></div>
-                        <div className="stellar-crosshair stellar-crosshair-h"></div>
+                        <svg className="modmail-svg" width="866" height="1084" viewBox="0 0 866 1084" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Tilted card silhouette */}
+                            <rect width="858.226" height="1240.87" transform="matrix(0.986892 0.161383 -0.195072 0.980789 246.483 -197.766)" fill="#1F1F1F" />
+                            <rect x="10.2028" y="12.5106" width="764.838" height="1075.81" transform="matrix(0.995594 0.0937744 -0.108396 0.994108 167.837 -90.3835)" stroke="white" strokeWidth="23" />
 
-                        {/* Cardinal tick marks */}
-                        <div className="stellar-tick stellar-tick-top">
-                            <svg width="13" height="16" viewBox="0 0 13 16">
-                                <polygon points="6.5,0 13,16 0,16" fill="rgba(255,255,255,0.55)" />
-                            </svg>
-                        </div>
-                        <div className="stellar-tick stellar-tick-right">
-                            <svg width="18" height="14" viewBox="0 0 18 14">
-                                <line x1="0" y1="7" x2="10" y2="7" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-                                <circle cx="14" cy="7" r="3" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" />
-                                <circle cx="14" cy="7" r="1" fill="rgba(255,255,255,0.6)" />
-                            </svg>
-                        </div>
-                        <div className="stellar-tick stellar-tick-bottom">
-                            <svg width="12" height="12" viewBox="0 0 12 12">
-                                <circle cx="6" cy="6" r="4.5" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2" />
-                                <circle cx="6" cy="6" r="1.5" fill="rgba(255,255,255,0.3)" />
-                            </svg>
-                        </div>
-                        <div className="stellar-tick stellar-tick-left">
-                            <svg width="10" height="10" viewBox="0 0 10 10">
-                                <rect x="1" y="1" width="8" height="8" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
-                            </svg>
-                        </div>
+                            {/* HTML content, warped to match the tilted frame exactly */}
+                            <foreignObject x="10.2028" y="12.5106" width="764.838" height="1075.81" transform="matrix(0.995594 0.0937744 -0.108396 0.994108 167.837 -90.3835)">
+                                <div xmlns="http://www.w3.org/1999/xhtml" className="modmail-content">
 
-                        {/* Corner labels */}
-                        <div className="stellar-coord-tl">CARTA ESTELAR<br />J2000.0 · ECL</div>
-                        <div className="stellar-coord-tr">MÓDULOS<br />No. 564</div>
-
-                        {/* Orbit rings — SVG entrecortado */}
-                        <svg className="stellar-orbits" width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
-                            {/* Ejes entrecortados */}
-                            <line x1="210" y1="0" x2="210" y2="80" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            <line x1="210" y1="340" x2="210" y2="420" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            <line x1="0" y1="210" x2="80" y2="210" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            <line x1="340" y1="210" x2="420" y2="210" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            {/* Órbita circular principal */}
-                            <circle cx="210" cy="210" r="142" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="0.9" strokeDasharray="6 5" />
-                            {/* Elipse horizontal */}
-                            <ellipse cx="210" cy="210" rx="180" ry="50" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" strokeDasharray="5 6" />
-                            {/* Elipse vertical */}
-                            <ellipse cx="210" cy="210" rx="50" ry="180" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" strokeDasharray="5 6" />
-                            {/* Elipse diagonal 1 */}
-                            <ellipse cx="210" cy="210" rx="160" ry="70" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.6" strokeDasharray="4 7" transform="rotate(35 210 210)" />
-                            {/* Elipse diagonal 2 */}
-                            <ellipse cx="210" cy="210" rx="160" ry="70" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.6" strokeDasharray="4 7" transform="rotate(-35 210 210)" />
-                            {/* Órbita exterior */}
-                            <circle cx="210" cy="210" r="170" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.6" strokeDasharray="3 8" />
-                            {/* Nodos */}
-                            <circle cx="210" cy="68" r="2.5" fill="rgba(255,255,255,0.4)" />
-                            <circle cx="210" cy="352" r="2" fill="rgba(255,255,255,0.25)" />
-                            <circle cx="68" cy="210" r="2" fill="rgba(255,255,255,0.25)" />
-                            <circle cx="352" cy="210" r="2.5" fill="rgba(255,255,255,0.4)" />
-                            <circle cx="310" cy="110" r="1.8" fill="rgba(255,255,255,0.3)" />
-                            <circle cx="110" cy="310" r="1.8" fill="rgba(255,255,255,0.3)" />
-                        </svg>
-
-                        {/* Central planet — SVG estático con degradado y cuadrícula */}
-                        <div className="stellar-planet">
-                            <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <radialGradient id="pg" cx="36%" cy="32%" r="62%">
-                                        <stop offset="0%" stopColor="#ffffff" />
-                                        <stop offset="35%" stopColor="#aaaaaa" />
-                                        <stop offset="70%" stopColor="#444444" />
-                                        <stop offset="100%" stopColor="#0a0a0a" />
-                                    </radialGradient>
-                                    <radialGradient id="pshine" cx="30%" cy="28%" r="48%">
-                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
-                                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                                    </radialGradient>
-                                    <clipPath id="pc">
-                                        <circle cx="45" cy="45" r="44" />
-                                    </clipPath>
-                                </defs>
-                                <circle cx="45" cy="45" r="44" fill="url(#pg)" />
-                                <g clipPath="url(#pc)" fill="none" stroke="#ffffff" strokeWidth="0.5" opacity="0.28">
-                                    {/* Horizontales */}
-                                    {[9, 18, 27, 36, 45, 54, 63, 72, 81].map(y => (
-                                        <line key={`h${y}`} x1="1" y1={y} x2="89" y2={y} />
-                                    ))}
-                                    {/* Verticales */}
-                                    {[9, 18, 27, 36, 45, 54, 63, 72, 81].map(x => (
-                                        <line key={`v${x}`} x1={x} y1="1" x2={x} y2="89" />
-                                    ))}
-                                    {/* Elipses internas */}
-                                    <ellipse cx="45" cy="45" rx="44" ry="7" />
-                                    <ellipse cx="45" cy="45" rx="44" ry="14" />
-                                    <ellipse cx="45" cy="45" rx="44" ry="28" />
-                                    <ellipse cx="45" cy="45" rx="32" ry="42" />
-                                    <ellipse cx="45" cy="45" rx="16" ry="44" />
-                                </g>
-                                <circle cx="45" cy="45" r="44" fill="url(#pshine)" />
-                                <circle cx="45" cy="45" r="44" fill="none" stroke="#ffffff" strokeWidth="0.7" opacity="0.45" />
-                            </svg>
-                        </div>
-
-                        {/* Active module indicator */}
-                        <div className="active-info" style={{ color: currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.color : 'rgba(255,255,255,0.55)' }}>
-                            {currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.name.toUpperCase() + ' · ACTIVO' : 'SELECCIONA UN MÓDULO'}
-                        </div>
-
-                        {/* Moons */}
-                        {EXTENSIONS.map((ext, idx) => {
-                            const total = EXTENSIONS.length;
-                            const angle = (360 / total) * idx - 90;
-                            const rad = (angle * Math.PI) / 180;
-                            const radius = 130;
-                            const x = Math.cos(rad) * radius;
-                            const y = Math.sin(rad) * radius;
-                            const isActive = currentSource === ext.id;
-                            return (
-                                <div
-                                    key={ext.id}
-                                    className={`stellar-moon ${isActive ? 'stellar-moon-active' : ''}`}
-                                    style={{
-                                        '--moon-color': ext.color,
-                                        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                                    }}
-                                    onClick={() => selectSource(ext.id)}
-                                    title={ext.name}
-                                >
-                                    <div
-                                        className="stellar-moon-core"
-                                        style={{
-                                            backgroundColor: isActive ? `${ext.color}22` : 'rgba(255,255,255,0.05)',
-                                            borderColor: isActive ? ext.color : 'rgba(255,255,255,0.18)',
-                                        }}
-                                    >
-                                        <span className="stellar-moon-icon">{ext.icon}</span>
-                                        {isActive && (
-                                            <div className="stellar-moon-pulse" style={{ '--pulse-color': ext.color }}></div>
-                                        )}
+                                    {/* Header — like "休日 | Day off" + "TODAY's NewMail" */}
+                                    <div className="modmail-header">
+                                        <div className="modmail-chip" style={{ background: `linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 55%, black))` }}>
+                                            <span className="modmail-chip-main">MÓDULOS</span>
+                                            <span className="modmail-chip-div"></span>
+                                            <span className="modmail-chip-sub">Selecciona uno</span>
+                                        </div>
+                                        <div className="modmail-heading2">
+                                            <span className="modmail-heading2-top">TUS</span>
+                                            <span className="modmail-heading2-main">MÓDULOS</span>
+                                            <div className="modmail-heading2-flag" style={{ background: 'var(--primary-color)' }}></div>
+                                        </div>
                                     </div>
-                                    <div className="stellar-moon-label">{ext.name}</div>
+
+                                    {/* Module list — mail-style entries */}
+                                    <div className="modmail-list">
+                                        {EXTENSIONS.map((ext) => {
+                                            const isActive = currentSource === ext.id;
+                                            return (
+                                                <div
+                                                    key={ext.id}
+                                                    className={`modmail-item ${isActive ? 'modmail-item-active' : ''}`}
+                                                    onClick={() => selectSource(ext.id)}
+                                                >
+                                                    {!isActive && <div className="modmail-item-flag">!</div>}
+                                                    <div className="modmail-item-main">
+                                                        <div className="modmail-item-topbar" style={{ borderColor: isActive ? ext.color : 'rgba(255,255,255,0.25)' }}>
+                                                            {isActive && <span className="modmail-item-tag" style={{ color: ext.color, borderColor: ext.color }}>ACTIVO</span>}
+                                                            <span className="modmail-item-name" style={{ color: isActive ? ext.color : 'rgba(255,255,255,0.9)' }}>{ext.name}</span>
+                                                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <circle cx="12" cy="12" r="9" stroke={ext.color} strokeWidth="1.5" />
+                                                                <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={ext.color} strokeWidth="1.1" opacity="0.85" />
+                                                                <line x1="3" y1="12" x2="21" y2="12" stroke={ext.color} strokeWidth="1.1" opacity="0.85" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="modmail-item-message">
+                                                            {isActive ? 'Módulo activo ahora mismo' : 'Toca para cambiar de módulo…'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="modmail-item-avatar" style={{ background: `${ext.color}26`, borderColor: ext.color }}>
+                                                        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <circle cx="12" cy="12" r="9" stroke={ext.color} strokeWidth="1.4" />
+                                                            <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={ext.color} strokeWidth="1" opacity="0.8" />
+                                                            <line x1="3" y1="12" x2="21" y2="12" stroke={ext.color} strokeWidth="1" opacity="0.8" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Footer control hints */}
+                                    <div className="modmail-footer">
+                                        <span className="modmail-footer-hint">
+                                            <span className="modmail-footer-key">A</span> Activar
+                                        </span>
+                                        <span className="modmail-footer-hint" onClick={() => setView(previousView)}>
+                                            <span className="modmail-footer-key">B</span> Cerrar
+                                        </span>
+                                    </div>
+
                                 </div>
-                            );
-                        })}
-
-                        {/* Bottom label */}
-                        <div className="stellar-label">MÓDULO ACTUAL</div>
-                        <div
-                            className="stellar-sublabel"
-                            style={{ color: currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.color : 'rgba(255,255,255,0.7)' }}
-                        >
-                            {currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.name.toUpperCase() : '—'}
-                        </div>
-
-                        {/* Close button */}
-                        <button className="stellar-close-btn" onClick={() => setView(previousView)}>✕</button>
-
+                            </foreignObject>
+                        </svg>
                     </div>
                 </div>
             )}
