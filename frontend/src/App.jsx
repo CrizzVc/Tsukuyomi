@@ -2117,10 +2117,10 @@ function App() {
                                     const animeUrl = selectedAnime?.url || details?.url || '';
                                     const watched = isEpisodeWatched(animeUrl, ep.episode);
 
-                                    // Stepped diagonal trajectory math for larger cards
-                                    const translateX = 60 + offset * 55;
-                                    const translateY = offset * 135;
-                                    const scale = isFocused ? 1.08 : (Math.abs(offset) === 1 ? 0.94 : 0.82);
+                                    // Adaptive diagonal trajectory math with increased gap
+                                    const translateX = `calc(clamp(30px, 3vw, 70px) + ${offset} * clamp(50px, 4.5vw, 85px))`;
+                                    const translateY = `calc(${offset} * clamp(130px, 16.5vh, 200px))`;
+                                    const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
                                     const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
                                     const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
 
@@ -2129,7 +2129,7 @@ function App() {
                                             key={ep.url || ep.episode || actualIdx}
                                             className={`persona-ep-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-ep' : ''}`}
                                             style={{
-                                                transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                                                transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
                                                 opacity: opacity,
                                                 zIndex: zIndex
                                             }}
