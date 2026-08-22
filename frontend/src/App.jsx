@@ -2408,7 +2408,7 @@ function App() {
 
                                     {/* Header — like "休日 | Day off" + "TODAY's NewMail" */}
                                     <div className="modmail-header">
-                                        <div className="modmail-chip" style={{ background: `linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 55%, black))` }}>
+                                        <div className="modmail-chip" style={{ background: `linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 55%, red))` }}>
                                             <span className="modmail-chip-main">MÓDULOS</span>
                                             <span className="modmail-chip-div"></span>
                                             <span className="modmail-chip-sub">Selecciona uno</span>
@@ -2429,17 +2429,17 @@ function App() {
                                                     key={ext.id}
                                                     className={`modmail-item ${isActive ? 'modmail-item-active' : ''}`}
                                                     onClick={() => selectSource(ext.id)}
-                                                    style={{ background: isActive ? 'rgba(255, 255, 255, 0.9)' : '#161616', borderRadius: '8px' }}
+                                                    style={{ background: isActive ? 'rgba(255, 255, 255, 0.9)' : '#161616', borderRadius: '8px', boxShadow: isActive ? `8px 8px 0px 0px var(--primary-color)` : '4px 4px 0px 0px #080808' }}
                                                 >
                                                     {!isActive && <div className="modmail-item-flag">!</div>}
                                                     <div className="modmail-item-main">
-                                                        <div className="modmail-item-topbar" style={{ borderColor: isActive ? ext.color : 'rgba(255,255,255,0.25)' }}>
-                                                            {isActive && <span className="modmail-item-tag" style={{ color: ext.color, borderColor: ext.color }}>ACTIVO</span>}
-                                                            <span className="modmail-item-name" style={{ color: isActive ? ext.color : 'rgba(255,255,255,0.9)' }}>{ext.name}</span>
+                                                        <div className="modmail-item-topbar" style={{ borderColor: isActive ? 'var(--primary-color)' : 'rgba(255,255,255,0.25)' }}>
+                                                            {isActive && <span className="modmail-item-tag" style={{ color: 'var(--primary-color)', borderColor: 'var(--primary-color)' }}>ACTIVO</span>}
+                                                            <span className="modmail-item-name" style={{ color: isActive ? '#1f1f1f' : 'rgba(255,255,255,0.9)' }}>{ext.name}</span>
                                                             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <circle cx="12" cy="12" r="9" stroke={ext.color} strokeWidth="1.5" />
-                                                                <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={ext.color} strokeWidth="1.1" opacity="0.85" />
-                                                                <line x1="3" y1="12" x2="21" y2="12" stroke={ext.color} strokeWidth="1.1" opacity="0.85" />
+                                                                <circle cx="12" cy="12" r="9" stroke={isActive ? 'var(--primary-color)' : '#fff'} strokeWidth="1.5" />
+                                                                <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={isActive ? 'var(--primary-color)' : '#fff'} strokeWidth="1.1" opacity="0.85" />
+                                                                <line x1="3" y1="12" x2="21" y2="12" stroke={isActive ? 'var(--primary-color)' : '#fff'} strokeWidth="1.1" opacity="0.85" />
                                                             </svg>
                                                         </div>
                                                         <div className="modmail-item-message" style={{ color: isActive ? '#202020' : 'rgba(255, 255, 255, 0.9)' }}>
