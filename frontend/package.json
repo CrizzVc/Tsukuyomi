@@ -24,7 +24,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "src/assets/logotemp.png"
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,

@@ -7,11 +7,15 @@ const { animeProvider } = require('./services/providers/animeProvider');
 app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
 
 function createWindow() {
+  const iconPath = process.env.VITE_DEV_SERVER_URL
+    ? path.join(__dirname, '../public/icon.png')
+    : path.join(__dirname, '../dist/icon.png');
   const win = new BrowserWindow({
     width: 1480,
     height: 915,
     minWidth: 1480,
     minHeight: 915,
+    icon: iconPath,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
