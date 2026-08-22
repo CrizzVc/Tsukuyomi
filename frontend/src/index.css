@@ -3515,3 +3515,211 @@ header {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     background: rgba(0, 0, 0, 0.1);
 }
+
+/* ==========================================
+   FLAT YELLOW REDESIGN
+   ========================================== */
+:root {
+    --bg-color: #FFC90E !important;
+    --text-color: #1F1F1F !important;
+    --primary-color: #1F1F1F !important;
+}
+
+body {
+    background-color: #FFC90E !important;
+    color: #1F1F1F !important;
+}
+
+/* Override existing glows */
+.dynamic-card-glow, .bg-ambient, .card-overlay-gradient {
+    display: none !important;
+}
+
+/* Header adjustments for yellow bg */
+.nav-link {
+    color: #555 !important;
+}
+.nav-link.active {
+    color: #1F1F1F !important;
+}
+.nav-link.active::after {
+    background-color: #1F1F1F !important;
+    box-shadow: none !important;
+}
+.nav-link:hover, .nav-link.focused {
+    background: rgba(0, 0, 0, 0.1) !important;
+    color: #000 !important;
+}
+.search-pill {
+    background-color: #1F1F1F !important;
+    color: white !important;
+}
+.search-pill:hover, .search-pill.focused {
+    background-color: #000 !important;
+}
+.settings-btn {
+    border-color: #1F1F1F !important;
+    color: #1F1F1F !important;
+}
+
+/* Titles */
+.title-marker-flat {
+    display: inline-block;
+    width: 6px;
+    height: 24px;
+    background-color: #1F1F1F;
+}
+
+/* NEW EPISODES ROW */
+.new-ep-card {
+    width: 300px;
+    height: 180px;
+    background-color: #1F1F1F;
+    border-radius: 5px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+.new-ep-card.active {
+    border: 4px solid #FFC90E;
+    box-shadow: 
+        0 0 0 4px #1F1F1F, 
+        10px 10px 0px 4px #1F1F1F;
+    transform: none;
+    z-index: 10;
+}
+.new-ep-card .card-overlay-flat {
+    display: none;
+}
+
+/* LAST WATCHED BAR */
+.last-watched-bar-container {
+    width: calc(100% + 120px);
+    margin-left: -60px;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+.last-watched-bar {
+    width: 100%;
+    height: 100px;
+    background-color: #1F1F1F;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    color: white;
+    padding: 0 60px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.last-watched-bar.empty {
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.1rem;
+}
+.last-watched-carousel-wrapper {
+    display: flex;
+    align-items: center;
+    width: 50%;
+    height: 100%;
+}
+.last-watched-carousel {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    overflow: hidden;
+    height: 70px;
+    margin: 0 10px;
+    padding-left: 15px;
+}
+.lw-parallax-item {
+    width: 130px;
+    height: 70px;
+    background-color: #333;
+    background-size: cover;
+    background-position: center;
+    transform: skewX(20deg);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    margin-right: 0px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.lw-parallax-item.active {
+    border: 4px solid #FFC90E;
+    box-shadow: inset 0 0 0 2px #1F1F1F, 6px 6px 0px rgba(31, 31, 31, 1);
+    z-index: 2;
+    transform: skewX(20deg) scale(1.05);
+}
+.lw-nav-btn {
+    background: none;
+    border: none;
+    color: #FFC90E;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 10px;
+}
+.lw-nav-btn:disabled {
+    color: #555;
+    cursor: default;
+}
+.last-watched-divider {
+    width: 2px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 30px;
+}
+.last-watched-info {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    align-items: center;
+}
+.lw-text-info {
+    display: flex;
+    flex-direction: column;
+}
+.lw-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+}
+.lw-meta {
+    font-size: 0.9rem;
+    color: #AAA;
+}
+.lw-resume-btn {
+    background-color: #FFC90E;
+    border: 2px solid #FFC90E;
+    color: #1F1F1F;
+    padding: 10px 24px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+.lw-resume-btn.focused, .lw-resume-btn:hover {
+    background-color: transparent;
+    color: #FFC90E;
+}
+
+/* FAVORITES POSTERS */
+.fav-poster-card {
+    width: 200px;
+    height: 300px;
+    background-color: #1F1F1F;
+    border-radius: 5px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+.fav-poster-card.active {
+    border: 4px solid #FFC90E;
+    box-shadow: 
+        0 0 0 4px #1F1F1F, 
+        10px 10px 0px 4px #1F1F1F;
+    transform: none;
+    z-index: 10;
+}
