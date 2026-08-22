@@ -602,6 +602,7 @@ function createWindow() {
 		height: 915,
 		minWidth: 1480,
 		minHeight: 915,
+		icon: process.env.VITE_DEV_SERVER_URL ? path.join(__dirname, "../public/icon.png") : path.join(__dirname, "../dist/icon.png"),
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
