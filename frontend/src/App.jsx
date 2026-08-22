@@ -82,9 +82,11 @@ function App() {
     const [previousView, setPreviousView] = useState(STATES.HOME);
     const [detailsPreviousView, setDetailsPreviousView] = useState(STATES.HOME);
     const [isGameWipeActive, setIsGameWipeActive] = useState(false);
+    const [wipeDirection, setWipeDirection] = useState('right');
     const [wipeKey, setWipeKey] = useState(0);
 
-    const triggerGameTransition = (onCovered) => {
+    const triggerGameTransition = (onCovered, direction = 'right') => {
+        setWipeDirection(direction);
         setWipeKey(prev => prev + 1);
         setIsGameWipeActive(true);
         setTimeout(async () => {
@@ -680,7 +682,7 @@ function App() {
         else if (view === STATES.DETAILS) {
             triggerGameTransition(() => {
                 setView(detailsPreviousView);
-            });
+            }, 'left');
         }
         else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
@@ -2563,7 +2565,7 @@ function App() {
 
             {/* Global Game-style screen transition wipe overlay */}
             {isGameWipeActive && (
-                <div className="persona-game-wipe" key={wipeKey}>
+                <div className={`persona-game-wipe direction-${wipeDirection}`} key={wipeKey}>
                     <div className="persona-wipe-curtain">
                         <div className="persona-wipe-layer layer-dark"></div>
                         <div className="persona-wipe-layer layer-yellow"></div>

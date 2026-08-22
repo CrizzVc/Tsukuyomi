@@ -3842,12 +3842,25 @@ header {
 .persona-wipe-layer {
     position: absolute;
     top: -15vh;
-    left: 0;
     height: 130vh;
-    transform: translate3d(-200vw, 0, 0) skewX(-14deg);
     transform-origin: center center;
     will-change: transform;
-    animation: personaMultiLayerWipe 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Direction Right (Entering Details: Left to Right) */
+.direction-right .persona-wipe-layer {
+    left: 0;
+    right: auto;
+    transform: translate3d(-200vw, 0, 0) skewX(-14deg);
+    animation: personaMultiLayerWipeRight 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Direction Left (Exiting Details: Right to Left) */
+.direction-left .persona-wipe-layer {
+    right: 0;
+    left: auto;
+    transform: translate3d(200vw, 0, 0) skewX(14deg);
+    animation: personaMultiLayerWipeLeft 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .persona-wipe-layer.layer-dark {
@@ -3890,12 +3903,27 @@ header {
     animation-delay: 0.15s;
 }
 
-@keyframes personaMultiLayerWipe {
+.direction-left .persona-wipe-layer.layer-main {
+    border-left: none;
+    border-right: 8px solid #ffcb05;
+    box-shadow: 20px 0 40px rgba(0, 0, 0, 0.75);
+}
+
+@keyframes personaMultiLayerWipeRight {
     0% {
         transform: translate3d(-200vw, 0, 0) skewX(-14deg);
     }
     100% {
         transform: translate3d(200vw, 0, 0) skewX(-14deg);
+    }
+}
+
+@keyframes personaMultiLayerWipeLeft {
+    0% {
+        transform: translate3d(200vw, 0, 0) skewX(14deg);
+    }
+    100% {
+        transform: translate3d(-200vw, 0, 0) skewX(14deg);
     }
 }
 
