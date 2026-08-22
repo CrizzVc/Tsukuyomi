@@ -4113,13 +4113,15 @@ header {
     box-sizing: border-box;
 }
 
-/* Controls at top right */
+/* Controls at top right (positioned directly to the left of Close X button) */
 .persona-episodes-controls {
+    position: absolute;
+    top: 24px;
+    right: 84px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     gap: 12px;
-    margin-bottom: 20px;
+    z-index: 100;
 }
 
 .persona-control-btn {
@@ -4134,6 +4136,7 @@ header {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .persona-control-btn:hover,
@@ -4150,6 +4153,7 @@ header {
     color: #fff;
     font-weight: 700;
     outline: none;
+    width: clamp(200px, 20vw, 300px);
 }
 
 /* Container stage for 5-card diagonal carousel */

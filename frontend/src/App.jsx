@@ -1928,6 +1928,29 @@ function App() {
                         <line x1="820" y1="0" x2="1000" y2="250" stroke="#ffcb05" strokeWidth="6" />
                     </svg>
 
+                    {/* Top Right Header Controls (Search + Sort) to the left of Close (X) button */}
+                    <div className="persona-episodes-controls">
+                        <input
+                            type="text"
+                            className="persona-ep-search-input"
+                            placeholder="Buscar episodio..."
+                            value={episodeSearchQuery}
+                            onChange={(e) => {
+                                setEpisodeSearchQuery(e.target.value);
+                                setDetailsActiveIndex(0);
+                            }}
+                        />
+                        <button
+                            className={`persona-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
+                            onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                            title="Ordenar episodios"
+                        >
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
+                            </svg>
+                        </button>
+                    </div>
+
                     {/* Close Button */}
                     <button className="persona-close-btn" onClick={goBack} title="Cerrar">✕</button>
 
@@ -2026,43 +2049,6 @@ function App() {
 
                     {/* ── RIGHT SECTION (DARK AREA - DIAGONAL CHAPTER ROW) ── */}
                     <div className="persona-right-section">
-                        {/* Controls (Search / Sort) */}
-                        <div className="persona-episodes-controls">
-                            {isEpisodeSearchVisible && (
-                                <input
-                                    type="text"
-                                    className="persona-ep-search-input"
-                                    placeholder="Buscar episodio..."
-                                    value={episodeSearchQuery}
-                                    onChange={(e) => {
-                                        setEpisodeSearchQuery(e.target.value);
-                                        setDetailsActiveIndex(0);
-                                    }}
-                                    autoFocus
-                                />
-                            )}
-                            <button
-                                className={`persona-control-btn ${isEpisodeSearchVisible ? 'active' : ''}`}
-                                onClick={() => {
-                                    setIsEpisodeSearchVisible(!isEpisodeSearchVisible);
-                                    if (isEpisodeSearchVisible) setEpisodeSearchQuery('');
-                                }}
-                                title="Buscar episodio"
-                            >
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                                </svg>
-                            </button>
-                            <button
-                                className={`persona-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
-                                onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-                                title="Ordenar episodios"
-                            >
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
-                                </svg>
-                            </button>
-                        </div>
 
                         {/* Diagonal 5-Card Episode Carousel Wheel */}
                         <div
