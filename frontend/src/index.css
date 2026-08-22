@@ -722,14 +722,15 @@ header {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background-size: cover;
     background-position: center;
+    border: 2px solid transparent;
+    box-shadow: none;
 }
 
-.small-card:hover {
-    /* transform: scale(1.06); */
-    /* border: 1px solid var(--primary-color); */
-    /* box-shadow: 0 2px 20px rgba(0, 229, 255, 0.4); */
+.small-card:hover,
+.small-card.focused {
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px rgba(var(--glow-rgb), 0.25);
     z-index: 10;
-    /* background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent); */
 }
 
 .small-card .card-info {
@@ -1446,7 +1447,7 @@ header {
     aspect-ratio: 16 / 9;
     border: 2px solid transparent;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: none;
 }
 
 .episode-card:hover,
@@ -2826,7 +2827,7 @@ header {
     overflow: hidden;
     background: #18181c;
     border: 2px solid transparent;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -2841,17 +2842,14 @@ header {
     transform: translateY(-6px);
 }
 
-.anime-card-v2:hover .anime-card-v2-img-container {
+.anime-card-v2:hover .anime-card-v2-img-container,
+.anime-card-v2.focused .anime-card-v2-img-container {
     border-color: var(--primary-color);
     box-shadow: 0 0 25px rgba(var(--glow-rgb), 0.5);
 }
 
-.anime-card-v2.focused .anime-card-v2-img-container {
-    border-color: #FFC90E;
-    box-shadow: none;
-}
-
-.anime-card-v2:hover .anime-card-v2-img {
+.anime-card-v2:hover .anime-card-v2-img,
+.anime-card-v2.focused .anime-card-v2-img {
     transform: scale(1.05);
 }
 
@@ -2918,7 +2916,7 @@ header {
     margin-top: 12px;
     font-size: 0.95rem;
     font-weight: 700;
-    color: #e5e7eb;
+    color: #1F1F1F;
     line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -2931,7 +2929,7 @@ header {
 
 .anime-card-v2:hover .anime-card-v2-title,
 .anime-card-v2.focused .anime-card-v2-title {
-    color: white;
+    color: #1F1F1F;
 }
 
 /* Details View Close Button */
@@ -3754,5 +3752,16 @@ body {
         0 0 0 4px #1F1F1F,
         7px 7px 0px 2px #1F1F1F;
     transform: none;
+    z-index: 10;
+}
+
+/* ULTIMO AGREGADO FOCUS */
+.anime-card-v2.focused .anime-card-v2-img-container {
+    border: 4px solid #FFC90E !important;
+    box-shadow:
+        0 0 0 4px #1F1F1F,
+        7px 7px 0px 2px #1F1F1F !important;
+    border-radius: 5px !important;
+    transform: none !important;
     z-index: 10;
 }
