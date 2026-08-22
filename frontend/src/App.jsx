@@ -1583,7 +1583,7 @@ function App() {
                             <div className="home-view-content">
                                 <div className="section-header" style={{ justifyContent: 'flex-start' }}>
                                     <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
-                                    <h2 className="section-title fw-bold" style={{ margin: 0, color: '#1F1F1F', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>
+                                    <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>
                                 </div>
 
                                 <div className="carousel-container mt-4">
@@ -1691,7 +1691,7 @@ function App() {
                                 <div className="carousel-container mt-4 mb-10">
                                     <div className="section-header" style={{ justifyContent: 'flex-start' }}>
                                         <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
-                                        <h2 className="section-title fw-bold" style={{ margin: 0, color: '#1F1F1F', fontSize: '1.2rem', fontWeight: 900 }}>FAVORITOS</h2>
+                                        <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>FAVORITOS</h2>
                                     </div>
                                     <div
                                         className="carousel-wrapper"
@@ -1711,7 +1711,7 @@ function App() {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className={`empty-favorites ${rowIndex === 2 ? 'focused' : ''}`} style={{ color: '#1F1F1F' }}>
+                                            <div className={`empty-favorites ${rowIndex === 2 ? 'focused' : ''}`} style={{ color: 'var(--text-color)' }}>
                                                 <p>Tu lista de favoritos está vacía</p>
                                             </div>
                                         )}
@@ -1723,7 +1723,7 @@ function App() {
                                 <div className="recent-grid-section mt-10">
                                     <div className="section-header" style={{ justifyContent: 'flex-start' }}>
                                         <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
-                                        <h2 className="section-title fw-bold" style={{ margin: 0, color: '#1F1F1F', fontSize: '1.2rem', fontWeight: 900 }}>ÚLTIMO AGREGADO</h2>
+                                        <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>ÚLTIMO AGREGADO</h2>
                                     </div>
 
                                     <div className="recent-anime-grid mt-4">
@@ -1939,8 +1939,7 @@ function App() {
                     </div>
                 </div>
             )}
-
-            {view === STATES.DETAILS && details && (
+{view === STATES.DETAILS && details && (
                 <div className="persona-details-view">
                     {/* Diagonal split background */}
                     <div className="persona-bg-dark"></div>
@@ -1949,17 +1948,17 @@ function App() {
                     {/* SVG overlay for accent lines & triangles matching mockup */}
                     <svg className="persona-svg-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         {/* Diagonal split line */}
-                        <line x1="180" y1="0" x2="700" y2="1000" stroke="#ffcb05" strokeWidth="8" />
+                        <line x1="180" y1="0" x2="700" y2="1000" stroke="var(--persona-bg-accent)" strokeWidth="8" />
                         <line x1="175" y1="0" x2="695" y2="1000" stroke="#000000" strokeWidth="4" />
 
                         {/* Top center yellow triangle */}
-                        <polygon points="165,0 195,0 180,35" fill="#ffcb05" stroke="#000" strokeWidth="3" />
+                        <polygon points="165,0 195,0 180,35" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
 
                         {/* Bottom right yellow triangle */}
-                        <polygon points="950,1000 1000,1000 1000,930" fill="#ffcb05" stroke="#000" strokeWidth="3" />
+                        <polygon points="950,1000 1000,1000 1000,930" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
 
                         {/* Top right diagonal stripe */}
-                        <line x1="760" y1="0" x2="1000" y2="300" stroke="#ffcb05" strokeWidth="6" />
+                        <line x1="760" y1="0" x2="1000" y2="300" stroke="var(--persona-bg-accent)" strokeWidth="6" />
                     </svg>
 
                     {/* Top Right Header Controls (Search + Sort) to the left of Close (X) button */}
@@ -2119,7 +2118,7 @@ function App() {
 
                                 if (filteredEpisodes.length === 0) {
                                     return (
-                                        <div className="no-episodes-found" style={{ color: '#ffcb05', fontWeight: 'bold' }}>
+                                        <div className="no-episodes-found" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>
                                             No se encontraron episodios
                                         </div>
                                     );
@@ -2503,7 +2502,7 @@ function App() {
                                     <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
                                     <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#21ed76', opacity: 0.9 }}></div>
                                 </div>
-                                <div className="theme-card-name">green</div>
+                                <div className="theme-card-name">Green</div>
                                 <div className="theme-card-desc">Verde · Negro azulado</div>
                             </div>
 

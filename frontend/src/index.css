@@ -10,18 +10,25 @@
     --text-color: #ffffff;
     --text-dim: #6a6a70;
     --card-width: 200px;
-    /* derived surfaces */
     --surface-1: #1a1a24;
     --surface-2: #1f1f25;
     --surface-3: #2a2a35;
     --search-bg: #0a0a0e;
     --glow-rgb: 0, 229, 255;
+    /* Flat redesign tokens */
+    --accent-color: #00E5FF;
+    --on-primary: #000000;
+    --header-bg: #0a0a10;
+    --card-bg: #141416;
+    --section-title-color: #ffffff;
+    --wipe-accent: #00E5FF;
+    --persona-bg-accent: #00E5FF;
+    --persona-dark-bg: #0a0a10;
+    --persona-text-on-accent: #000000;
 }
 
 /* ══════════════════════════════════════════
    TEMA 2 — Ember
-   Paleta: fondo negro cálido #1c1714
-   acento rojo óxido #b84a32, texto crema #e8d5b5
    ══════════════════════════════════════════ */
 [data-theme="ember"] {
     --primary-color: #b84a32;
@@ -29,23 +36,29 @@
     --text-color: #e8d5b5;
     --text-dim: #7a6560;
     --card-width: 200px;
-    /* derived surfaces */
     --surface-1: #251e1a;
     --surface-2: #2c2420;
     --surface-3: #362a25;
     --search-bg: #141110;
     --glow-rgb: 184, 74, 50;
+    --accent-color: #e8653e;
+    --on-primary: #ffffff;
+    --header-bg: #14100c;
+    --card-bg: #1c1714;
+    --section-title-color: #e8d5b5;
+    --wipe-accent: #e8653e;
+    --persona-bg-accent: #e8653e;
+    --persona-dark-bg: #14100c;
+    --persona-text-on-accent: #000000;
 }
 
 /* ══════════════════════════════════════════
-   TEMA 3 — Blueprint
-   Fondo crema #f0ede6, acento azul #4a6cf7
-   texto marino #1a1f4e
+   TEMA 3 — Blueprint (Modo Claro)
    ══════════════════════════════════════════ */
 [data-theme="blueprint"] {
     --primary-color: #4a6cf7;
     --bg-color: #e6e6e6;
-    --text-color: #e6e6e6;
+    --text-color: #1a1f4e;
     --text-dim: #7a82a8;
     --card-width: 200px;
     --surface-1: #e4e0d8;
@@ -53,12 +66,19 @@
     --surface-3: #ccc8c0;
     --search-bg: #eae7e0;
     --glow-rgb: 74, 108, 247;
+    --accent-color: #4a6cf7;
+    --on-primary: #ffffff;
+    --header-bg: #1a1f4e;
+    --card-bg: #f0ede6;
+    --section-title-color: #1a1f4e;
+    --wipe-accent: #4a6cf7;
+    --persona-bg-accent: #4a6cf7;
+    --persona-dark-bg: #1a1f4e;
+    --persona-text-on-accent: #ffffff;
 }
 
 /* ══════════════════════════════════════════
    TEMA 4 — Glitch
-   Fondo negro #0a0a0a, violeta #4d2dff
-   acento neón #c8ff00
    ══════════════════════════════════════════ */
 [data-theme="glitch"] {
     --primary-color: #4d2dff;
@@ -71,11 +91,19 @@
     --surface-3: #1e1e2e;
     --search-bg: #07070d;
     --glow-rgb: 77, 45, 255;
+    --accent-color: #c8ff00;
+    --on-primary: #000000;
+    --header-bg: #06060a;
+    --card-bg: #0a0a0a;
+    --section-title-color: #ffffff;
+    --wipe-accent: #c8ff00;
+    --persona-bg-accent: #c8ff00;
+    --persona-dark-bg: #0a0a0a;
+    --persona-text-on-accent: #000000;
 }
 
 /* ══════════════════════════════════════════
    TEMA 5 — Crimson
-   Fondo grafito #1a1a1e, acento rojo #d4163c
    ══════════════════════════════════════════ */
 [data-theme="crimson"] {
     --primary-color: #d4163c;
@@ -88,11 +116,19 @@
     --surface-3: #2e2e34;
     --search-bg: #0d0d0f;
     --glow-rgb: 212, 22, 60;
+    --accent-color: #ff2a5f;
+    --on-primary: #ffffff;
+    --header-bg: #0a0a0c;
+    --card-bg: #111113;
+    --section-title-color: #e8ddea;
+    --wipe-accent: #ff2a5f;
+    --persona-bg-accent: #ff2a5f;
+    --persona-dark-bg: #111113;
+    --persona-text-on-accent: #ffffff;
 }
 
 /* ══════════════════════════════════════════
    TEMA 6 — Aqua
-   Fondo azul marino #051824, menta #27e9b5
    ══════════════════════════════════════════ */
 [data-theme="aqua"] {
     --primary-color: #27e9b5;
@@ -105,11 +141,19 @@
     --surface-3: #1e3545;
     --search-bg: #030f18;
     --glow-rgb: 39, 233, 181;
+    --accent-color: #27e9b5;
+    --on-primary: #000000;
+    --header-bg: #030f18;
+    --card-bg: #051824;
+    --section-title-color: #ffffff;
+    --wipe-accent: #27e9b5;
+    --persona-bg-accent: #27e9b5;
+    --persona-dark-bg: #030f18;
+    --persona-text-on-accent: #000000;
 }
 
 /* ══════════════════════════════════════════
    TEMA 7 — Green
-   Fondo negro verdoso #101409, rosa #ed2161
    ══════════════════════════════════════════ */
 [data-theme="green"] {
     --primary-color: #21ed76;
@@ -122,6 +166,15 @@
     --surface-3: #193524;
     --search-bg: #0b0e06;
     --glow-rgb: 33, 237, 118;
+    --accent-color: #21ed76;
+    --on-primary: #000000;
+    --header-bg: #0a0d08;
+    --card-bg: #111419;
+    --section-title-color: #ffffff;
+    --wipe-accent: #21ed76;
+    --persona-bg-accent: #21ed76;
+    --persona-dark-bg: #0a0d08;
+    --persona-text-on-accent: #000000;
 }
 
 /* Blueprint theme overrides for light surfaces */
@@ -3519,29 +3572,23 @@ header {
 }
 
 /* ==========================================
-   FLAT YELLOW REDESIGN
+   FLAT REDESIGN (Adaptive to Themes)
    ========================================== */
-:root {
-    --bg-color: #FFC90E !important;
-    --text-color: #1F1F1F !important;
-    --primary-color: #1F1F1F !important;
-}
-
 body {
-    background-color: #FFC90E !important;
-    color: #1F1F1F !important;
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
 
-/* Override existing glows */
+/* Override existing glows when flat card styles are used */
 .dynamic-card-glow,
 .bg-ambient,
 .card-overlay-gradient {
     display: none !important;
 }
 
-/* Header adjustments for dark #1F1F1F bg (edge-to-edge) */
+/* Header adjustments for dark themed header bg (edge-to-edge) */
 header {
-    background-color: #1F1F1F !important;
+    background-color: var(--header-bg) !important;
     position: relative !important;
     z-index: 10 !important;
     margin: -40px -60px 40px -60px !important;
@@ -3556,11 +3603,11 @@ header {
 }
 
 .nav-link.active {
-    color: #FFC90E !important;
+    color: var(--accent-color) !important;
 }
 
 .nav-link.active::after {
-    background-color: #FFC90E !important;
+    background-color: var(--accent-color) !important;
     box-shadow: none !important;
 }
 
@@ -3576,7 +3623,7 @@ header {
 }
 
 .search-bar-expandable.focused {
-    border-color: #FFC90E !important;
+    border-color: var(--accent-color) !important;
 }
 
 .search-bar-expandable .search-label {
@@ -3588,13 +3635,15 @@ header {
 }
 
 .search-pill {
-    background-color: #1F1F1F !important;
-    color: white !important;
+    background-color: var(--surface-1) !important;
+    color: var(--text-color) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .search-pill:hover,
 .search-pill.focused {
-    background-color: #000 !important;
+    background-color: var(--surface-2) !important;
+    border-color: var(--accent-color);
 }
 
 .settings-btn {
@@ -3604,8 +3653,8 @@ header {
 
 .settings-btn:hover,
 .settings-btn.focused {
-    border-color: #FFC90E !important;
-    color: #FFC90E !important;
+    border-color: var(--accent-color) !important;
+    color: var(--accent-color) !important;
     background: rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -3614,26 +3663,27 @@ header {
     display: inline-block;
     width: 6px;
     height: 24px;
-    background-color: #1F1F1F;
+    background-color: var(--accent-color);
 }
 
 /* NEW EPISODES ROW */
 .new-ep-card {
     width: 300px;
     height: 180px;
-    background-color: #1F1F1F;
+    background-color: var(--surface-1);
     border-radius: 5px;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     flex-shrink: 0;
     box-sizing: border-box;
+    border: 2px solid transparent;
 }
 
 .new-ep-card.active,
 .new-ep-card.focused {
-    border: 4px solid #FFC90E;
+    border: 4px solid var(--accent-color);
     box-shadow:
-        0 0 0 4px #1F1F1F,
-        7px 7px 0px 2px #1F1F1F;
+        0 0 0 4px var(--bg-color),
+        7px 7px 0px 2px var(--bg-color);
     transform: none;
     z-index: 10;
 }
@@ -3655,18 +3705,20 @@ header {
 .last-watched-bar {
     width: 100%;
     height: 100px;
-    background-color: #1F1F1F;
+    background-color: var(--surface-1);
     border-radius: 0;
     display: flex;
     align-items: center;
-    color: white;
+    color: var(--text-color);
     padding: 0 60px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .last-watched-bar.empty {
     justify-content: center;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-dim);
     font-size: 1.1rem;
 }
 
@@ -3690,7 +3742,7 @@ header {
 .lw-parallax-item {
     width: 130px;
     height: 70px;
-    background-color: #333;
+    background-color: var(--surface-2);
     background-size: cover;
     background-position: center;
     transform: skewX(20deg);
@@ -3702,8 +3754,8 @@ header {
 }
 
 .lw-parallax-item.active {
-    border: 4px solid #FFC90E;
-    box-shadow: inset 0 0 0 2px #1F1F1F, 6px 6px 0px rgba(31, 31, 31, 1);
+    border: 4px solid var(--accent-color);
+    box-shadow: inset 0 0 0 2px var(--surface-1), 6px 6px 0px rgba(0, 0, 0, 0.4);
     z-index: 2;
     transform: skewX(20deg) scale(1.05);
 }
@@ -3711,7 +3763,7 @@ header {
 .lw-nav-btn {
     background: none;
     border: none;
-    color: #FFC90E;
+    color: var(--accent-color);
     font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
@@ -3719,14 +3771,14 @@ header {
 }
 
 .lw-nav-btn:disabled {
-    color: #555;
+    color: var(--text-dim);
     cursor: default;
 }
 
 .last-watched-divider {
     width: 2px;
     height: 60px;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.1);
     margin: 0 30px;
 }
 
@@ -3750,7 +3802,7 @@ header {
 .lw-title {
     font-size: 1.1rem;
     font-weight: bold;
-    color: white;
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3759,16 +3811,16 @@ header {
 
 .lw-meta {
     font-size: 0.85rem;
-    color: #AAA;
+    color: var(--text-dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .lw-resume-btn {
-    background-color: #FFC90E;
-    border: 2px solid #FFC90E;
-    color: #1F1F1F;
+    background-color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    color: var(--on-primary);
     padding: 10px 24px;
     border-radius: 5px;
     font-weight: bold;
@@ -3781,36 +3833,37 @@ header {
 .lw-resume-btn.focused,
 .lw-resume-btn:hover {
     background-color: transparent;
-    color: #FFC90E;
+    color: var(--accent-color);
 }
 
 /* FAVORITES POSTERS */
 .fav-poster-card {
     width: 200px;
     height: 300px;
-    background-color: #1F1F1F;
+    background-color: var(--surface-1);
     border-radius: 5px;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     flex-shrink: 0;
     box-sizing: border-box;
+    border: 2px solid transparent;
 }
 
 .fav-poster-card.active,
 .fav-poster-card.focused {
-    border: 4px solid #FFC90E;
+    border: 4px solid var(--accent-color);
     box-shadow:
-        0 0 0 4px #1F1F1F,
-        7px 7px 0px 2px #1F1F1F;
+        0 0 0 4px var(--bg-color),
+        7px 7px 0px 2px var(--bg-color);
     transform: none;
     z-index: 10;
 }
 
 /* ULTIMO AGREGADO FOCUS */
 .anime-card-v2.focused .anime-card-v2-img-container {
-    border: 4px solid #FFC90E !important;
+    border: 4px solid var(--accent-color) !important;
     box-shadow:
-        0 0 0 4px #1F1F1F,
-        7px 7px 0px 2px #1F1F1F !important;
+        0 0 0 4px var(--bg-color),
+        7px 7px 0px 2px var(--bg-color) !important;
     border-radius: 5px !important;
     transform: none !important;
     z-index: 10;
@@ -3872,7 +3925,7 @@ header {
 
 .persona-wipe-layer.layer-yellow {
     width: 150vw;
-    background: #ffcb05;
+    background: var(--wipe-accent);
     z-index: 2;
     animation-delay: 0.04s;
     box-shadow: -12px 0 24px rgba(0, 0, 0, 0.5);
@@ -3896,8 +3949,8 @@ header {
 
 .persona-wipe-layer.layer-main {
     width: 155vw;
-    background: #16161a;
-    border-left: 8px solid #ffcb05;
+    background: var(--persona-dark-bg);
+    border-left: 8px solid var(--wipe-accent);
     box-shadow: -20px 0 40px rgba(0, 0, 0, 0.75);
     z-index: 5;
     animation-delay: 0.15s;
@@ -3905,7 +3958,7 @@ header {
 
 .direction-left .persona-wipe-layer.layer-main {
     border-left: none;
-    border-right: 8px solid #ffcb05;
+    border-right: 8px solid var(--wipe-accent);
     box-shadow: 20px 0 40px rgba(0, 0, 0, 0.75);
 }
 
@@ -3949,10 +4002,10 @@ header {
     width: 100vw;
     height: 100vh;
     z-index: 900;
-    background-color: #1a1a1e;
+    background-color: var(--persona-dark-bg);
     display: flex;
     overflow: hidden;
-    color: #ffffff;
+    color: var(--text-color);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -3963,7 +4016,7 @@ header {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #ffcb05;
+    background-color: var(--persona-bg-accent);
     clip-path: polygon(0 0, 18% 0, 70% 100%, 0 100%);
     z-index: 1;
 }
@@ -3974,7 +4027,7 @@ header {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #1a1a1e;
+    background-color: var(--persona-dark-bg);
     z-index: 0;
 }
 
@@ -3997,9 +4050,9 @@ header {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #000000;
-    color: #ffcb05;
-    border: 3px solid #ffcb05;
+    background: var(--persona-dark-bg);
+    color: var(--persona-bg-accent);
+    border: 3px solid var(--persona-bg-accent);
     font-size: 1.4rem;
     font-weight: 900;
     cursor: pointer;
@@ -4013,9 +4066,9 @@ header {
 
 .persona-close-btn:hover {
     transform: scale(1.1) rotate(90deg);
-    background: #ffcb05;
-    color: #000;
-    border-color: #000;
+    background: var(--persona-bg-accent);
+    color: var(--persona-text-on-accent);
+    border-color: var(--persona-dark-bg);
 }
 
 /* ── LEFT PANEL (Yellow Area) ── */
@@ -4043,7 +4096,7 @@ header {
     width: clamp(260px, 20vw, 360px);
     height: clamp(360px, 28vw, 500px);
     background: #111;
-    border: 4px solid #000;
+    border: 4px solid var(--persona-dark-bg);
     box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.9);
     border-radius: 4px;
     overflow: hidden;
@@ -4082,12 +4135,12 @@ header {
 .persona-anime-title {
     font-size: 2rem;
     font-weight: 900;
-    color: #000000;
+    color: var(--persona-text-on-accent);
     text-transform: uppercase;
     line-height: 1.15;
     margin: 0;
     letter-spacing: -0.5px;
-    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.3);
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.15);
     word-break: break-word;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -4097,8 +4150,8 @@ header {
 
 .persona-status-tag {
     display: inline-block;
-    background: #000000;
-    color: #ffcb05;
+    background: var(--persona-dark-bg);
+    color: var(--persona-bg-accent);
     font-size: 0.75rem;
     font-weight: 900;
     padding: 3px 10px;
@@ -4119,43 +4172,43 @@ header {
 .persona-btn-square {
     width: 52px;
     height: 52px;
-    background: #ffcb05;
-    border: 3px solid #000000;
-    color: #000000;
+    background: var(--persona-bg-accent);
+    border: 3px solid var(--persona-dark-bg);
+    color: var(--persona-text-on-accent);
     font-size: 1.3rem;
     font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 4px 4px 0px #000000;
+    box-shadow: 4px 4px 0px var(--persona-dark-bg);
     transition: all 0.2s ease;
     border-radius: 2px;
 }
 
 .persona-btn-square:hover {
-    background: #000000;
-    color: #ffcb05;
+    background: var(--persona-dark-bg);
+    color: var(--persona-bg-accent);
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px #000000;
+    box-shadow: 6px 6px 0px var(--persona-dark-bg);
 }
 
 .persona-btn-square:active {
     transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0px #000000;
+    box-shadow: 2px 2px 0px var(--persona-dark-bg);
 }
 
 .persona-btn-square.active {
-    background: #000000;
-    color: #ffcb05;
-    border-color: #000000;
-    box-shadow: 4px 4px 0px rgba(255, 203, 5, 0.4);
+    background: var(--persona-dark-bg);
+    color: var(--persona-bg-accent);
+    border-color: var(--persona-dark-bg);
+    box-shadow: 4px 4px 0px rgba(var(--glow-rgb), 0.4);
 }
 
 .persona-btn-square.active-fav {
-    background: #000000;
+    background: var(--persona-dark-bg);
     color: #ff3b5c;
-    border-color: #000000;
+    border-color: var(--persona-dark-bg);
 }
 
 /* Description / Synopsis View (when toggled on) */
@@ -4164,8 +4217,8 @@ header {
     flex-direction: column;
     height: 100%;
     justify-content: space-between;
-    background: rgba(0, 0, 0, 0.92);
-    border: 4px solid #000;
+    background: rgba(0, 0, 0, 0.94);
+    border: 4px solid var(--persona-dark-bg);
     box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.8);
     padding: 30px;
     border-radius: 6px;
@@ -4181,7 +4234,7 @@ header {
 .persona-synopsis-title {
     font-size: 1.8rem;
     font-weight: 900;
-    color: #ffcb05;
+    color: var(--persona-bg-accent);
     text-transform: uppercase;
     margin: 0 0 12px 0;
     letter-spacing: 1px;
@@ -4194,9 +4247,9 @@ header {
 }
 
 .persona-genre-pill {
-    background: rgba(255, 203, 5, 0.15);
-    border: 1px solid #ffcb05;
-    color: #ffcb05;
+    background: rgba(var(--glow-rgb), 0.15);
+    border: 1px solid var(--persona-bg-accent);
+    color: var(--persona-bg-accent);
     font-size: 0.75rem;
     font-weight: 800;
     padding: 4px 12px;
@@ -4214,7 +4267,7 @@ header {
 .persona-anime-title-mini {
     font-size: 1.1rem;
     font-weight: 800;
-    color: #ffcb05;
+    color: var(--persona-bg-accent);
     text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
@@ -4250,9 +4303,9 @@ header {
 .persona-control-btn {
     width: 40px;
     height: 40px;
-    background: #25252a;
-    border: 2px solid #ffcb05;
-    color: #ffcb05;
+    background: var(--surface-2);
+    border: 2px solid var(--persona-bg-accent);
+    color: var(--persona-bg-accent);
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -4264,13 +4317,13 @@ header {
 
 .persona-control-btn:hover,
 .persona-control-btn.active {
-    background: #ffcb05;
-    color: #000;
+    background: var(--persona-bg-accent);
+    color: var(--persona-text-on-accent);
 }
 
 .persona-ep-search-input {
-    background: #25252a;
-    border: 2px solid #ffcb05;
+    background: var(--surface-2);
+    border: 2px solid var(--persona-bg-accent);
     border-radius: 4px;
     padding: 8px 16px;
     color: #fff;
@@ -4300,8 +4353,8 @@ header {
     margin-top: calc(-1 * clamp(55px, 6.5vh, 75px));
     width: min(580px, 85%);
     min-height: clamp(110px, 13vh, 150px);
-    background: #242428;
-    border: 3.5px solid #000000;
+    background: var(--surface-1);
+    border: 3.5px solid var(--persona-dark-bg);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -4321,9 +4374,9 @@ header {
 }
 
 .persona-ep-card.focused {
-    background: #2e2e34;
-    border-color: #000000;
-    box-shadow: 10px 10px 0px #ffcb05;
+    background: var(--surface-2);
+    border-color: var(--persona-dark-bg);
+    box-shadow: 10px 10px 0px var(--persona-bg-accent);
     opacity: 1 !important;
 }
 
@@ -4332,7 +4385,7 @@ header {
     width: clamp(140px, 13vw, 220px);
     aspect-ratio: 16 / 9;
     height: auto;
-    border: 2px solid #000000;
+    border: 2px solid var(--persona-dark-bg);
     border-radius: 4px;
     overflow: hidden;
     flex-shrink: 0;
@@ -4351,15 +4404,15 @@ header {
     right: 5px;
     width: 24px;
     height: 24px;
-    background: #ffcb05;
-    color: #000;
+    background: var(--persona-bg-accent);
+    color: var(--persona-text-on-accent);
     font-weight: 900;
     font-size: 0.85rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    border: 2px solid var(--persona-dark-bg);
 }
 
 .persona-ep-info {
@@ -4378,7 +4431,7 @@ header {
 
 .persona-ep-card:hover .persona-ep-title,
 .persona-ep-card.focused .persona-ep-title {
-    color: #ffcb05;
+    color: var(--persona-bg-accent);
 }
 
 .persona-ep-lines {
@@ -4400,5 +4453,5 @@ header {
 
 .persona-ep-card:hover .persona-ep-line,
 .persona-ep-card.focused .persona-ep-line {
-    background: rgba(255, 203, 5, 0.4);
+    background: rgba(var(--glow-rgb), 0.4);
 }
