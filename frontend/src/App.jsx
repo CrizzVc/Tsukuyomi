@@ -111,6 +111,7 @@ function App() {
 
     const touchStartX = useRef(null);
     const searchDebounceRef = useRef(null);
+    const lastWheelTime = useRef(0);
     const [isSearchActive, setIsSearchActive] = useState(false); // true: barra de búsqueda expandida en el header
     const [searchIndex, setSearchIndex] = useState(-1); // -1: input focused
     const [detailsActiveIndex, setDetailsActiveIndex] = useState(0);
@@ -246,6 +247,16 @@ function App() {
             setFavorites(filteredFavs);
         }
     }, [activeProfile, currentSource]);
+
+    useEffect(() => {
+        if (view === STATES.DETAILS && episodesRowRef.current) {
+            const focusedEl = episodesRowRef.current.querySelector('.persona-ep-card.focused');
+            if (focusedEl) {
+                focusedEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+    }, [detailsActiveIndex, view]);
+
 
 
 
@@ -853,17 +864,11 @@ function App() {
                         return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
                     });
 
-                if (e.key === 'ArrowRight') {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                     setDetailsActiveIndex(prev => Math.min(prev + 1, filteredEpisodes.length - 1));
                 }
-                if (e.key === 'ArrowLeft') {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
                     setDetailsActiveIndex(prev => Math.max(prev - 1, 0));
-                }
-                if (e.key === 'ArrowDown') {
-                    setDetailsActiveIndex(prev => Math.min(prev + 5, filteredEpisodes.length - 1));
-                }
-                if (e.key === 'ArrowUp') {
-                    setDetailsActiveIndex(prev => Math.max(prev - 5, 0));
                 }
                 if (e.key === 'Enter') {
                     if (filteredEpisodes[detailsActiveIndex]) {
@@ -2059,31 +2064,82 @@ function App() {
                             </button>
                         </div>
 
-                        {/* Diagonal Episode List */}
-                        <div className="persona-diagonal-episodes-container" ref={episodesRowRef}>
-                            {(details.episodes || [])
-                                .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
-                                .sort((a, b) => {
-                                    const numA = parseFloat(a.episode);
-                                    const numB = parseFloat(b.episode);
-                                    return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
-                                })
-                                .map((ep, idx) => {
-                                    const isFocused = detailsActiveIndex === idx;
+                        {/* Diagonal 5-Card Episode Carousel Wheel */}
+                        <div
+                            className="persona-diagonal-episodes-container"
+                            ref={episodesRowRef}
+                            onWheel={(e) => {
+                                const now = Date.now();
+                                if (now - lastWheelTime.current < 90) return;
+                                lastWheelTime.current = now;
+
+                                const filtered = (details.episodes || [])
+                                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                    .sort((a, b) => {
+                                        const numA = parseFloat(a.episode);
+                                        const numB = parseFloat(b.episode);
+                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                    });
+
+                                if (e.deltaY > 0) {
+                                    setDetailsActiveIndex(prev => Math.min(filtered.length - 1, prev + 1));
+                                } else if (e.deltaY < 0) {
+                                    setDetailsActiveIndex(prev => Math.max(0, prev - 1));
+                                }
+                            }}
+                        >
+                            {(() => {
+                                const filteredEpisodes = (details.episodes || [])
+                                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                    .sort((a, b) => {
+                                        const numA = parseFloat(a.episode);
+                                        const numB = parseFloat(b.episode);
+                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                    });
+
+                                if (filteredEpisodes.length === 0) {
+                                    return (
+                                        <div className="no-episodes-found" style={{ color: '#ffcb05', fontWeight: 'bold' }}>
+                                            No se encontraron episodios
+                                        </div>
+                                    );
+                                }
+
+                                const offsets = [-2, -1, 0, 1, 2];
+
+                                return offsets.map(offset => {
+                                    const actualIdx = detailsActiveIndex + offset;
+                                    if (actualIdx < 0 || actualIdx >= filteredEpisodes.length) return null;
+
+                                    const ep = filteredEpisodes[actualIdx];
+                                    const isFocused = offset === 0;
                                     const epThumb = ep.image || details.backdrop || details.cover;
                                     const animeUrl = selectedAnime?.url || details?.url || '';
                                     const watched = isEpisodeWatched(animeUrl, ep.episode);
-                                    const diagonalShift = (idx % 6) * 45;
+
+                                    // Stepped diagonal trajectory math
+                                    const translateX = 85 + offset * 45;
+                                    const translateY = offset * 105;
+                                    const scale = isFocused ? 1.04 : (Math.abs(offset) === 1 ? 0.94 : 0.84);
+                                    const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
+                                    const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
 
                                     return (
                                         <div
-                                            key={idx}
+                                            key={ep.url || ep.episode || actualIdx}
                                             className={`persona-ep-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-ep' : ''}`}
-                                            style={{ transform: `translateX(${diagonalShift}px)` }}
+                                            style={{
+                                                transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                                                opacity: opacity,
+                                                zIndex: zIndex
+                                            }}
                                             onClick={() => {
-                                                setDetailsActiveIndex(idx);
-                                                markEpisodeWatched(animeUrl, ep.episode, details);
-                                                openServers(ep.url);
+                                                if (isFocused) {
+                                                    markEpisodeWatched(animeUrl, ep.episode, details);
+                                                    openServers(ep.url);
+                                                } else {
+                                                    setDetailsActiveIndex(actualIdx);
+                                                }
                                             }}
                                         >
                                             <div className="persona-ep-thumb-box">
@@ -2101,7 +2157,10 @@ function App() {
                                                     <div
                                                         className="persona-ep-watched-check"
                                                         title="Marcar como no visto"
-                                                        onClick={(e) => toggleEpisodeWatched(e, animeUrl, ep.episode)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleEpisodeWatched(e, animeUrl, ep.episode);
+                                                        }}
                                                     >
                                                         ✓
                                                     </div>
@@ -2116,15 +2175,8 @@ function App() {
                                             </div>
                                         </div>
                                     );
-                                })
-                            }
-                            {((details.episodes || [])
-                                .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))).length === 0 && (
-                                    <div className="no-episodes-found" style={{ color: '#ffcb05', fontWeight: 'bold' }}>
-                                        No se encontraron episodios
-                                    </div>
-                                )
-                            }
+                                });
+                            })()}
                         </div>
                     </div>
                 </div>
