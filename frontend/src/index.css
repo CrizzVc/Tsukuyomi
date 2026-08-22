@@ -3991,6 +3991,7 @@ header {
     0% {
         transform: translate3d(-200vw, 0, 0) skewX(-14deg);
     }
+
     100% {
         transform: translate3d(200vw, 0, 0) skewX(-14deg);
     }
@@ -4000,6 +4001,7 @@ header {
     0% {
         transform: translate3d(200vw, 0, 0) skewX(14deg);
     }
+
     100% {
         transform: translate3d(-200vw, 0, 0) skewX(14deg);
     }
@@ -4010,6 +4012,7 @@ header {
         opacity: 0;
         transform: translateX(-20px) scale(0.99);
     }
+
     100% {
         opacity: 1;
         transform: translateX(0) scale(1);
@@ -4042,8 +4045,17 @@ header {
     width: 100%;
     height: 100%;
     background-color: var(--persona-bg-accent);
-    clip-path: polygon(0 0, 18% 0, 70% 100%, 0 100%);
+    /* 5 puntos (equivalentes a la diagonal recta original) para que el
+       clip-path pueda interpolar suavemente hacia la forma quebrada de abajo */
+    clip-path: polygon(0 0, 18% 0, 44% 50%, 70% 100%, 0 100%);
     z-index: 1;
+    transition: clip-path 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Description mode: the black diagonal cut retreats into a bent shape,
+   exposing more yellow space for the synopsis text */
+.persona-details-view.desc-mode .persona-bg-yellow {
+    clip-path: polygon(0 0, 86% 0, 39% 62%, 10% 100%, 0 100%);
 }
 
 .persona-bg-dark {
@@ -4065,6 +4077,26 @@ header {
     height: 100%;
     z-index: 2;
     pointer-events: none;
+}
+
+.persona-svg-diagonal-group {
+    transition: opacity 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.persona-svg-normal {
+    opacity: 1;
+}
+
+.persona-svg-desc {
+    opacity: 0;
+}
+
+.persona-details-view.desc-mode .persona-svg-normal {
+    opacity: 0;
+}
+
+.persona-details-view.desc-mode .persona-svg-desc {
+    opacity: 1;
 }
 
 /* Close button */
@@ -4108,6 +4140,11 @@ header {
     padding: 40px 25px 45px 45px;
     box-sizing: border-box;
     animation: personaContentReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    transition: width 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.persona-details-view.desc-mode .persona-left-section {
+    width: 60%;
 }
 
 /* Cover poster card at top */
@@ -4197,9 +4234,9 @@ header {
 .persona-btn-square {
     width: 52px;
     height: 52px;
-    background: var(--persona-bg-accent);
-    border: 3px solid var(--persona-dark-bg);
-    color: var(--persona-text-on-accent);
+    background: var(--persona-dark-bg);
+    border: 3px solid var(--persona-bg-accent);
+    color: var(--persona-bg-accent);
     font-size: 1.3rem;
     font-weight: 900;
     display: flex;
@@ -4212,8 +4249,9 @@ header {
 }
 
 .persona-btn-square:hover {
-    background: var(--persona-dark-bg);
-    color: var(--persona-bg-accent);
+    background: var(--persona-bg-accent);
+    color: var(--persona-text-on-accent);
+    border-color: var(--persona-dark-bg);
     transform: translate(-2px, -2px);
     box-shadow: 6px 6px 0px var(--persona-dark-bg);
 }
@@ -4224,8 +4262,8 @@ header {
 }
 
 .persona-btn-square.active {
-    background: var(--persona-dark-bg);
-    color: var(--persona-bg-accent);
+    background: var(--persona-bg-accent);
+    color: var(--persona-text-on-accent);
     border-color: var(--persona-dark-bg);
     box-shadow: 4px 4px 0px rgba(var(--glow-rgb), 0.4);
 }
@@ -4233,7 +4271,7 @@ header {
 .persona-btn-square.active-fav {
     background: var(--persona-dark-bg);
     color: #ff3b5c;
-    border-color: var(--persona-dark-bg);
+    border-color: var(--persona-bg-accent);
 }
 
 /* Description / Synopsis View (when toggled on) */
@@ -4301,6 +4339,84 @@ header {
     display: block;
 }
 
+/* Description Mode: cover + plain text laid directly on the yellow area (no black box) */
+.persona-desc-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+    animation: personaContentReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.persona-desc-top-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    flex: 1;
+    min-height: 0;
+    padding-top: 10px;
+}
+
+.persona-desc-cover-container {
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+.persona-desc-cover-card {
+    width: clamp(200px, 15vw, 280px);
+    height: clamp(280px, 21vw, 390px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-image 0.3s ease;
+}
+
+.persona-desc-text-block {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 10px;
+    padding-top: 6px;
+}
+
+.persona-desc-anime-title {
+    font-size: clamp(1.3rem, 1.8vw, 1.7rem);
+    font-weight: 900;
+    color: var(--persona-text-on-accent);
+    text-transform: uppercase;
+    line-height: 1.2;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.persona-desc-synopsis {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--persona-text-on-accent);
+    opacity: 0.85;
+    margin: 0;
+    max-width: 640px;
+}
+
+.persona-desc-synopsis.loading {
+    opacity: 0.5;
+    font-style: italic;
+}
+
+.persona-desc-episodes-count {
+    display: inline-block;
+    background: var(--persona-dark-bg);
+    color: var(--persona-bg-accent);
+    font-size: 0.8rem;
+    font-weight: 900;
+    padding: 5px 14px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: fit-content;
+}
+
 /* ── RIGHT PANEL (Dark Area - Diagonal Chapter Row) ── */
 .persona-right-section {
     position: relative;
@@ -4312,6 +4428,11 @@ header {
     padding: 40px 40px 40px 20px;
     box-sizing: border-box;
     animation: personaContentReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+    transition: width 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.persona-details-view.desc-mode .persona-right-section {
+    width: 40%;
 }
 
 /* Controls at top right (positioned directly to the left of Close X button) */
@@ -4359,6 +4480,19 @@ header {
 
 /* Container stage for 5-card diagonal carousel */
 .persona-diagonal-episodes-container {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+/* Container stage for the related-anime diagonal carousel (description mode) */
+.persona-diagonal-related-container {
     flex: 1;
     position: relative;
     width: 100%;
