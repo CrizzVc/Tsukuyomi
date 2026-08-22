@@ -2117,10 +2117,10 @@ function App() {
                                     const animeUrl = selectedAnime?.url || details?.url || '';
                                     const watched = isEpisodeWatched(animeUrl, ep.episode);
 
-                                    // Stepped diagonal trajectory math
-                                    const translateX = 85 + offset * 45;
-                                    const translateY = offset * 105;
-                                    const scale = isFocused ? 1.04 : (Math.abs(offset) === 1 ? 0.94 : 0.84);
+                                    // Stepped diagonal trajectory math for larger cards
+                                    const translateX = 60 + offset * 55;
+                                    const translateY = offset * 135;
+                                    const scale = isFocused ? 1.08 : (Math.abs(offset) === 1 ? 0.94 : 0.82);
                                     const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
                                     const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
 
