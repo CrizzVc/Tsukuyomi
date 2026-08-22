@@ -81,6 +81,21 @@ function App() {
     const [clock, setClock] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
     const [previousView, setPreviousView] = useState(STATES.HOME);
     const [detailsPreviousView, setDetailsPreviousView] = useState(STATES.HOME);
+    const [isGameWipeActive, setIsGameWipeActive] = useState(false);
+    const [wipeKey, setWipeKey] = useState(0);
+
+    const triggerGameTransition = (onCovered) => {
+        setWipeKey(prev => prev + 1);
+        setIsGameWipeActive(true);
+        setTimeout(async () => {
+            if (onCovered) {
+                await onCovered();
+            }
+        }, 380);
+        setTimeout(() => {
+            setIsGameWipeActive(false);
+        }, 900);
+    };
 
     // News API states
     const [newsApiKey, setNewsApiKey] = useState(() => localStorage.getItem('news_api_key') || '');
@@ -329,37 +344,50 @@ function App() {
 
     const openDetails = async (anime, changeView = true) => {
         setStatus('Cargando detalles...');
+        const animeSource = anime.source || currentSource;
+        setCurrentSource(animeSource);
+        const fetchPromise = api.fetchDetails(anime.animeUrl || anime.url, animeSource);
+
         if (changeView && view !== STATES.DETAILS) {
             setDetailsPreviousView(view);
-        }
-        try {
-            const animeSource = anime.source || currentSource;
-            setCurrentSource(animeSource);
-            const data = await api.fetchDetails(anime.animeUrl || anime.url, animeSource);
+            triggerGameTransition(async () => {
+                try {
+                    const data = await fetchPromise;
+                    setDetails(data);
+                    setView(STATES.DETAILS);
+                    setShowDescription(false);
+                    setDetailsActiveIndex(0);
+                    setEpisodeSearchQuery('');
+                    setIsEpisodeSearchVisible(false);
+                    setEpisodeSortOrder('desc');
+                    setStatus('');
 
-            setDetails(data);
-            if (changeView) {
-                setView(STATES.DETAILS);
-            }
-            setShowDescription(false);
-            setDetailsActiveIndex(0);
-            setEpisodeSearchQuery('');
-            setIsEpisodeSearchVisible(false);
-            setEpisodeSortOrder('desc');
-            setStatus('');
-
-            // Try fetching Fanart Logo asynchronously
-            if (data && data.title) {
-                api.fetchFanartLogo(data.title).then(logoUrl => {
-                    if (logoUrl) {
-                        setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                    if (data && data.title) {
+                        api.fetchFanartLogo(data.title).then(logoUrl => {
+                            if (logoUrl) {
+                                setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                            }
+                        }).catch(logoErr => {
+                            console.error("Logo fetch error:", logoErr);
+                        });
                     }
-                }).catch(logoErr => {
-                    console.error("Logo fetch error:", logoErr);
-                });
+                } catch (e) {
+                    setStatus('Error al cargar detalles.');
+                }
+            });
+        } else {
+            try {
+                const data = await fetchPromise;
+                setDetails(data);
+                setShowDescription(false);
+                setDetailsActiveIndex(0);
+                setEpisodeSearchQuery('');
+                setIsEpisodeSearchVisible(false);
+                setEpisodeSortOrder('desc');
+                setStatus('');
+            } catch (e) {
+                setStatus('Error al cargar detalles.');
             }
-        } catch (e) {
-            setStatus('Error al cargar detalles.');
         }
     };
 
@@ -649,7 +677,11 @@ function App() {
     const goBack = () => {
         if (view === STATES.PLAYER) setView(STATES.SERVER_MODAL);
         else if (view === STATES.SERVER_MODAL) setView(details ? STATES.DETAILS : STATES.HOME);
-        else if (view === STATES.DETAILS) setView(detailsPreviousView);
+        else if (view === STATES.DETAILS) {
+            triggerGameTransition(() => {
+                setView(detailsPreviousView);
+            });
+        }
         else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
         else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
@@ -2526,6 +2558,19 @@ function App() {
                             // Logic for next episode could go here
                         }}
                     />
+                </div>
+            )}
+
+            {/* Global Game-style screen transition wipe overlay */}
+            {isGameWipeActive && (
+                <div className="persona-game-wipe" key={wipeKey}>
+                    <div className="persona-wipe-curtain">
+                        <div className="persona-wipe-layer layer-dark"></div>
+                        <div className="persona-wipe-layer layer-yellow"></div>
+                        <div className="persona-wipe-layer layer-red"></div>
+                        <div className="persona-wipe-layer layer-cyan"></div>
+                        <div className="persona-wipe-layer layer-main"></div>
+                    </div>
                 </div>
             )}
         </div>

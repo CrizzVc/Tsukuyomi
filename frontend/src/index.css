@@ -3817,6 +3817,100 @@ header {
 }
 
 /* ══════════════════════════════════════════
+   GAME SCREEN WIPE TRANSITION (LEFT TO RIGHT)
+   ══════════════════════════════════════════ */
+
+.persona-game-wipe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999999;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.persona-wipe-curtain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.persona-wipe-layer {
+    position: absolute;
+    top: -15vh;
+    left: 0;
+    height: 130vh;
+    transform: translate3d(-200vw, 0, 0) skewX(-14deg);
+    transform-origin: center center;
+    will-change: transform;
+    animation: personaMultiLayerWipe 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.persona-wipe-layer.layer-dark {
+    width: 170vw;
+    background: #09090c;
+    z-index: 1;
+    animation-delay: 0s;
+}
+
+.persona-wipe-layer.layer-yellow {
+    width: 150vw;
+    background: #ffcb05;
+    z-index: 2;
+    animation-delay: 0.04s;
+    box-shadow: -12px 0 24px rgba(0, 0, 0, 0.5);
+}
+
+.persona-wipe-layer.layer-red {
+    width: 138vw;
+    background: #ff2a5f;
+    z-index: 3;
+    animation-delay: 0.08s;
+    box-shadow: -12px 0 24px rgba(0, 0, 0, 0.5);
+}
+
+.persona-wipe-layer.layer-cyan {
+    width: 126vw;
+    background: #00f0ff;
+    z-index: 4;
+    animation-delay: 0.12s;
+    box-shadow: -12px 0 24px rgba(0, 0, 0, 0.5);
+}
+
+.persona-wipe-layer.layer-main {
+    width: 155vw;
+    background: #16161a;
+    border-left: 8px solid #ffcb05;
+    box-shadow: -20px 0 40px rgba(0, 0, 0, 0.75);
+    z-index: 5;
+    animation-delay: 0.15s;
+}
+
+@keyframes personaMultiLayerWipe {
+    0% {
+        transform: translate3d(-200vw, 0, 0) skewX(-14deg);
+    }
+    100% {
+        transform: translate3d(200vw, 0, 0) skewX(-14deg);
+    }
+}
+
+@keyframes personaContentReveal {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px) scale(0.99);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* ══════════════════════════════════════════
    PERSONA / ANIME STYLISH DETAILS VIEW
    ══════════════════════════════════════════ */
 
@@ -3832,7 +3926,6 @@ header {
     overflow: hidden;
     color: #ffffff;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    animation: fadeIn 0.3s ease;
 }
 
 /* Background Diagonal Split */
@@ -3908,6 +4001,7 @@ header {
     justify-content: space-between;
     padding: 40px 25px 45px 45px;
     box-sizing: border-box;
+    animation: personaContentReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
 }
 
 /* Cover poster card at top */
@@ -4111,6 +4205,7 @@ header {
     flex-direction: column;
     padding: 40px 40px 40px 20px;
     box-sizing: border-box;
+    animation: personaContentReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
 }
 
 /* Controls at top right (positioned directly to the left of Close X button) */
