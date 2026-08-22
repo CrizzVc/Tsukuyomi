@@ -705,9 +705,9 @@ function App() {
                     let maxCol = 0;
                     if (rowIndex === -1) maxCol = 3;
                     else if (rowIndex === 0) maxCol = latest.length; // including "Ver Catálogo" card
-                    else if (rowIndex === 1) maxCol = Math.max(0, favorites.length - 1);
-                    else if (rowIndex === 2) maxCol = Math.max(0, Math.min(23, gridAnimes.length - 1));
-                    else if (rowIndex === 3) maxCol = Math.max(0, newsArticles.length - 1);
+                    else if (rowIndex === 1) maxCol = 3; // up to 4 items in history
+                    else if (rowIndex === 2) maxCol = Math.max(0, favorites.length - 1);
+                    else if (rowIndex === 3) maxCol = Math.max(0, Math.min(23, gridAnimes.length - 1));
                     setColIndex(prev => Math.min(prev + 1, maxCol));
                 }
                 if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
@@ -716,39 +716,35 @@ function App() {
                         setRowIndex(0);
                     } else if (rowIndex === 0) {
                         setRowIndex(1);
+                        setColIndex(0);
                     } else if (rowIndex === 1) {
                         setRowIndex(2);
                         setColIndex(0);
                     } else if (rowIndex === 2) {
+                        setRowIndex(3);
+                        setColIndex(0);
+                    } else if (rowIndex === 3) {
                         const listLength = Math.min(24, gridAnimes.length);
                         const cols = 5; // grid has 5 columns
                         if (colIndex + cols < listLength) {
                             setColIndex(prev => prev + cols);
-                        } else {
-                            setRowIndex(3);
-                            // Mantener una columna similar visualmente en noticias
-                            setColIndex(Math.min(colIndex % cols, Math.max(0, newsArticles.length - 1)));
                         }
                     }
                 }
                 if (e.key === 'ArrowUp') {
                     if (rowIndex === 3) {
-                        setRowIndex(2);
-                        const listLength = Math.min(24, gridAnimes.length);
-                        const cols = 5;
-                        // Apuntar a la última fila del grid manteniendo la columna
-                        const lastRowStartIndex = Math.floor((listLength - 1) / cols) * cols;
-                        const targetIndex = lastRowStartIndex + Math.min(colIndex, cols - 1);
-                        setColIndex(targetIndex < listLength ? targetIndex : listLength - 1);
-                    } else if (rowIndex === 2) {
                         if (colIndex >= 5) {
                             setColIndex(prev => prev - 5);
                         } else {
-                            setRowIndex(1);
-                            setColIndex(Math.min(colIndex, Math.max(0, favorites.length - 1)));
+                            setRowIndex(2);
+                            setColIndex(0);
                         }
+                    } else if (rowIndex === 2) {
+                        setRowIndex(1);
+                        setColIndex(0);
                     } else if (rowIndex === 1) {
                         setRowIndex(0);
+                        setColIndex(0);
                     } else if (rowIndex === 0) {
                         setRowIndex(-1);
                     }
@@ -761,23 +757,25 @@ function App() {
                         else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
                     }
                     else if (rowIndex === 3) {
-                        const article = newsArticles[colIndex];
-                        if (article) {
-                            const { shell } = window.require('electron');
-                            shell.openExternal(article.url);
-                        }
-                    }
-                    else if (rowIndex === 2) {
                         if (gridAnimes[colIndex]) {
                             handleAnimeClick(gridAnimes[colIndex]);
                         }
                     }
-                    else {
-                        const list = rowIndex === 0 ? latest : favorites;
-                        if (rowIndex === 0 && colIndex === latest.length) {
+                    else if (rowIndex === 2) {
+                        if (favorites[colIndex]) {
+                            handleAnimeClick(favorites[colIndex]);
+                        }
+                    }
+                    else if (rowIndex === 1) {
+                        // The user has a "Reanudar" button for history. If they press enter, trigger the button.
+                        const btn = document.querySelector('.lw-resume-btn.focused');
+                        if (btn) btn.click();
+                    }
+                    else if (rowIndex === 0) {
+                        if (colIndex === latest.length) {
                             loadCatalog(1);
-                        } else if (list[colIndex]) {
-                            handleAnimeClick(list[colIndex]);
+                        } else if (latest[colIndex]) {
+                            handleAnimeClick(latest[colIndex]);
                         }
                     }
                 }
