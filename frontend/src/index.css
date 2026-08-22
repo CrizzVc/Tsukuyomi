@@ -4019,6 +4019,20 @@ header {
     }
 }
 
+/* Name + synopsis sliding in from the left, as if emerging from the cover.
+   Delayed so it kicks in right as the black diagonal (clip-path) animation is finishing (~0.55s). */
+@keyframes personaTextBlockEnter {
+    0% {
+        opacity: 0;
+        transform: translateX(-70px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* ══════════════════════════════════════════
    PERSONA / ANIME STYLISH DETAILS VIEW
    ══════════════════════════════════════════ */
@@ -4080,23 +4094,29 @@ header {
 }
 
 .persona-svg-diagonal-group {
-    transition: opacity 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+    transition: opacity 0.35s cubic-bezier(0.65, 0, 0.35, 1),
+        transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+    transform-origin: 500px 500px;
 }
 
 .persona-svg-normal {
     opacity: 1;
+    transform: rotate(0deg);
 }
 
 .persona-svg-desc {
     opacity: 0;
+    transform: rotate(-10deg);
 }
 
 .persona-details-view.desc-mode .persona-svg-normal {
     opacity: 0;
+    transform: rotate(10deg);
 }
 
 .persona-details-view.desc-mode .persona-svg-desc {
     opacity: 1;
+    transform: rotate(0deg);
 }
 
 /* Close button */
@@ -4310,7 +4330,7 @@ header {
 }
 
 .persona-genre-pill {
-    background: rgba(var(--glow-rgb), 0.15);
+    background: var(--persona-dark-bg);
     border: 1px solid var(--persona-bg-accent);
     color: var(--persona-bg-accent);
     font-size: 0.75rem;
@@ -4378,14 +4398,15 @@ header {
     overflow-y: auto;
     padding-right: 10px;
     padding-top: 6px;
+    animation: personaTextBlockEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
 }
 
 .persona-desc-anime-title {
-    font-size: clamp(1.3rem, 1.8vw, 1.7rem);
+    font-size: clamp(2rem, 3vw, 2.8rem);
     font-weight: 900;
     color: var(--persona-text-on-accent);
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.15;
     margin: 0;
     letter-spacing: -0.3px;
 }
@@ -4532,6 +4553,11 @@ header {
     opacity: 1 !important;
 }
 
+/* Description mode: related-anime cards get a wider, clamped size (600px–700px) */
+.persona-details-view.desc-mode .persona-diagonal-related-container .persona-ep-card {
+    width: clamp(600px, 65vw, 700px);
+}
+
 .persona-ep-card.focused {
     background: var(--surface-2);
     border-color: var(--persona-dark-bg);
@@ -4591,6 +4617,16 @@ header {
 .persona-ep-card:hover .persona-ep-title,
 .persona-ep-card.focused .persona-ep-title {
     color: var(--persona-bg-accent);
+}
+
+/* Related-anime cards (description mode): clamp title to 2 lines, ellipsis for the rest */
+.persona-diagonal-related-container .persona-ep-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
 }
 
 .persona-ep-lines {

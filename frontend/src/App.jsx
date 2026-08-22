@@ -407,38 +407,38 @@ function App() {
         setRelatedActiveIndex(idx);
         setSelectedRelatedIndex(idx);
 
-        // Si ya volvemos a seleccionar el mismo, no re-fetch
-        if (relatedDetailsData && relatedDetailsData.url === item.url && selectedRelatedIndex === idx) return;
+        // Si ya estamos viendo el mismo anime, no hace falta re-navegar
+        if (details && details.url === item.url) return;
 
-        setRelatedDetailsLoading(true);
-        setRelatedDetailsData({
-            url: item.url,
-            title: item.title,
-            cover: item.image,
-            synopsis: 'Cargando...',
-            episodesCount: null
+        triggerGameTransition(async () => {
+            try {
+                setStatus('Cargando detalles...');
+                const data = await api.fetchDetails(item.url, currentSource);
+                setSelectedAnime(item);
+                setDetails(data);
+                setShowDescription(false);
+                setDetailsActiveIndex(0);
+                setRelatedActiveIndex(0);
+                setSelectedRelatedIndex(-1);
+                setRelatedDetailsData(null);
+                setEpisodeSearchQuery('');
+                setIsEpisodeSearchVisible(false);
+                setEpisodeSortOrder('desc');
+                setStatus('');
+
+                if (data && data.title) {
+                    api.fetchFanartLogo(data.title).then(logoUrl => {
+                        if (logoUrl) {
+                            setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                        }
+                    }).catch(logoErr => {
+                        console.error("Logo fetch error:", logoErr);
+                    });
+                }
+            } catch (e) {
+                setStatus('Error al cargar detalles.');
+            }
         });
-
-        try {
-            const data = await api.fetchDetails(item.url, currentSource);
-            setRelatedDetailsData({
-                url: item.url,
-                title: data?.title || item.title,
-                cover: data?.cover || item.image,
-                synopsis: data?.synopsis || 'Sin descripción disponible.',
-                episodesCount: data?.episodes ? data.episodes.length : null
-            });
-        } catch (e) {
-            setRelatedDetailsData({
-                url: item.url,
-                title: item.title,
-                cover: item.image,
-                synopsis: 'No se pudo cargar la descripción.',
-                episodesCount: null
-            });
-        } finally {
-            setRelatedDetailsLoading(false);
-        }
     };
 
     const handleBackToSelf = () => {
@@ -942,6 +942,20 @@ function App() {
                     }
                     if (e.key === 'Enter' && favorites[searchIndex]) handleAnimeClick(favorites[searchIndex]);
                 }
+            } else if (view === STATES.DETAILS && details && showDescription) {
+                const relatedList = details.related || [];
+
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    setRelatedActiveIndex(prev => Math.min(relatedList.length - 1, prev + 1));
+                }
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    setRelatedActiveIndex(prev => Math.max(0, prev - 1));
+                }
+                if (e.key === 'Enter') {
+                    if (relatedList[relatedActiveIndex]) {
+                        handleSelectRelated(relatedList[relatedActiveIndex], relatedActiveIndex);
+                    }
+                }
             } else if (view === STATES.DETAILS && details) {
                 const filteredEpisodes = (details.episodes || [])
                     .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
@@ -966,7 +980,7 @@ function App() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
@@ -2100,19 +2114,9 @@ function App() {
                                 : (details.episodes ? details.episodes.length : null);
 
                             return (
-                                /* Description View: portada dinámica + texto sobre el amarillo (sin caja negra) */
+                                /* Description View: texto sobre el amarillo (sin portada, sin caja negra) */
                                 <div className="persona-desc-view">
                                     <div className="persona-desc-top-row">
-                                        <div className="persona-cover-container persona-desc-cover-container">
-                                            <div className="persona-cover-card persona-desc-cover-card">
-                                                <img
-                                                    src={displayedCover}
-                                                    alt={displayedTitle}
-                                                    className="persona-cover-img"
-                                                />
-                                            </div>
-                                        </div>
-
                                         <div className="persona-desc-text-block">
                                             <h2 className="persona-desc-anime-title">{displayedTitle}</h2>
 
@@ -2135,9 +2139,7 @@ function App() {
                                     </div>
 
                                     <div className="persona-bottom-info">
-                                        <div className="persona-title-container">
-                                            <span className="persona-anime-title-mini">{details.title}</span>
-                                        </div>
+                                        <div className="persona-title-container"></div>
                                         <div className="persona-action-buttons">
                                             {/* Button 1: Toggle back to Cover & Title */}
                                             <button
@@ -2328,8 +2330,10 @@ function App() {
                                         const isSelected = selectedRelatedIndex === actualIdx;
                                         const itemThumb = item.image || details.backdrop || details.cover;
 
+                                        // Inverted horizontal direction vs the normal episodes carousel:
+                                        // items above (negative offset) shift right, items below (positive offset) shift left.
                                         const translateY = `calc(${offset} * clamp(125px, 16vh, 190px))`;
-                                        const translateX = `calc(clamp(140px, 11vw, 210px) + ${offset} * clamp(100px, 8.5vw, 155px))`;
+                                        const translateX = `calc(clamp(40px, 5vw, 90px) - 200px + ${-offset} * clamp(80px, 7vw, 130px))`;
                                         const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
                                         const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
                                         const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
