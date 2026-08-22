@@ -60,6 +60,7 @@ function App() {
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
     const [view, setView] = useState(STATES.PROFILES);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
+    const [showDescription, setShowDescription] = useState(false);
     const [currentSource, setCurrentSource] = useState('animeav1');
     const [latest, setLatest] = useState([]);
     const [gridAnimes, setGridAnimes] = useState([]); // First 24 from catalog for the home grid
@@ -329,6 +330,7 @@ function App() {
             if (changeView) {
                 setView(STATES.DETAILS);
             }
+            setShowDescription(false);
             setDetailsActiveIndex(0);
             setEpisodeSearchQuery('');
             setIsEpisodeSearchVisible(false);
@@ -1900,131 +1902,165 @@ function App() {
             )}
 
             {view === STATES.DETAILS && details && (
-                <div className="view-overlay details-view">
-                    <button className="details-close-btn" onClick={goBack} title="Cerrar">✕</button>
-                    <div className="details-bg" style={{ backgroundImage: `url(${details.backdrop || details.cover})` }}></div>
+                <div className="persona-details-view">
+                    {/* Diagonal split background */}
+                    <div className="persona-bg-dark"></div>
+                    <div className="persona-bg-yellow"></div>
 
-                    {/* ── Zona superior: portada + info ── */}
-                    <div className="details-top-section">
-                        <div className="details-left">
-                            <img src={details.cover} className="details-cover" alt="Cover" />
-                            <div className="flex items-center gap-3 mt-4">
-                                <button
-                                    className={`modal-btn ${isAnimeFavorite(selectedAnime || details) ? 'active' : ''}`}
-                                    onClick={(e) => {
-                                        e.currentTarget.blur();
-                                        toggleFavorite(selectedAnime || details);
-                                    }}
-                                    style={{ marginTop: 0, width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', borderRadius: '50%' }}
-                                >
-                                    {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
-                                </button>
-                                {details.status && (
-                                    <div className={`status-badge ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`} style={{ marginTop: 0 }}>
-                                        <span className="ic-monitor ic-before"></span>
-                                        {details.status}
+                    {/* SVG overlay for accent lines & triangles matching mockup */}
+                    <svg className="persona-svg-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        {/* Diagonal split line */}
+                        <line x1="360" y1="0" x2="780" y2="1000" stroke="#ffcb05" strokeWidth="8" />
+                        <line x1="355" y1="0" x2="775" y2="1000" stroke="#000000" strokeWidth="4" />
+
+                        {/* Top center yellow triangle */}
+                        <polygon points="345,0 375,0 360,35" fill="#ffcb05" stroke="#000" strokeWidth="3" />
+
+                        {/* Bottom right yellow triangle */}
+                        <polygon points="950,1000 1000,1000 1000,930" fill="#ffcb05" stroke="#000" strokeWidth="3" />
+
+                        {/* Top right diagonal stripe */}
+                        <line x1="820" y1="0" x2="1000" y2="250" stroke="#ffcb05" strokeWidth="6" />
+                    </svg>
+
+                    {/* Close Button */}
+                    <button className="persona-close-btn" onClick={goBack} title="Cerrar">✕</button>
+
+                    {/* ── LEFT SECTION (YELLOW AREA) ── */}
+                    <div className="persona-left-section">
+                        {!showDescription ? (
+                            <>
+                                {/* Top Cover Card */}
+                                <div className="persona-cover-container">
+                                    <div className="persona-cover-card">
+                                        <img src={details.cover} alt={details.title} className="persona-cover-img" />
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
 
-                        <div className="details-right">
-                            {details.logo ? (
-                                <div className="details-logo-container mb-3">
-                                    <img src={details.logo} alt={details.title} className="details-title-logo" style={{ maxHeight: '120px', maxWidth: '320px', objectFit: 'contain' }} />
+                                {/* Bottom Left: Title + Action Buttons */}
+                                <div className="persona-bottom-info">
+                                    <div className="persona-title-container">
+                                        <h1 className="persona-anime-title">{details.title}</h1>
+                                        {details.status && (
+                                            <span className={`persona-status-tag ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`}>
+                                                {details.status}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="persona-action-buttons">
+                                        {/* Button 1: Toggle Description */}
+                                        <button
+                                            className="persona-btn-square"
+                                            onClick={() => setShowDescription(true)}
+                                            title="Ver descripción"
+                                        >
+                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Button 2: Save to Favorites */}
+                                        <button
+                                            className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
+                                            onClick={() => toggleFavorite(selectedAnime || details)}
+                                            title="Guardar a favoritos"
+                                        >
+                                            {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
+                                        </button>
+                                    </div>
                                 </div>
-                            ) : (
-                                <h1 className="details-title">{details.title}</h1>
-                            )}
-                            <div className="synopsis-box">
-                                <div className="synopsis-header">
-                                    <h2>Sinopsis</h2>
-                                    {details.genres && details.genres.length > 0 && (
-                                        <div className="genres-list">
-                                            {details.genres.map((g, idx) => (
-                                                <span key={idx} className="genre-pill">{g}</span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <p className={`synopsis-text ${expandedSynopsis ? 'expanded' : ''}`}>
-                                    {details.synopsis}
-                                </p>
-                                {details.synopsis && details.synopsis.length > 200 && (
-                                    <button
-                                        className="text-white mt-2 font-bold hover:underline"
-                                        onClick={() => setExpandedSynopsis(!expandedSynopsis)}
-                                    >
-                                        {expandedSynopsis ? 'Leer menos' : 'Leer más...'}
-                                    </button>
-                                )}
-                            </div>
-                            {details.related && details.related.length > 0 && (
-                                <div className="related-section">
-                                    <h3>Relacionados</h3>
-                                    <div className="related-row">
-                                        {details.related.map((rel, idx) => (
-                                            <div key={idx} className="related-card" onClick={() => openDetails(rel)}>
-                                                {rel.image ? (
-                                                    <img src={rel.image} alt="" />
-                                                ) : (
-                                                    <div className="related-placeholder">▶</div>
-                                                )}
-                                                <div className="related-info">
-                                                    <div className="related-card-title">{rel.title}</div>
-                                                    <div className="related-type">{rel.type || 'Relacionado'}</div>
-                                                </div>
+                            </>
+                        ) : (
+                            /* Description View in place of Cover & Title */
+                            <div className="persona-synopsis-container">
+                                <div>
+                                    <div className="persona-synopsis-header">
+                                        <h2 className="persona-synopsis-title">Sinopsis</h2>
+                                        {details.genres && details.genres.length > 0 && (
+                                            <div className="persona-genres-list">
+                                                {details.genres.map((g, idx) => (
+                                                    <span key={idx} className="persona-genre-pill">{g}</span>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
+                                    </div>
+                                    <div className="persona-synopsis-body">
+                                        <p>{details.synopsis || 'Sin descripción disponible.'}</p>
                                     </div>
                                 </div>
-                            )}
-                        </div>
+
+                                <div className="persona-bottom-info">
+                                    <div className="persona-title-container">
+                                        <span className="persona-anime-title-mini">{details.title}</span>
+                                    </div>
+                                    <div className="persona-action-buttons">
+                                        {/* Button 1: Toggle back to Cover & Title */}
+                                        <button
+                                            className="persona-btn-square active"
+                                            onClick={() => setShowDescription(false)}
+                                            title="Volver a la portada"
+                                        >
+                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Button 2: Favorites */}
+                                        <button
+                                            className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
+                                            onClick={() => toggleFavorite(selectedAnime || details)}
+                                            title="Guardar a favoritos"
+                                        >
+                                            {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* ── Zona inferior: episodios full-width ── */}
-                    <div className="details-episodes-section">
-                        <div className="episodes-header-container">
-                            <h3 className="episodes-section-title">Episodios</h3>
-                            <div className="episodes-controls">
-                                {isEpisodeSearchVisible && (
-                                    <input
-                                        type="text"
-                                        className="episode-search-input"
-                                        placeholder="Buscar episodio..."
-                                        value={episodeSearchQuery}
-                                        onChange={(e) => {
-                                            setEpisodeSearchQuery(e.target.value);
-                                            setDetailsActiveIndex(0);
-                                        }}
-                                        autoFocus
-                                    />
-                                )}
-                                <button
-                                    className={`episode-control-btn ${isEpisodeSearchVisible ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setIsEpisodeSearchVisible(!isEpisodeSearchVisible);
-                                        if (isEpisodeSearchVisible) setEpisodeSearchQuery('');
+                    {/* ── RIGHT SECTION (DARK AREA - DIAGONAL CHAPTER ROW) ── */}
+                    <div className="persona-right-section">
+                        {/* Controls (Search / Sort) */}
+                        <div className="persona-episodes-controls">
+                            {isEpisodeSearchVisible && (
+                                <input
+                                    type="text"
+                                    className="persona-ep-search-input"
+                                    placeholder="Buscar episodio..."
+                                    value={episodeSearchQuery}
+                                    onChange={(e) => {
+                                        setEpisodeSearchQuery(e.target.value);
+                                        setDetailsActiveIndex(0);
                                     }}
-                                    title="Buscar episodio"
-                                >
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                                    </svg>
-                                </button>
-                                <button
-                                    className={`episode-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
-                                    onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-                                    title="Ordenar episodios"
-                                >
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                        <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
-                                    </svg>
-                                </button>
-                            </div>
+                                    autoFocus
+                                />
+                            )}
+                            <button
+                                className={`persona-control-btn ${isEpisodeSearchVisible ? 'active' : ''}`}
+                                onClick={() => {
+                                    setIsEpisodeSearchVisible(!isEpisodeSearchVisible);
+                                    if (isEpisodeSearchVisible) setEpisodeSearchQuery('');
+                                }}
+                                title="Buscar episodio"
+                            >
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                                </svg>
+                            </button>
+                            <button
+                                className={`persona-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
+                                onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                                title="Ordenar episodios"
+                            >
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                    <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
+                                </svg>
+                            </button>
                         </div>
 
-                        <div className="episodes-row" ref={episodesRowRef}>
+                        {/* Diagonal Episode List */}
+                        <div className="persona-diagonal-episodes-container" ref={episodesRowRef}>
                             {(details.episodes || [])
                                 .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
                                 .sort((a, b) => {
@@ -2037,20 +2073,23 @@ function App() {
                                     const epThumb = ep.image || details.backdrop || details.cover;
                                     const animeUrl = selectedAnime?.url || details?.url || '';
                                     const watched = isEpisodeWatched(animeUrl, ep.episode);
+                                    const diagonalShift = (idx % 6) * 45;
+
                                     return (
                                         <div
                                             key={idx}
-                                            className={`episode-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-episode' : ''}`}
+                                            className={`persona-ep-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-ep' : ''}`}
+                                            style={{ transform: `translateX(${diagonalShift}px)` }}
                                             onClick={() => {
                                                 setDetailsActiveIndex(idx);
                                                 markEpisodeWatched(animeUrl, ep.episode, details);
                                                 openServers(ep.url);
                                             }}
                                         >
-                                            <div className="episode-thumbnail-container">
+                                            <div className="persona-ep-thumb-box">
                                                 <img
                                                     src={epThumb}
-                                                    className="episode-thumbnail"
+                                                    className="persona-ep-thumb"
                                                     alt={`Episodio ${ep.episode}`}
                                                     onError={(e) => {
                                                         if (e.target.src !== details.cover) {
@@ -2058,34 +2097,35 @@ function App() {
                                                         }
                                                     }}
                                                 />
+                                                {watched && (
+                                                    <div
+                                                        className="persona-ep-watched-check"
+                                                        title="Marcar como no visto"
+                                                        onClick={(e) => toggleEpisodeWatched(e, animeUrl, ep.episode)}
+                                                    >
+                                                        ✓
+                                                    </div>
+                                                )}
                                             </div>
-                                            {watched && (
-                                                <div
-                                                    className="episode-watched-badge"
-                                                    title="Marcar como no visto"
-                                                    onClick={(e) => toggleEpisodeWatched(e, animeUrl, ep.episode)}
-                                                >
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                                    </svg>
+                                            <div className="persona-ep-info">
+                                                <div className="persona-ep-title">Capítulo {ep.episode}</div>
+                                                <div className="persona-ep-lines">
+                                                    <div className="persona-ep-line"></div>
+                                                    <div className="persona-ep-line short"></div>
                                                 </div>
-                                            )}
-                                            <div className="episode-badge">
-                                                Episodio {ep.episode}
                                             </div>
                                         </div>
                                     );
                                 })
                             }
+                            {((details.episodes || [])
+                                .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))).length === 0 && (
+                                    <div className="no-episodes-found" style={{ color: '#ffcb05', fontWeight: 'bold' }}>
+                                        No se encontraron episodios
+                                    </div>
+                                )
+                            }
                         </div>
-
-                        {((details.episodes || [])
-                            .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))).length === 0 && (
-                                <div className="no-episodes-found">
-                                    No se encontraron episodios
-                                </div>
-                            )
-                        }
                     </div>
                 </div>
             )}
