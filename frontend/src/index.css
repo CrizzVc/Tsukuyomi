@@ -2245,20 +2245,24 @@ header {
    ═══════════════════════════════════════════════ */
 
 .modmail-overlay {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(2px);
+    /* El selector flota sobre Home: no oscurecer ni desenfocar el fondo. */
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     display: block;
 }
 
 .modmail-svg-wrap {
     position: fixed;
-    right: 3vw;
-    bottom: 3vh;
-    width: 400px;
-    max-width: 88vw;
+    top: 1vh;
+    right: -1vw;
+    bottom: auto;
+    width: min(58vw, 78vh);
+    height: auto;
     aspect-ratio: 866 / 1084;
-    filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.55));
+    filter: drop-shadow(-18px 18px 34px rgba(0, 0, 0, 0.55));
     animation: modmailFadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 1001;
 }
 
 @keyframes modmailFadeIn {
@@ -2524,10 +2528,12 @@ header {
     border-color: rgba(255, 80, 80, 0.6);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 700px) {
     .modmail-svg-wrap {
-        right: 2vw;
-        width: 90vw;
+        top: 1vh;
+        right: -8vw;
+        width: 92vw;
+        max-width: 92vw;
     }
 }
 

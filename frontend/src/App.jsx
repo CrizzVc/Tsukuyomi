@@ -2396,7 +2396,7 @@ function App() {
                     className="modal-overlay modmail-overlay"
                     onClick={(e) => e.target.classList.contains('modmail-overlay') && setView(previousView)}
                 >
-                    <div className="modmail-svg-wrap">
+                    <div className="modmail-svg-wrap" role="dialog" aria-modal="true" aria-label="Selector de módulos">
                         <button className="modmail-close-btn" onClick={() => setView(previousView)}>✕</button>
 
                         <svg className="modmail-svg" width="866" height="1084" viewBox="0 0 866 1084" fill="none" xmlns="http://www.w3.org/2000/svg">
