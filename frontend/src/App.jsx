@@ -163,18 +163,18 @@ function App() {
                 next[`${activeProfile.id}_history`] = [];
             }
             let history = [...next[`${activeProfile.id}_history`]];
-            
+
             // Remove duplicates for the same anime
             history = history.filter(item => item.animeUrl !== historyItem.animeUrl);
-            
+
             // Add to beginning
             history.unshift({ ...historyItem, timestamp: Date.now() });
-            
+
             // Limit to 20 items
             if (history.length > 20) {
                 history = history.slice(0, 20);
             }
-            
+
             next[`${activeProfile.id}_history`] = history;
             localStorage.setItem('watched_episodes', JSON.stringify(next));
             return next;
@@ -1540,6 +1540,11 @@ function App() {
                     <main>
                         {view === STATES.HOME && (
                             <div className="home-view-content">
+                                <div className="section-header" style={{ justifyContent: 'flex-start' }}>
+                                    <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
+                                    <h2 className="section-title fw-bold" style={{ margin: 0, color: '#1F1F1F', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>
+                                </div>
+
                                 <div className="carousel-container mt-4">
                                     <div
                                         className="carousel-wrapper"
@@ -1550,7 +1555,7 @@ function App() {
                                             {latest.map((anime, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className={`card new-ep-card ${rowIndex === 0 && colIndices[0] === idx ? 'active' : ''}`}
+                                                    className={`card new-ep-card ${rowIndex === 0 && colIndices[0] === idx ? 'focused active' : ''}`}
                                                     style={{ backgroundImage: `url(${anime.image})` }}
                                                     onClick={() => { setRowIndex(0); setColIndex(idx); handleAnimeClick(anime); }}
                                                 >
@@ -1558,7 +1563,7 @@ function App() {
                                                 </div>
                                             ))}
                                             <div
-                                                className={`card new-ep-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'active' : ''}`}
+                                                className={`card new-ep-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'focused active' : ''}`}
                                                 onClick={() => { setRowIndex(0); setColIndex(latest.length); loadCatalog(1); }}
                                             >
                                                 <div className="see-more-content">
@@ -1584,38 +1589,38 @@ function App() {
                                             {hasHistory ? (
                                                 <div className="last-watched-bar">
                                                     <div className="last-watched-carousel-wrapper">
-                                                        <button 
-                                                            className="lw-nav-btn left" 
+                                                        <button
+                                                            className="lw-nav-btn left"
                                                             onClick={() => setColIndex(prev => Math.max(0, prev - 1))}
                                                             disabled={colIndices[1] === 0}
                                                         >&lt;</button>
                                                         <div className="last-watched-carousel">
                                                             {history.map((item, idx) => (
-                                                                <div 
+                                                                <div
                                                                     key={idx}
-                                                                    className={`lw-parallax-item ${rowIndex === 1 && colIndices[1] === idx ? 'active' : ''}`}
+                                                                    className={`lw-parallax-item ${rowIndex === 1 && colIndices[1] === idx ? 'focused active' : ''}`}
                                                                     onClick={() => { setRowIndex(1); setColIndex(idx); }}
                                                                     style={{ backgroundImage: `url(${item.image})` }}
                                                                 >
                                                                 </div>
                                                             ))}
                                                         </div>
-                                                        <button 
-                                                            className="lw-nav-btn right" 
+                                                        <button
+                                                            className="lw-nav-btn right"
                                                             onClick={() => setColIndex(prev => Math.min(history.length - 1, prev + 1))}
                                                             disabled={colIndices[1] === history.length - 1}
                                                         >&gt;</button>
                                                     </div>
-                                                    
+
                                                     <div className="last-watched-divider"></div>
-                                                    
+
                                                     {focusedHistoryItem && (
                                                         <div className="last-watched-info">
                                                             <div className="lw-text-info">
                                                                 <div className="lw-title">{focusedHistoryItem.title}</div>
                                                                 <div className="lw-meta">Capítulo {String(focusedHistoryItem.episode).replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim()} · {new Date(focusedHistoryItem.timestamp).toLocaleDateString()}</div>
                                                             </div>
-                                                            <button 
+                                                            <button
                                                                 className={`lw-resume-btn ${rowIndex === 1 ? 'focused' : ''}`}
                                                                 onClick={() => {
                                                                     setSelectedAnime({
@@ -1642,7 +1647,7 @@ function App() {
                                     );
                                 })()}
 
-                                <div className="carousel-container mt-4 mb-10" style={{ paddingLeft: '40px' }}>
+                                <div className="carousel-container mt-4 mb-10">
                                     <div className="section-header" style={{ justifyContent: 'flex-start' }}>
                                         <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
                                         <h2 className="section-title fw-bold" style={{ margin: 0, color: '#1F1F1F', fontSize: '1.2rem', fontWeight: 900 }}>FAVORITOS</h2>
@@ -1657,7 +1662,7 @@ function App() {
                                                 {favorites.map((anime, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className={`card fav-poster-card ${rowIndex === 2 && colIndices[2] === idx ? 'active' : ''}`}
+                                                        className={`card fav-poster-card ${rowIndex === 2 && colIndices[2] === idx ? 'focused active' : ''}`}
                                                         style={{ backgroundImage: `url(${anime.image})` }}
                                                         onClick={() => { setRowIndex(2); setColIndex(idx); handleAnimeClick(anime); }}
                                                     >
