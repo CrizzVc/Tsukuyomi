@@ -2841,10 +2841,14 @@ header {
     transform: translateY(-6px);
 }
 
-.anime-card-v2:hover .anime-card-v2-img-container,
-.anime-card-v2.focused .anime-card-v2-img-container {
+.anime-card-v2:hover .anime-card-v2-img-container {
     border-color: var(--primary-color);
     box-shadow: 0 0 25px rgba(var(--glow-rgb), 0.5);
+}
+
+.anime-card-v2.focused .anime-card-v2-img-container {
+    border-color: #FFC90E;
+    box-shadow: none;
 }
 
 .anime-card-v2:hover .anime-card-v2-img {

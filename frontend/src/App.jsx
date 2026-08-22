@@ -1546,7 +1546,7 @@ function App() {
                                         onTouchStart={(e) => handleTouchStart(e, 0)}
                                         onTouchEnd={(e) => handleTouchEnd(e, latest.length)}
                                     >
-                                        <div className="carousel new-episodes-carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 320}px)` }}>
+                                        <div className="carousel new-episodes-carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 315}px)` }}>
                                             {latest.map((anime, idx) => (
                                                 <div
                                                     key={idx}
