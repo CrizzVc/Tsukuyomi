@@ -60,6 +60,7 @@ function App() {
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
     const [view, setView] = useState(STATES.PROFILES);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
+    const [showDescription, setShowDescription] = useState(false);
     const [currentSource, setCurrentSource] = useState('animeav1');
     const [latest, setLatest] = useState([]);
     const [gridAnimes, setGridAnimes] = useState([]); // First 24 from catalog for the home grid
@@ -80,6 +81,23 @@ function App() {
     const [clock, setClock] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
     const [previousView, setPreviousView] = useState(STATES.HOME);
     const [detailsPreviousView, setDetailsPreviousView] = useState(STATES.HOME);
+    const [isGameWipeActive, setIsGameWipeActive] = useState(false);
+    const [wipeDirection, setWipeDirection] = useState('right');
+    const [wipeKey, setWipeKey] = useState(0);
+
+    const triggerGameTransition = (onCovered, direction = 'right') => {
+        setWipeDirection(direction);
+        setWipeKey(prev => prev + 1);
+        setIsGameWipeActive(true);
+        setTimeout(async () => {
+            if (onCovered) {
+                await onCovered();
+            }
+        }, 380);
+        setTimeout(() => {
+            setIsGameWipeActive(false);
+        }, 900);
+    };
 
     // News API states
     const [newsApiKey, setNewsApiKey] = useState(() => localStorage.getItem('news_api_key') || '');
@@ -110,6 +128,7 @@ function App() {
 
     const touchStartX = useRef(null);
     const searchDebounceRef = useRef(null);
+    const lastWheelTime = useRef(0);
     const [isSearchActive, setIsSearchActive] = useState(false); // true: barra de búsqueda expandida en el header
     const [searchIndex, setSearchIndex] = useState(-1); // -1: input focused
     const [detailsActiveIndex, setDetailsActiveIndex] = useState(0);
@@ -133,12 +152,49 @@ function App() {
         return !!profileWatched[getWatchedKey(animeUrl, epNumber)];
     };
 
-    const markEpisodeWatched = (animeUrl, epNumber) => {
+    const markEpisodeWatched = (animeUrl, epNumber, fullAnimeInfo = null) => {
         if (!activeProfile) return;
         setWatchedEpisodes(prev => {
             const profileWatched = { ...(prev[activeProfile.id] || {}) };
             profileWatched[getWatchedKey(animeUrl, epNumber)] = Date.now();
             const next = { ...prev, [activeProfile.id]: profileWatched };
+            localStorage.setItem('watched_episodes', JSON.stringify(next));
+            return next;
+        });
+
+        if (fullAnimeInfo) {
+            addToWatchHistory({
+                title: fullAnimeInfo.title,
+                image: fullAnimeInfo.cover || fullAnimeInfo.image,
+                episodeUrl: fullAnimeInfo.episodeUrl || fullAnimeInfo.url,
+                animeUrl: animeUrl,
+                episode: epNumber,
+                source: fullAnimeInfo.source || currentSource
+            });
+        }
+    };
+
+    const addToWatchHistory = (historyItem) => {
+        if (!activeProfile) return;
+        setWatchedEpisodes(prev => {
+            const next = { ...prev };
+            if (!next[`${activeProfile.id}_history`]) {
+                next[`${activeProfile.id}_history`] = [];
+            }
+            let history = [...next[`${activeProfile.id}_history`]];
+
+            // Remove duplicates for the same anime
+            history = history.filter(item => item.animeUrl !== historyItem.animeUrl);
+
+            // Add to beginning
+            history.unshift({ ...historyItem, timestamp: Date.now() });
+
+            // Limit to 20 items
+            if (history.length > 20) {
+                history = history.slice(0, 20);
+            }
+
+            next[`${activeProfile.id}_history`] = history;
             localStorage.setItem('watched_episodes', JSON.stringify(next));
             return next;
         });
@@ -208,6 +264,16 @@ function App() {
             setFavorites(filteredFavs);
         }
     }, [activeProfile, currentSource]);
+
+    useEffect(() => {
+        if (view === STATES.DETAILS && episodesRowRef.current) {
+            const focusedEl = episodesRowRef.current.querySelector('.persona-ep-card.focused');
+            if (focusedEl) {
+                focusedEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+    }, [detailsActiveIndex, view]);
+
 
 
 
@@ -280,36 +346,50 @@ function App() {
 
     const openDetails = async (anime, changeView = true) => {
         setStatus('Cargando detalles...');
+        const animeSource = anime.source || currentSource;
+        setCurrentSource(animeSource);
+        const fetchPromise = api.fetchDetails(anime.animeUrl || anime.url, animeSource);
+
         if (changeView && view !== STATES.DETAILS) {
             setDetailsPreviousView(view);
-        }
-        try {
-            const animeSource = anime.source || currentSource;
-            setCurrentSource(animeSource);
-            const data = await api.fetchDetails(anime.animeUrl || anime.url, animeSource);
+            triggerGameTransition(async () => {
+                try {
+                    const data = await fetchPromise;
+                    setDetails(data);
+                    setView(STATES.DETAILS);
+                    setShowDescription(false);
+                    setDetailsActiveIndex(0);
+                    setEpisodeSearchQuery('');
+                    setIsEpisodeSearchVisible(false);
+                    setEpisodeSortOrder('desc');
+                    setStatus('');
 
-            setDetails(data);
-            if (changeView) {
-                setView(STATES.DETAILS);
-            }
-            setDetailsActiveIndex(0);
-            setEpisodeSearchQuery('');
-            setIsEpisodeSearchVisible(false);
-            setEpisodeSortOrder('desc');
-            setStatus('');
-
-            // Try fetching Fanart Logo asynchronously
-            if (data && data.title) {
-                api.fetchFanartLogo(data.title).then(logoUrl => {
-                    if (logoUrl) {
-                        setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                    if (data && data.title) {
+                        api.fetchFanartLogo(data.title).then(logoUrl => {
+                            if (logoUrl) {
+                                setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                            }
+                        }).catch(logoErr => {
+                            console.error("Logo fetch error:", logoErr);
+                        });
                     }
-                }).catch(logoErr => {
-                    console.error("Logo fetch error:", logoErr);
-                });
+                } catch (e) {
+                    setStatus('Error al cargar detalles.');
+                }
+            });
+        } else {
+            try {
+                const data = await fetchPromise;
+                setDetails(data);
+                setShowDescription(false);
+                setDetailsActiveIndex(0);
+                setEpisodeSearchQuery('');
+                setIsEpisodeSearchVisible(false);
+                setEpisodeSortOrder('desc');
+                setStatus('');
+            } catch (e) {
+                setStatus('Error al cargar detalles.');
             }
-        } catch (e) {
-            setStatus('Error al cargar detalles.');
         }
     };
 
@@ -599,7 +679,11 @@ function App() {
     const goBack = () => {
         if (view === STATES.PLAYER) setView(STATES.SERVER_MODAL);
         else if (view === STATES.SERVER_MODAL) setView(details ? STATES.DETAILS : STATES.HOME);
-        else if (view === STATES.DETAILS) setView(detailsPreviousView);
+        else if (view === STATES.DETAILS) {
+            triggerGameTransition(() => {
+                setView(detailsPreviousView);
+            }, 'left');
+        }
         else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
         else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
@@ -668,9 +752,9 @@ function App() {
                     let maxCol = 0;
                     if (rowIndex === -1) maxCol = 3;
                     else if (rowIndex === 0) maxCol = latest.length; // including "Ver Catálogo" card
-                    else if (rowIndex === 1) maxCol = Math.max(0, favorites.length - 1);
-                    else if (rowIndex === 2) maxCol = Math.max(0, Math.min(23, gridAnimes.length - 1));
-                    else if (rowIndex === 3) maxCol = Math.max(0, newsArticles.length - 1);
+                    else if (rowIndex === 1) maxCol = 3; // up to 4 items in history
+                    else if (rowIndex === 2) maxCol = Math.max(0, favorites.length - 1);
+                    else if (rowIndex === 3) maxCol = Math.max(0, Math.min(23, gridAnimes.length - 1));
                     setColIndex(prev => Math.min(prev + 1, maxCol));
                 }
                 if (e.key === 'ArrowLeft') setColIndex(prev => Math.max(prev - 1, 0));
@@ -679,39 +763,35 @@ function App() {
                         setRowIndex(0);
                     } else if (rowIndex === 0) {
                         setRowIndex(1);
+                        setColIndex(0);
                     } else if (rowIndex === 1) {
                         setRowIndex(2);
                         setColIndex(0);
                     } else if (rowIndex === 2) {
+                        setRowIndex(3);
+                        setColIndex(0);
+                    } else if (rowIndex === 3) {
                         const listLength = Math.min(24, gridAnimes.length);
                         const cols = 5; // grid has 5 columns
                         if (colIndex + cols < listLength) {
                             setColIndex(prev => prev + cols);
-                        } else {
-                            setRowIndex(3);
-                            // Mantener una columna similar visualmente en noticias
-                            setColIndex(Math.min(colIndex % cols, Math.max(0, newsArticles.length - 1)));
                         }
                     }
                 }
                 if (e.key === 'ArrowUp') {
                     if (rowIndex === 3) {
-                        setRowIndex(2);
-                        const listLength = Math.min(24, gridAnimes.length);
-                        const cols = 5;
-                        // Apuntar a la última fila del grid manteniendo la columna
-                        const lastRowStartIndex = Math.floor((listLength - 1) / cols) * cols;
-                        const targetIndex = lastRowStartIndex + Math.min(colIndex, cols - 1);
-                        setColIndex(targetIndex < listLength ? targetIndex : listLength - 1);
-                    } else if (rowIndex === 2) {
                         if (colIndex >= 5) {
                             setColIndex(prev => prev - 5);
                         } else {
-                            setRowIndex(1);
-                            setColIndex(Math.min(colIndex, Math.max(0, favorites.length - 1)));
+                            setRowIndex(2);
+                            setColIndex(0);
                         }
+                    } else if (rowIndex === 2) {
+                        setRowIndex(1);
+                        setColIndex(0);
                     } else if (rowIndex === 1) {
                         setRowIndex(0);
+                        setColIndex(0);
                     } else if (rowIndex === 0) {
                         setRowIndex(-1);
                     }
@@ -724,23 +804,25 @@ function App() {
                         else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
                     }
                     else if (rowIndex === 3) {
-                        const article = newsArticles[colIndex];
-                        if (article) {
-                            const { shell } = window.require('electron');
-                            shell.openExternal(article.url);
-                        }
-                    }
-                    else if (rowIndex === 2) {
                         if (gridAnimes[colIndex]) {
                             handleAnimeClick(gridAnimes[colIndex]);
                         }
                     }
-                    else {
-                        const list = rowIndex === 0 ? latest : favorites;
-                        if (rowIndex === 0 && colIndex === latest.length) {
+                    else if (rowIndex === 2) {
+                        if (favorites[colIndex]) {
+                            handleAnimeClick(favorites[colIndex]);
+                        }
+                    }
+                    else if (rowIndex === 1) {
+                        // The user has a "Reanudar" button for history. If they press enter, trigger the button.
+                        const btn = document.querySelector('.lw-resume-btn.focused');
+                        if (btn) btn.click();
+                    }
+                    else if (rowIndex === 0) {
+                        if (colIndex === latest.length) {
                             loadCatalog(1);
-                        } else if (list[colIndex]) {
-                            handleAnimeClick(list[colIndex]);
+                        } else if (latest[colIndex]) {
+                            handleAnimeClick(latest[colIndex]);
                         }
                     }
                 }
@@ -816,17 +898,11 @@ function App() {
                         return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
                     });
 
-                if (e.key === 'ArrowRight') {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                     setDetailsActiveIndex(prev => Math.min(prev + 1, filteredEpisodes.length - 1));
                 }
-                if (e.key === 'ArrowLeft') {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
                     setDetailsActiveIndex(prev => Math.max(prev - 1, 0));
-                }
-                if (e.key === 'ArrowDown') {
-                    setDetailsActiveIndex(prev => Math.min(prev + 5, filteredEpisodes.length - 1));
-                }
-                if (e.key === 'ArrowUp') {
-                    setDetailsActiveIndex(prev => Math.max(prev - 5, 0));
                 }
                 if (e.key === 'Enter') {
                     if (filteredEpisodes[detailsActiveIndex]) {
@@ -1505,36 +1581,30 @@ function App() {
                     <main>
                         {view === STATES.HOME && (
                             <div className="home-view-content">
-                                <div className="carousel-container">
+                                <div className="section-header" style={{ justifyContent: 'flex-start' }}>
+                                    <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
+                                    <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>
+                                </div>
+
+                                <div className="carousel-container mt-4">
                                     <div
                                         className="carousel-wrapper"
                                         onTouchStart={(e) => handleTouchStart(e, 0)}
                                         onTouchEnd={(e) => handleTouchEnd(e, latest.length)}
                                     >
-                                        <h2 className="section-title"><span className="title-marker"></span>Ultimos episodios</h2>
-                                        <div className="carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 465}px)` }}>
-                                            <div
-                                                className={`dynamic-card-glow ${rowIndex === 0 ? 'active' : ''}`}
-                                                style={{
-                                                    transform: `translateX(${colIndices[0] * 465}px)`,
-                                                    backgroundImage: latest[colIndices[0]]?.image ? `url(${latest[colIndices[0]].image})` : 'none'
-                                                }}
-                                            />
+                                        <div className="carousel new-episodes-carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 315}px)` }}>
                                             {latest.map((anime, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className={`card large-card ${rowIndex === 0 && colIndices[0] === idx ? 'expanded' : ''}`}
+                                                    className={`card new-ep-card ${rowIndex === 0 && colIndices[0] === idx ? 'focused active' : ''}`}
                                                     style={{ backgroundImage: `url(${anime.image})` }}
                                                     onClick={() => { setRowIndex(0); setColIndex(idx); handleAnimeClick(anime); }}
                                                 >
-                                                    <div className="card-overlay-gradient"></div>
-                                                    <div className="card-info">
-                                                        {/* <div className="card-title">{anime.title}</div> */}
-                                                    </div>
+                                                    <div className="card-overlay-flat"></div>
                                                 </div>
                                             ))}
                                             <div
-                                                className={`card large-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'expanded' : ''}`}
+                                                className={`card new-ep-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'focused active' : ''}`}
                                                 onClick={() => { setRowIndex(0); setColIndex(latest.length); loadCatalog(1); }}
                                             >
                                                 <div className="see-more-content">
@@ -1544,112 +1614,105 @@ function App() {
                                                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                                                         </svg>
                                                     </div>
-                                                    <div className="see-more-text">Ver Catálogo</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Focused episode info — shown below the carousel when a card is focused */}
-                                {/* Wrapper always in DOM so max-height transition works smoothly */}
                                 {(() => {
-                                    const anime = latest[colIndices[0]];
-                                    const isExpanded = rowIndex === 0 && !!anime;
+                                    const history = activeProfile ? (watchedEpisodes[`${activeProfile.id}_history`] || []).slice(0, 4) : [];
+                                    const hasHistory = history.length > 0;
+                                    const focusedHistoryItem = history[colIndices[1]] || history[0];
+
                                     return (
-                                        <div className={`focused-episode-info-wrapper${isExpanded ? ' expanded' : ''}`}>
-                                            {anime && (
-                                                <div
-                                                    key={`${colIndices[0]}-${slideDirection}`}
-                                                    className={`focused-episode-info${isExpanded ? ' visible' : ' exiting'} slide-${slideDirection}`}
-                                                >
-                                                    <div className="focused-episode-info-text">
-                                                        <span className="focused-episode-anime-title">{anime.title}</span>
-                                                        <span className="focused-episode-meta">T{anime.season || 1}: E{String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'} &ndash; Episodio {String(anime.episode || anime.number || '').replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim() || '#'}</span>
-                                                        <span className="focused-episode-next">Comenzar episodio</span>
-                                                    </div>
-                                                    <div className="focused-episode-actions">
+                                        <div className="last-watched-bar-container">
+                                            {hasHistory ? (
+                                                <div className="last-watched-bar">
+                                                    <div className="last-watched-carousel-wrapper">
                                                         <button
-                                                            className="focused-episode-watch-btn"
-                                                            onClick={async () => {
-                                                                const epUrl = anime.episodeUrl || anime.url;
-                                                                const epNum = anime.episode || anime.number;
-                                                                if (epNum) {
-                                                                    markEpisodeWatched(anime.animeUrl || anime.url, epNum);
-                                                                }
-                                                                setSelectedAnime(anime);
-                                                                // Cargamos los detalles completos en segundo plano sin cambiar de vista inmediatamente
-                                                                openDetails(anime, false);
-                                                                openServers(epUrl);
-                                                            }}
-                                                        >
-                                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                                                <path d="M8 5v14l11-7z" />
-                                                            </svg>
-                                                            Ver ahora
-                                                        </button>
+                                                            className="lw-nav-btn left"
+                                                            onClick={() => setColIndex(prev => Math.max(0, prev - 1))}
+                                                            disabled={colIndices[1] === 0}
+                                                        >&lt;</button>
+                                                        <div className="last-watched-carousel">
+                                                            {history.map((item, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    className={`lw-parallax-item ${rowIndex === 1 && colIndices[1] === idx ? 'focused active' : ''}`}
+                                                                    onClick={() => { setRowIndex(1); setColIndex(idx); }}
+                                                                    style={{ backgroundImage: `url(${item.image})` }}
+                                                                >
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                         <button
-                                                            className={`focused-episode-fav-btn ${isAnimeFavorite(anime) ? 'active' : ''}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                e.currentTarget.blur();
-                                                                toggleFavorite({
-                                                                    title: anime.title,
-                                                                    url: anime.animeUrl || anime.url,
-                                                                    animeUrl: anime.animeUrl || anime.url,
-                                                                    image: anime.cover || anime.image
-                                                                });
-                                                            }}
-                                                            title={isAnimeFavorite(anime) ? "Quitar de favoritos" : "Guardar en favoritos"}
-                                                        >
-                                                            <svg viewBox="0 0 24 24" width="20" height="20" fill={isAnimeFavorite(anime) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                                            </svg>
-                                                        </button>
+                                                            className="lw-nav-btn right"
+                                                            onClick={() => setColIndex(prev => Math.min(history.length - 1, prev + 1))}
+                                                            disabled={colIndices[1] === history.length - 1}
+                                                        >&gt;</button>
                                                     </div>
+
+                                                    <div className="last-watched-divider"></div>
+
+                                                    {focusedHistoryItem && (
+                                                        <div className="last-watched-info">
+                                                            <div className="lw-text-info">
+                                                                <div className="lw-title">{focusedHistoryItem.title}</div>
+                                                                <div className="lw-meta">Capítulo {String(focusedHistoryItem.episode).replace(/episodio/i, '').replace(/^ep\.?\s*/i, '').trim()} · {new Date(focusedHistoryItem.timestamp).toLocaleDateString()}</div>
+                                                            </div>
+                                                            <button
+                                                                className={`lw-resume-btn ${rowIndex === 1 ? 'focused' : ''}`}
+                                                                onClick={() => {
+                                                                    setSelectedAnime({
+                                                                        title: focusedHistoryItem.title,
+                                                                        url: focusedHistoryItem.animeUrl,
+                                                                        source: focusedHistoryItem.source,
+                                                                        image: focusedHistoryItem.image
+                                                                    });
+                                                                    openDetails({ url: focusedHistoryItem.animeUrl, source: focusedHistoryItem.source }, false);
+                                                                    openServers(focusedHistoryItem.episodeUrl);
+                                                                }}
+                                                            >
+                                                                Reanudar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="last-watched-bar empty">
+                                                    <div className="lw-empty-text">No has visto ningún episodio recientemente</div>
                                                 </div>
                                             )}
                                         </div>
                                     );
                                 })()}
 
-                                <div className="carousel-container mt-10">
-                                    <div className="section-header">
-                                        <h2 className="section-title"><span className="title-marker"></span>Favoritos</h2>
-                                        <button className="see-more-btn" onClick={() => setView(STATES.FAVORITES)}>
-                                            Ver más
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="9 18 15 12 9 6"></polyline>
-                                            </svg>
-                                        </button>
+                                <div className="carousel-container mt-4 mb-10">
+                                    <div className="section-header" style={{ justifyContent: 'flex-start' }}>
+                                        <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
+                                        <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>FAVORITOS</h2>
                                     </div>
                                     <div
                                         className="carousel-wrapper"
-                                        onTouchStart={(e) => handleTouchStart(e, 1)}
+                                        onTouchStart={(e) => handleTouchStart(e, 2)}
                                         onTouchEnd={(e) => handleTouchEnd(e, Math.max(0, favorites.length - 1))}
                                     >
                                         {favorites.length > 0 ? (
-                                            <div className="carousel" style={{ transform: `translateX(-${colIndices[1] * 265}px)` }}>
+                                            <div className="carousel fav-carousel" style={{ transform: `translateX(-${colIndices[2] * 215}px)` }}>
                                                 {favorites.map((anime, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className={`card small-card ${rowIndex === 1 && colIndices[1] === idx ? 'focused' : ''}`}
+                                                        className={`card fav-poster-card ${rowIndex === 2 && colIndices[2] === idx ? 'focused active' : ''}`}
                                                         style={{ backgroundImage: `url(${anime.image})` }}
-                                                        onClick={() => { setRowIndex(1); setColIndex(idx); handleAnimeClick(anime); }}
+                                                        onClick={() => { setRowIndex(2); setColIndex(idx); handleAnimeClick(anime); }}
                                                     >
-                                                        <div className="card-overlay-gradient"></div>
-                                                        <div className="card-info">
-                                                            <div className="card-title">{anime.title}</div>
-                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className={`empty-favorites ${rowIndex === 1 ? 'focused' : ''}`}>
-                                                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style={{ opacity: 0.5 }}>
-                                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                                </svg>
-                                                <p>Your favorites list is empty</p>
+                                            <div className={`empty-favorites ${rowIndex === 2 ? 'focused' : ''}`} style={{ color: 'var(--text-color)' }}>
+                                                <p>Tu lista de favoritos está vacía</p>
                                             </div>
                                         )}
                                     </div>
@@ -1657,12 +1720,14 @@ function App() {
 
                                 <BannerImages onExplore={() => loadCatalog(1)} />
 
-                                <div className="recent-grid-section">
-                                    <div className="recent-grid-header"></div>
+                                <div className="recent-grid-section mt-10">
+                                    <div className="section-header" style={{ justifyContent: 'flex-start' }}>
+                                        <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
+                                        <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>ÚLTIMO AGREGADO</h2>
+                                    </div>
 
-                                    <div className="recent-anime-grid">
+                                    <div className="recent-anime-grid mt-4">
                                         {gridAnimes.length === 0 ? (
-                                            // Loading skeletons
                                             Array.from({ length: 10 }).map((_, idx) => (
                                                 <div key={idx} className="anime-card-v2">
                                                     <div className="anime-card-v2-img-container anime-card-skeleton"></div>
@@ -1670,13 +1735,13 @@ function App() {
                                                 </div>
                                             ))
                                         ) : gridAnimes.map((anime, idx) => {
-                                            const isFocused = rowIndex === 2 && colIndex === idx;
+                                            const isFocused = rowIndex === 3 && colIndex === idx;
                                             return (
                                                 <div
                                                     key={idx}
                                                     className={`anime-card-v2 ${isFocused ? 'focused' : ''}`}
                                                     onClick={() => {
-                                                        setRowIndex(2);
+                                                        setRowIndex(3);
                                                         setColIndex(idx);
                                                         handleAnimeClick(anime);
                                                     }}
@@ -1692,25 +1757,6 @@ function App() {
                                         })}
                                     </div>
                                 </div>
-
-                                {/* Noticias componente*/}
-
-                                {/* <AnimeNewsCarousel
-                                    newsApiKey={newsApiKey}
-                                    setNewsApiKey={setNewsApiKey}
-                                    newsLoading={newsLoading}
-                                    newsError={newsError}
-                                    setNewsError={setNewsError}
-                                    newsArticles={newsArticles}
-                                    setNewsArticles={setNewsArticles}
-                                    saveNewsApiKey={saveNewsApiKey}
-                                    rowIndex={rowIndex}
-                                    setRowIndex={setRowIndex}
-                                    colIndices={colIndices}
-                                    setColIndex={setColIndex}
-                                    handleTouchStart={handleTouchStart}
-                                    handleTouchEnd={handleTouchEnd}
-                                /> */}
                             </div>
                         )}
 
@@ -1893,159 +1939,232 @@ function App() {
                     </div>
                 </div>
             )}
+{view === STATES.DETAILS && details && (
+                <div className="persona-details-view">
+                    {/* Diagonal split background */}
+                    <div className="persona-bg-dark"></div>
+                    <div className="persona-bg-yellow"></div>
 
-            {view === STATES.DETAILS && details && (
-                <div className="view-overlay details-view">
-                    <button className="details-close-btn" onClick={goBack} title="Cerrar">✕</button>
-                    <div className="details-bg" style={{ backgroundImage: `url(${details.backdrop || details.cover})` }}></div>
+                    {/* SVG overlay for accent lines & triangles matching mockup */}
+                    <svg className="persona-svg-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        {/* Diagonal split line */}
+                        <line x1="180" y1="0" x2="700" y2="1000" stroke="var(--persona-bg-accent)" strokeWidth="8" />
+                        <line x1="175" y1="0" x2="695" y2="1000" stroke="#000000" strokeWidth="4" />
 
-                    {/* ── Zona superior: portada + info ── */}
-                    <div className="details-top-section">
-                        <div className="details-left">
-                            <img src={details.cover} className="details-cover" alt="Cover" />
-                            <div className="flex items-center gap-3 mt-4">
-                                <button
-                                    className={`modal-btn ${isAnimeFavorite(selectedAnime || details) ? 'active' : ''}`}
-                                    onClick={(e) => {
-                                        e.currentTarget.blur();
-                                        toggleFavorite(selectedAnime || details);
-                                    }}
-                                    style={{ marginTop: 0, width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', borderRadius: '50%' }}
-                                >
-                                    {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
-                                </button>
-                                {details.status && (
-                                    <div className={`status-badge ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`} style={{ marginTop: 0 }}>
-                                        <span className="ic-monitor ic-before"></span>
-                                        {details.status}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        {/* Top center yellow triangle */}
+                        <polygon points="165,0 195,0 180,35" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
 
-                        <div className="details-right">
-                            {details.logo ? (
-                                <div className="details-logo-container mb-3">
-                                    <img src={details.logo} alt={details.title} className="details-title-logo" style={{ maxHeight: '120px', maxWidth: '320px', objectFit: 'contain' }} />
-                                </div>
-                            ) : (
-                                <h1 className="details-title">{details.title}</h1>
-                            )}
-                            <div className="synopsis-box">
-                                <div className="synopsis-header">
-                                    <h2>Sinopsis</h2>
-                                    {details.genres && details.genres.length > 0 && (
-                                        <div className="genres-list">
-                                            {details.genres.map((g, idx) => (
-                                                <span key={idx} className="genre-pill">{g}</span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <p className={`synopsis-text ${expandedSynopsis ? 'expanded' : ''}`}>
-                                    {details.synopsis}
-                                </p>
-                                {details.synopsis && details.synopsis.length > 200 && (
-                                    <button
-                                        className="text-white mt-2 font-bold hover:underline"
-                                        onClick={() => setExpandedSynopsis(!expandedSynopsis)}
-                                    >
-                                        {expandedSynopsis ? 'Leer menos' : 'Leer más...'}
-                                    </button>
-                                )}
-                            </div>
-                            {details.related && details.related.length > 0 && (
-                                <div className="related-section">
-                                    <h3>Relacionados</h3>
-                                    <div className="related-row">
-                                        {details.related.map((rel, idx) => (
-                                            <div key={idx} className="related-card" onClick={() => openDetails(rel)}>
-                                                {rel.image ? (
-                                                    <img src={rel.image} alt="" />
-                                                ) : (
-                                                    <div className="related-placeholder">▶</div>
-                                                )}
-                                                <div className="related-info">
-                                                    <div className="related-card-title">{rel.title}</div>
-                                                    <div className="related-type">{rel.type || 'Relacionado'}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Bottom right yellow triangle */}
+                        <polygon points="950,1000 1000,1000 1000,930" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
+
+                        {/* Top right diagonal stripe */}
+                        <line x1="760" y1="0" x2="1000" y2="300" stroke="var(--persona-bg-accent)" strokeWidth="6" />
+                    </svg>
+
+                    {/* Top Right Header Controls (Search + Sort) to the left of Close (X) button */}
+                    <div className="persona-episodes-controls">
+                        <input
+                            type="text"
+                            className="persona-ep-search-input"
+                            placeholder="Buscar episodio..."
+                            value={episodeSearchQuery}
+                            onChange={(e) => {
+                                setEpisodeSearchQuery(e.target.value);
+                                setDetailsActiveIndex(0);
+                            }}
+                        />
+                        <button
+                            className={`persona-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
+                            onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                            title="Ordenar episodios"
+                        >
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
+                            </svg>
+                        </button>
                     </div>
 
-                    {/* ── Zona inferior: episodios full-width ── */}
-                    <div className="details-episodes-section">
-                        <div className="episodes-header-container">
-                            <h3 className="episodes-section-title">Episodios</h3>
-                            <div className="episodes-controls">
-                                {isEpisodeSearchVisible && (
-                                    <input
-                                        type="text"
-                                        className="episode-search-input"
-                                        placeholder="Buscar episodio..."
-                                        value={episodeSearchQuery}
-                                        onChange={(e) => {
-                                            setEpisodeSearchQuery(e.target.value);
-                                            setDetailsActiveIndex(0);
-                                        }}
-                                        autoFocus
-                                    />
-                                )}
-                                <button
-                                    className={`episode-control-btn ${isEpisodeSearchVisible ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setIsEpisodeSearchVisible(!isEpisodeSearchVisible);
-                                        if (isEpisodeSearchVisible) setEpisodeSearchQuery('');
-                                    }}
-                                    title="Buscar episodio"
-                                >
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                                    </svg>
-                                </button>
-                                <button
-                                    className={`episode-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
-                                    onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-                                    title="Ordenar episodios"
-                                >
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                        <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+                    {/* Close Button */}
+                    <button className="persona-close-btn" onClick={goBack} title="Cerrar">✕</button>
 
-                        <div className="episodes-row" ref={episodesRowRef}>
-                            {(details.episodes || [])
-                                .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
-                                .sort((a, b) => {
-                                    const numA = parseFloat(a.episode);
-                                    const numB = parseFloat(b.episode);
-                                    return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
-                                })
-                                .map((ep, idx) => {
-                                    const isFocused = detailsActiveIndex === idx;
+                    {/* ── LEFT SECTION (YELLOW AREA) ── */}
+                    <div className="persona-left-section">
+                        {!showDescription ? (
+                            <>
+                                {/* Top Cover Card */}
+                                <div className="persona-cover-container">
+                                    <div className="persona-cover-card">
+                                        <img src={details.cover} alt={details.title} className="persona-cover-img" />
+                                    </div>
+                                </div>
+
+                                {/* Bottom Left: Title + Action Buttons */}
+                                <div className="persona-bottom-info">
+                                    <div className="persona-title-container">
+                                        <h1 className="persona-anime-title">{details.title}</h1>
+                                        {details.status && (
+                                            <span className={`persona-status-tag ${details.status.toLowerCase().includes('finalizado') ? 'finalizado' : ''}`}>
+                                                {details.status}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="persona-action-buttons">
+                                        {/* Button 1: Toggle Description */}
+                                        <button
+                                            className="persona-btn-square"
+                                            onClick={() => setShowDescription(true)}
+                                            title="Ver descripción"
+                                        >
+                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Button 2: Save to Favorites */}
+                                        <button
+                                            className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
+                                            onClick={() => toggleFavorite(selectedAnime || details)}
+                                            title="Guardar a favoritos"
+                                        >
+                                            {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            /* Description View in place of Cover & Title */
+                            <div className="persona-synopsis-container">
+                                <div>
+                                    <div className="persona-synopsis-header">
+                                        <h2 className="persona-synopsis-title">Sinopsis</h2>
+                                        {details.genres && details.genres.length > 0 && (
+                                            <div className="persona-genres-list">
+                                                {details.genres.map((g, idx) => (
+                                                    <span key={idx} className="persona-genre-pill">{g}</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="persona-synopsis-body">
+                                        <p>{details.synopsis || 'Sin descripción disponible.'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="persona-bottom-info">
+                                    <div className="persona-title-container">
+                                        <span className="persona-anime-title-mini">{details.title}</span>
+                                    </div>
+                                    <div className="persona-action-buttons">
+                                        {/* Button 1: Toggle back to Cover & Title */}
+                                        <button
+                                            className="persona-btn-square active"
+                                            onClick={() => setShowDescription(false)}
+                                            title="Volver a la portada"
+                                        >
+                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Button 2: Favorites */}
+                                        <button
+                                            className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
+                                            onClick={() => toggleFavorite(selectedAnime || details)}
+                                            title="Guardar a favoritos"
+                                        >
+                                            {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── RIGHT SECTION (DARK AREA - DIAGONAL CHAPTER ROW) ── */}
+                    <div className="persona-right-section">
+
+                        {/* Diagonal 5-Card Episode Carousel Wheel */}
+                        <div
+                            className="persona-diagonal-episodes-container"
+                            ref={episodesRowRef}
+                            onWheel={(e) => {
+                                const now = Date.now();
+                                if (now - lastWheelTime.current < 90) return;
+                                lastWheelTime.current = now;
+
+                                const filtered = (details.episodes || [])
+                                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                    .sort((a, b) => {
+                                        const numA = parseFloat(a.episode);
+                                        const numB = parseFloat(b.episode);
+                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                    });
+
+                                if (e.deltaY > 0) {
+                                    setDetailsActiveIndex(prev => Math.min(filtered.length - 1, prev + 1));
+                                } else if (e.deltaY < 0) {
+                                    setDetailsActiveIndex(prev => Math.max(0, prev - 1));
+                                }
+                            }}
+                        >
+                            {(() => {
+                                const filteredEpisodes = (details.episodes || [])
+                                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                    .sort((a, b) => {
+                                        const numA = parseFloat(a.episode);
+                                        const numB = parseFloat(b.episode);
+                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                    });
+
+                                if (filteredEpisodes.length === 0) {
+                                    return (
+                                        <div className="no-episodes-found" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>
+                                            No se encontraron episodios
+                                        </div>
+                                    );
+                                }
+
+                                const offsets = [-2, -1, 0, 1, 2];
+
+                                return offsets.map(offset => {
+                                    const actualIdx = detailsActiveIndex + offset;
+                                    if (actualIdx < 0 || actualIdx >= filteredEpisodes.length) return null;
+
+                                    const ep = filteredEpisodes[actualIdx];
+                                    const isFocused = offset === 0;
                                     const epThumb = ep.image || details.backdrop || details.cover;
                                     const animeUrl = selectedAnime?.url || details?.url || '';
                                     const watched = isEpisodeWatched(animeUrl, ep.episode);
+
+                                    // Wide diagonal sweep aligned with right-shifted dark inclination (34% -> 74%)
+                                    const translateY = `calc(${offset} * clamp(125px, 16vh, 190px))`;
+                                    const translateX = `calc(clamp(140px, 11vw, 210px) + ${offset} * clamp(100px, 8.5vw, 155px))`;
+                                    const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
+                                    const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
+                                    const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
+
                                     return (
                                         <div
-                                            key={idx}
-                                            className={`episode-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-episode' : ''}`}
+                                            key={ep.url || ep.episode || actualIdx}
+                                            className={`persona-ep-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-ep' : ''}`}
+                                            style={{
+                                                transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
+                                                opacity: opacity,
+                                                zIndex: zIndex
+                                            }}
                                             onClick={() => {
-                                                setDetailsActiveIndex(idx);
-                                                markEpisodeWatched(animeUrl, ep.episode);
-                                                openServers(ep.url);
+                                                if (isFocused) {
+                                                    markEpisodeWatched(animeUrl, ep.episode, details);
+                                                    openServers(ep.url);
+                                                } else {
+                                                    setDetailsActiveIndex(actualIdx);
+                                                }
                                             }}
                                         >
-                                            <div className="episode-thumbnail-container">
+                                            <div className="persona-ep-thumb-box">
                                                 <img
                                                     src={epThumb}
-                                                    className="episode-thumbnail"
+                                                    className="persona-ep-thumb"
                                                     alt={`Episodio ${ep.episode}`}
                                                     onError={(e) => {
                                                         if (e.target.src !== details.cover) {
@@ -2053,34 +2172,31 @@ function App() {
                                                         }
                                                     }}
                                                 />
+                                                {watched && (
+                                                    <div
+                                                        className="persona-ep-watched-check"
+                                                        title="Marcar como no visto"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleEpisodeWatched(e, animeUrl, ep.episode);
+                                                        }}
+                                                    >
+                                                        ✓
+                                                    </div>
+                                                )}
                                             </div>
-                                            {watched && (
-                                                <div
-                                                    className="episode-watched-badge"
-                                                    title="Marcar como no visto"
-                                                    onClick={(e) => toggleEpisodeWatched(e, animeUrl, ep.episode)}
-                                                >
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                                    </svg>
+                                            <div className="persona-ep-info">
+                                                <div className="persona-ep-title">Capítulo {ep.episode}</div>
+                                                <div className="persona-ep-lines">
+                                                    <div className="persona-ep-line"></div>
+                                                    <div className="persona-ep-line short"></div>
                                                 </div>
-                                            )}
-                                            <div className="episode-badge">
-                                                Episodio {ep.episode}
                                             </div>
                                         </div>
                                     );
-                                })
-                            }
+                                });
+                            })()}
                         </div>
-
-                        {((details.episodes || [])
-                            .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))).length === 0 && (
-                                <div className="no-episodes-found">
-                                    No se encontraron episodios
-                                </div>
-                            )
-                        }
                     </div>
                 </div>
             )}
@@ -2386,8 +2502,30 @@ function App() {
                                     <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
                                     <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#21ed76', opacity: 0.9 }}></div>
                                 </div>
-                                <div className="theme-card-name">green</div>
+                                <div className="theme-card-name">Green</div>
                                 <div className="theme-card-desc">Verde · Negro azulado</div>
+                            </div>
+
+                            {/* Tema Golden */}
+                            <div
+                                className={`theme-card ${theme === 'golden' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'golden' ? 'rgba(255,201,14,0.12)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'golden' ? '#FFC90E' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('golden')}
+                            >
+                                {theme === 'golden' && (
+                                    <div className="theme-active-badge" style={{ background: '#FFC90E' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#1f1f1f' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#FFC90E' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#FFC90E', opacity: 0.9 }}></div>
+                                </div>
+                                <div className="theme-card-name">Golden</div>
+                                <div className="theme-card-desc">Dorado · Negro cálido</div>
                             </div>
 
                             {/* Tema Blueprint */}
@@ -2433,7 +2571,7 @@ function App() {
                             if (details?.episodes && details.episodes[idx]) {
                                 const ep = details.episodes[idx];
                                 setDetailsActiveIndex(idx);
-                                markEpisodeWatched(selectedAnime?.url || details?.url || '', ep.episode);
+                                markEpisodeWatched(selectedAnime?.url || details?.url || '', ep.episode, details);
                                 openServers(ep.url);
                             }
                         }}
@@ -2443,6 +2581,19 @@ function App() {
                             // Logic for next episode could go here
                         }}
                     />
+                </div>
+            )}
+
+            {/* Global Game-style screen transition wipe overlay */}
+            {isGameWipeActive && (
+                <div className={`persona-game-wipe direction-${wipeDirection}`} key={wipeKey}>
+                    <div className="persona-wipe-curtain">
+                        <div className="persona-wipe-layer layer-dark"></div>
+                        <div className="persona-wipe-layer layer-yellow"></div>
+                        <div className="persona-wipe-layer layer-red"></div>
+                        <div className="persona-wipe-layer layer-cyan"></div>
+                        <div className="persona-wipe-layer layer-main"></div>
+                    </div>
                 </div>
             )}
         </div>
