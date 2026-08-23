@@ -62,6 +62,7 @@ function App() {
     const [editingProfile, setEditingProfile] = useState(null);
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
     const [view, setView] = useState(STATES.PROFILES);
+    const [isExtensionsModalOpen, setIsExtensionsModalOpen] = useState(false);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
     const [relatedActiveIndex, setRelatedActiveIndex] = useState(0);
@@ -698,13 +699,16 @@ function App() {
         setCurrentSource(sourceId);
         setSearchQuery('');
         setSearchResults([]);
+        setIsExtensionsModalOpen(false);
 
         if (isSearchActive) {
             setView(STATES.CATALOG);
         } else if (previousView === STATES.CATALOG) {
             loadCatalog(1, sourceId);
         } else {
-            setView(STATES.HOME);
+            // El selector es un modal independiente de la navegación.
+            // No cambiamos la vista actual para que Home (u otra vista)
+            // permanezca visible detrás del modal.
             loadLatest(sourceId);
             loadGridAnimes(sourceId);
         }
@@ -742,7 +746,6 @@ function App() {
         }
         else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
-        else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
         else if (view === STATES.HOME) setView(STATES.PROFILES);
     };
 
@@ -774,6 +777,14 @@ function App() {
                     }
                 }
                 return; // Prevent background navigation
+            }
+
+            if (isExtensionsModalOpen) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setIsExtensionsModalOpen(false);
+                }
+                return; // Prevent background navigation while the module modal is open
             }
 
             if (e.key === 'Escape') {
@@ -857,7 +868,7 @@ function App() {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) activateSearch();
-                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                        else if (colIndex === 3) setIsExtensionsModalOpen(true);
                     }
                     else if (rowIndex === 3) {
                         if (gridAnimes[colIndex]) {
@@ -895,7 +906,7 @@ function App() {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) activateSearch();
-                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                        else if (colIndex === 3) setIsExtensionsModalOpen(true);
                     }
                 } else {
                     // Grid navigation
@@ -927,7 +938,7 @@ function App() {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) activateSearch();
-                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                        else if (colIndex === 3) setIsExtensionsModalOpen(true);
                     }
                 } else {
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, favorites.length - 1));
@@ -1626,10 +1637,10 @@ function App() {
 
                             <div
                                 className={`extension-selector ${(rowIndex === -1 && colIndex === 3) ? 'focused' : ''}`}
-                                onClick={() => setView(STATES.EXTENSIONS_MODAL)}
+                                onClick={() => setIsExtensionsModalOpen(true)}
                             >   </div>
 
-                            <div className="source-indicator" onClick={() => setView(STATES.EXTENSIONS_MODAL)}>
+                            <div className="source-indicator" onClick={() => setIsExtensionsModalOpen(true)}>
                                 <div className="source-circle" style={{ backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color }}>
                                     <img src={EXTENSIONS.find(e => e.id === currentSource)?.iconWeb} alt={EXTENSIONS.find(e => e.id === currentSource)?.name} style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
@@ -2394,10 +2405,10 @@ function App() {
 
 
 
-            {view === STATES.EXTENSIONS_MODAL && (
+            {isExtensionsModalOpen && (
                 <div
                     className="modal-overlay modmail-overlay"
-                    onClick={(e) => e.target.classList.contains('modmail-overlay') && setView(previousView)}
+                    onClick={(e) => e.target.classList.contains('modmail-overlay') && setIsExtensionsModalOpen(false)}
                 >
                     <div className="modmail-svg-wrap" role="dialog" aria-modal="true" aria-label="Selector de módulos">
                         <svg className="modmail-svg" width="866" height="1084" viewBox="0 0 866 1084" fill="none" xmlns="http://www.w3.org/2000/svg">
