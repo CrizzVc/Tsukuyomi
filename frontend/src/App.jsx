@@ -86,6 +86,7 @@ function App() {
     const [playerSubtitles, setPlayerSubtitles] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchLoading, setSearchLoading] = useState(false);
     const [status, setStatus] = useState('');
     const [clock, setClock] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
     const [previousView, setPreviousView] = useState(STATES.HOME);
@@ -661,6 +662,7 @@ function App() {
         setIsSearchActive(false);
         setSearchQuery('');
         setSearchResults([]);
+        setSearchLoading(false);
         if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
 
@@ -672,10 +674,12 @@ function App() {
         const query = searchQuery.trim();
         if (query === '') {
             setSearchResults([]);
+            setSearchLoading(false);
             setStatus('');
             return;
         }
 
+        setSearchLoading(true);
         setStatus('Buscando...');
         searchDebounceRef.current = setTimeout(async () => {
             try {
@@ -685,6 +689,7 @@ function App() {
             } catch (e) {
                 console.error('Error al buscar:', e);
             } finally {
+                setSearchLoading(false);
                 setStatus('');
             }
         }, 350);
@@ -699,10 +704,12 @@ function App() {
             if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
             const query = searchQuery.trim();
             if (query === '') return;
+            setSearchLoading(true);
             setStatus('Buscando...');
             const results = await api.searchAnime(query, currentSource);
             setSearchResults(results);
             setSearchIndex(-1); // reset focus to input
+            setSearchLoading(false);
             setStatus('');
         } else if (e.key === 'Escape') {
             deactivateSearch();
@@ -1025,19 +1032,19 @@ function App() {
     useEffect(() => {
         if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES].includes(view)) return;
 
-        const timeout = setTimeout(() => {
-            const activeEl = document.querySelector('.focused, .large-card.expanded');
-            if (activeEl) {
-                const rect = activeEl.getBoundingClientRect();
-                const wrapperEl = document.querySelector('.focused-episode-info-wrapper');
-                const wrapperHeight = (rowIndex > 0 && wrapperEl) ? wrapperEl.getBoundingClientRect().height : 0;
-                const targetY = Math.max(0, window.scrollY + (rect.top - wrapperHeight) - (window.innerHeight / 2) + (rect.height / 2));
-                if (Math.abs(targetY - window.scrollY) > 2) {
-                    window.scrollTo({ top: targetY, behavior: 'smooth' });
+        let timeoutId;
+        const rafId = requestAnimationFrame(() => {
+            timeoutId = setTimeout(() => {
+                const activeEl = document.querySelector('.focused, .large-card.expanded');
+                if (activeEl) {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }
-        }, 50);
-        return () => clearTimeout(timeout);
+            }, 50);
+        });
+        return () => {
+            cancelAnimationFrame(rafId);
+            clearTimeout(timeoutId);
+        };
     }, [rowIndex, colIndex, searchIndex, view]);
 
     useEffect(() => {
@@ -1665,8 +1672,19 @@ function App() {
                                 onClick={() => setIsExtensionsModalOpen(true)}
                             >   </div>
 
-                            <div className="source-indicator" onClick={() => setIsExtensionsModalOpen(true)}>
-                                <div className="source-circle" style={{ backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color }}>
+                            <div
+                                className={`source-indicator ${(rowIndex === -1 && colIndex === 3) ? 'focused' : ''}`}
+                                onClick={() => setIsExtensionsModalOpen(true)}
+                            >
+                                <div
+                                    className="source-circle"
+                                    style={{
+                                        backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color,
+                                        border: (rowIndex === -1 && colIndex === 3) ? '2px solid var(--primary-color)' : 'none',
+                                        transform: (rowIndex === -1 && colIndex === 3) ? 'scale(1.12)' : 'scale(1)',
+                                        transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                                    }}
+                                >
                                     <img src={EXTENSIONS.find(e => e.id === currentSource)?.iconWeb} alt={EXTENSIONS.find(e => e.id === currentSource)?.name} style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
                             </div>
@@ -1884,6 +1902,15 @@ function App() {
                                         </div>
                                         <h3 className="search-empty-text">Busca tus animes favoritos</h3>
                                         <p className="search-empty-subtext">Escribe el nombre del anime en la barra superior</p>
+                                    </div>
+                                ) : isSearchActive && searchLoading ? (
+                                    <div className="search-grid" style={{ marginTop: '20px' }}>
+                                        {Array.from({ length: 24 }).map((_, idx) => (
+                                            <div key={idx} className="anime-card-v2">
+                                                <div className="anime-card-v2-img-container anime-card-skeleton"></div>
+                                                <div className="anime-card-skeleton-title"></div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : isSearchActive && searchResults.length === 0 ? (
                                     <div className="search-empty-container">
