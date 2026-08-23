@@ -63,6 +63,7 @@ function App() {
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
     const [view, setView] = useState(STATES.PROFILES);
     const [isExtensionsModalOpen, setIsExtensionsModalOpen] = useState(false);
+    const [moduleModalIndex, setModuleModalIndex] = useState(0);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
     const [relatedActiveIndex, setRelatedActiveIndex] = useState(0);
@@ -253,6 +254,20 @@ function App() {
             setPreviousView(view);
         }
     }, [view]);
+
+    // Bloquea el scroll/movimiento del fondo mientras el modal de módulos está abierto
+    useEffect(() => {
+        if (isExtensionsModalOpen) {
+            const activeExtIndex = EXTENSIONS.findIndex(ext => ext.id === currentSource);
+            setModuleModalIndex(activeExtIndex >= 0 ? activeExtIndex : 0);
+
+            const previousOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = previousOverflow;
+            };
+        }
+    }, [isExtensionsModalOpen]);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -783,6 +798,16 @@ function App() {
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     setIsExtensionsModalOpen(false);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setModuleModalIndex(prev => Math.min(prev + 1, EXTENSIONS.length - 1));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setModuleModalIndex(prev => Math.max(prev - 1, 0));
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const ext = EXTENSIONS[moduleModalIndex];
+                    if (ext) selectSource(ext.id);
                 }
                 return; // Prevent background navigation while the module modal is open
             }
@@ -994,7 +1019,7 @@ function App() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
@@ -2408,6 +2433,7 @@ function App() {
             {isExtensionsModalOpen && (
                 <div
                     className="modal-overlay modmail-overlay"
+                    style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
                     onClick={(e) => e.target.classList.contains('modmail-overlay') && setIsExtensionsModalOpen(false)}
                 >
                     <div className="modmail-svg-wrap" role="dialog" aria-modal="true" aria-label="Selector de módulos">
@@ -2436,14 +2462,24 @@ function App() {
 
                                     {/* Module list — mail-style entries */}
                                     <div className="modmail-list">
-                                        {EXTENSIONS.map((ext) => {
+                                        {EXTENSIONS.map((ext, extIndex) => {
                                             const isActive = currentSource === ext.id;
+                                            const isFocused = moduleModalIndex === extIndex;
                                             return (
                                                 <div
                                                     key={ext.id}
-                                                    className={`modmail-item ${isActive ? 'modmail-item-active' : ''}`}
+                                                    className={`modmail-item ${isActive ? 'modmail-item-active' : ''} ${isFocused ? 'modmail-item-focused' : ''}`}
                                                     onClick={() => selectSource(ext.id)}
-                                                    style={{ background: isActive ? 'rgba(255, 255, 255, 0.9)' : '#161616', borderRadius: '8px', boxShadow: isActive ? `8px 8px 0px 0px var(--primary-color)` : '4px 4px 0px 0px #080808' }}
+                                                    onMouseEnter={() => setModuleModalIndex(extIndex)}
+                                                    style={{
+                                                        background: isActive ? 'rgba(255, 255, 255, 0.9)' : '#161616',
+                                                        borderRadius: '8px',
+                                                        boxShadow: isActive ? `8px 8px 0px 0px var(--primary-color)` : '4px 4px 0px 0px #080808',
+                                                        outline: isFocused ? `3px solid var(--primary-color)` : 'none',
+                                                        outlineOffset: isFocused ? '2px' : '0',
+                                                        transform: isFocused ? 'scale(1.02)' : 'scale(1)',
+                                                        transition: 'transform 0.15s ease, outline 0.15s ease'
+                                                    }}
                                                 >
                                                     {!isActive && <div className="modmail-item-flag">!</div>}
                                                     <div className="modmail-item-main">
