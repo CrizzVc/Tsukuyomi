@@ -17,11 +17,14 @@ const STATES = {
     FAVORITES: 'FAVORITES'
 };
 
+const animeav1 = '../src/assets/animeav1.png';
+const jkanime = '../src/assets/jkanime.png';
+
 const EXTENSIONS = [
     // { id: 'animeflv', name: 'AnimeFLV', icon: 'AF', color: '#ff8a00' },
-    { id: 'animeav1', name: 'AnimeAV1', icon: 'A1', color: '#6366f1' },
+    { id: 'animeav1', name: 'AnimeAV1', icon: 'A1', color: '#20a4a1', iconWeb: animeav1 },
     // { id: 'animeonlineninja', name: 'Ninja', icon: 'AN', color: '#ff2a2a' },
-    { id: 'jkanime', name: 'JKAnime', icon: 'JK', color: '#00a8ff' },
+    { id: 'jkanime', name: 'JKAnime', icon: 'JK', color: '#00a8ff', iconWeb: jkanime },
     // { id: 'monoschinos', name: 'MonoChinos', icon: 'MC', color: '#00e5ff' },
     // { id: 'tioanime', name: 'TioAnime', icon: 'TA', color: '#ff00e5' }
 ];
@@ -59,8 +62,14 @@ function App() {
     const [editingProfile, setEditingProfile] = useState(null);
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
     const [view, setView] = useState(STATES.PROFILES);
+    const [isExtensionsModalOpen, setIsExtensionsModalOpen] = useState(false);
+    const [moduleModalIndex, setModuleModalIndex] = useState(0);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
+    const [relatedActiveIndex, setRelatedActiveIndex] = useState(0);
+    const [selectedRelatedIndex, setSelectedRelatedIndex] = useState(-1); // -1 = anime actual
+    const [relatedDetailsData, setRelatedDetailsData] = useState(null);
+    const [relatedDetailsLoading, setRelatedDetailsLoading] = useState(false);
     const [currentSource, setCurrentSource] = useState('animeav1');
     const [latest, setLatest] = useState([]);
     const [gridAnimes, setGridAnimes] = useState([]); // First 24 from catalog for the home grid
@@ -77,6 +86,7 @@ function App() {
     const [playerSubtitles, setPlayerSubtitles] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchLoading, setSearchLoading] = useState(false);
     const [status, setStatus] = useState('');
     const [clock, setClock] = useState(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
     const [previousView, setPreviousView] = useState(STATES.HOME);
@@ -246,6 +256,20 @@ function App() {
         }
     }, [view]);
 
+    // Bloquea el scroll/movimiento del fondo mientras el modal de módulos está abierto
+    useEffect(() => {
+        if (isExtensionsModalOpen) {
+            const activeExtIndex = EXTENSIONS.findIndex(ext => ext.id === currentSource);
+            setModuleModalIndex(activeExtIndex >= 0 ? activeExtIndex : 0);
+
+            const previousOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = previousOverflow;
+            };
+        }
+    }, [isExtensionsModalOpen]);
+
     useEffect(() => {
         const timer = setInterval(() => {
             setClock(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
@@ -359,6 +383,9 @@ function App() {
                     setView(STATES.DETAILS);
                     setShowDescription(false);
                     setDetailsActiveIndex(0);
+                    setRelatedActiveIndex(0);
+                    setSelectedRelatedIndex(-1);
+                    setRelatedDetailsData(null);
                     setEpisodeSearchQuery('');
                     setIsEpisodeSearchVisible(false);
                     setEpisodeSortOrder('desc');
@@ -383,6 +410,9 @@ function App() {
                 setDetails(data);
                 setShowDescription(false);
                 setDetailsActiveIndex(0);
+                setRelatedActiveIndex(0);
+                setSelectedRelatedIndex(-1);
+                setRelatedDetailsData(null);
                 setEpisodeSearchQuery('');
                 setIsEpisodeSearchVisible(false);
                 setEpisodeSortOrder('desc');
@@ -391,6 +421,49 @@ function App() {
                 setStatus('Error al cargar detalles.');
             }
         }
+    };
+
+    const handleSelectRelated = async (item, idx) => {
+        setRelatedActiveIndex(idx);
+        setSelectedRelatedIndex(idx);
+
+        // Si ya estamos viendo el mismo anime, no hace falta re-navegar
+        if (details && details.url === item.url) return;
+
+        triggerGameTransition(async () => {
+            try {
+                setStatus('Cargando detalles...');
+                const data = await api.fetchDetails(item.url, currentSource);
+                setSelectedAnime(item);
+                setDetails(data);
+                setShowDescription(false);
+                setDetailsActiveIndex(0);
+                setRelatedActiveIndex(0);
+                setSelectedRelatedIndex(-1);
+                setRelatedDetailsData(null);
+                setEpisodeSearchQuery('');
+                setIsEpisodeSearchVisible(false);
+                setEpisodeSortOrder('desc');
+                setStatus('');
+
+                if (data && data.title) {
+                    api.fetchFanartLogo(data.title).then(logoUrl => {
+                        if (logoUrl) {
+                            setDetails(prev => prev ? { ...prev, logo: logoUrl } : prev);
+                        }
+                    }).catch(logoErr => {
+                        console.error("Logo fetch error:", logoErr);
+                    });
+                }
+            } catch (e) {
+                setStatus('Error al cargar detalles.');
+            }
+        });
+    };
+
+    const handleBackToSelf = () => {
+        setSelectedRelatedIndex(-1);
+        setRelatedDetailsData(null);
     };
 
     const openServers = async (url) => {
@@ -589,6 +662,7 @@ function App() {
         setIsSearchActive(false);
         setSearchQuery('');
         setSearchResults([]);
+        setSearchLoading(false);
         if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
 
@@ -600,10 +674,12 @@ function App() {
         const query = searchQuery.trim();
         if (query === '') {
             setSearchResults([]);
+            setSearchLoading(false);
             setStatus('');
             return;
         }
 
+        setSearchLoading(true);
         setStatus('Buscando...');
         searchDebounceRef.current = setTimeout(async () => {
             try {
@@ -613,6 +689,7 @@ function App() {
             } catch (e) {
                 console.error('Error al buscar:', e);
             } finally {
+                setSearchLoading(false);
                 setStatus('');
             }
         }, 350);
@@ -627,10 +704,12 @@ function App() {
             if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
             const query = searchQuery.trim();
             if (query === '') return;
+            setSearchLoading(true);
             setStatus('Buscando...');
             const results = await api.searchAnime(query, currentSource);
             setSearchResults(results);
             setSearchIndex(-1); // reset focus to input
+            setSearchLoading(false);
             setStatus('');
         } else if (e.key === 'Escape') {
             deactivateSearch();
@@ -642,13 +721,16 @@ function App() {
         setCurrentSource(sourceId);
         setSearchQuery('');
         setSearchResults([]);
+        setIsExtensionsModalOpen(false);
 
         if (isSearchActive) {
             setView(STATES.CATALOG);
         } else if (previousView === STATES.CATALOG) {
             loadCatalog(1, sourceId);
         } else {
-            setView(STATES.HOME);
+            // El selector es un modal independiente de la navegación.
+            // No cambiamos la vista actual para que Home (u otra vista)
+            // permanezca visible detrás del modal.
             loadLatest(sourceId);
             loadGridAnimes(sourceId);
         }
@@ -686,12 +768,26 @@ function App() {
         }
         else if (view === STATES.CATALOG && isSearchActive) { deactivateSearch(); setView(STATES.HOME); }
         else if (view === STATES.CATALOG) setView(STATES.HOME);
-        else if (view === STATES.EXTENSIONS_MODAL) setView(previousView);
         else if (view === STATES.HOME) setView(STATES.PROFILES);
     };
 
     // Keyboard navigation simulation
     useEffect(() => {
+        // Detecta cuántas columnas tiene realmente un grid en el DOM,
+        // en vez de asumir un número fijo (evita saltos diagonales al navegar).
+        const getGridColumnCount = (selector, fallback = 5) => {
+            const container = document.querySelector(selector);
+            if (!container || !container.children.length) return fallback;
+            const items = Array.from(container.children);
+            const firstTop = items[0].offsetTop;
+            let count = 0;
+            for (const item of items) {
+                if (item.offsetTop === firstTop) count++;
+                else break;
+            }
+            return count || fallback;
+        };
+
         const handleKeyDown = (e) => {
             if (isSidebarOpen) {
                 if (e.key === 'Escape') {
@@ -720,6 +816,24 @@ function App() {
                 return; // Prevent background navigation
             }
 
+            if (isExtensionsModalOpen) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setIsExtensionsModalOpen(false);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setModuleModalIndex(prev => Math.min(prev + 1, EXTENSIONS.length - 1));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setModuleModalIndex(prev => Math.max(prev - 1, 0));
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const ext = EXTENSIONS[moduleModalIndex];
+                    if (ext) selectSource(ext.id);
+                }
+                return; // Prevent background navigation while the module modal is open
+            }
+
             if (e.key === 'Escape') {
                 if (view === STATES.HOME || view === STATES.CATALOG || view === STATES.FAVORITES) {
                     setIsSidebarOpen(true);
@@ -738,6 +852,12 @@ function App() {
                     if (val) saveNewsApiKey(val.trim());
                 }
                 return; // Let standard input typing happen without spatial interference
+            }
+
+            if (document.activeElement && document.activeElement.id === 'search-anime-input') {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    return; // Deja que el cursor se mueva dentro del texto mientras se escribe
+                }
             }
 
             if (view === STATES.PROFILES) {
@@ -772,7 +892,7 @@ function App() {
                         setColIndex(0);
                     } else if (rowIndex === 3) {
                         const listLength = Math.min(24, gridAnimes.length);
-                        const cols = 5; // grid has 5 columns
+                        const cols = getGridColumnCount('.recent-anime-grid');
                         if (colIndex + cols < listLength) {
                             setColIndex(prev => prev + cols);
                         }
@@ -780,8 +900,9 @@ function App() {
                 }
                 if (e.key === 'ArrowUp') {
                     if (rowIndex === 3) {
-                        if (colIndex >= 5) {
-                            setColIndex(prev => prev - 5);
+                        const cols = getGridColumnCount('.recent-anime-grid');
+                        if (colIndex >= cols) {
+                            setColIndex(prev => prev - cols);
                         } else {
                             setRowIndex(2);
                             setColIndex(0);
@@ -801,7 +922,7 @@ function App() {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) activateSearch();
-                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                        else if (colIndex === 3) setIsExtensionsModalOpen(true);
                     }
                     else if (rowIndex === 3) {
                         if (gridAnimes[colIndex]) {
@@ -839,7 +960,7 @@ function App() {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) activateSearch();
-                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                        else if (colIndex === 3) setIsExtensionsModalOpen(true);
                     }
                 } else {
                     // Grid navigation
@@ -847,14 +968,16 @@ function App() {
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, results.length - 1));
                     if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
                     if (e.key === 'ArrowDown') {
-                        setSearchIndex(prev => prev + 5 < results.length ? prev + 5 : prev);
+                        const cols = getGridColumnCount('.search-grid');
+                        setSearchIndex(prev => prev + cols < results.length ? prev + cols : prev);
                     }
                     if (e.key === 'ArrowUp') {
-                        if (searchIndex < 5) {
+                        const cols = getGridColumnCount('.search-grid');
+                        if (searchIndex < cols) {
                             setRowIndex(-1);
                             setColIndex(isSearchActive ? 2 : 1); // Volver a la pestaña correspondiente
                         } else {
-                            setSearchIndex(prev => Math.max(prev - 5, 0));
+                            setSearchIndex(prev => Math.max(prev - cols, 0));
                         }
                     }
                     if (e.key === 'Enter' && results[searchIndex]) handleAnimeClick(results[searchIndex]);
@@ -871,23 +994,39 @@ function App() {
                         if (colIndex === 0) setView(STATES.HOME);
                         else if (colIndex === 1) loadCatalog(1);
                         else if (colIndex === 2) activateSearch();
-                        else if (colIndex === 3) setView(STATES.EXTENSIONS_MODAL);
+                        else if (colIndex === 3) setIsExtensionsModalOpen(true);
                     }
                 } else {
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, favorites.length - 1));
                     if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
                     if (e.key === 'ArrowDown') {
-                        setSearchIndex(prev => prev + 5 < favorites.length ? prev + 5 : prev);
+                        const cols = getGridColumnCount('.search-grid');
+                        setSearchIndex(prev => prev + cols < favorites.length ? prev + cols : prev);
                     }
                     if (e.key === 'ArrowUp') {
-                        if (searchIndex < 5) {
+                        const cols = getGridColumnCount('.search-grid');
+                        if (searchIndex < cols) {
                             setRowIndex(-1);
                             setColIndex(0); // Volver al home link
                         } else {
-                            setSearchIndex(prev => Math.max(prev - 5, 0));
+                            setSearchIndex(prev => Math.max(prev - cols, 0));
                         }
                     }
                     if (e.key === 'Enter' && favorites[searchIndex]) handleAnimeClick(favorites[searchIndex]);
+                }
+            } else if (view === STATES.DETAILS && details && showDescription) {
+                const relatedList = details.related || [];
+
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    setRelatedActiveIndex(prev => Math.min(relatedList.length - 1, prev + 1));
+                }
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    setRelatedActiveIndex(prev => Math.max(0, prev - 1));
+                }
+                if (e.key === 'Enter') {
+                    if (relatedList[relatedActiveIndex]) {
+                        handleSelectRelated(relatedList[relatedActiveIndex], relatedActiveIndex);
+                    }
                 }
             } else if (view === STATES.DETAILS && details) {
                 const filteredEpisodes = (details.episodes || [])
@@ -913,25 +1052,30 @@ function App() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
         if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES].includes(view)) return;
 
-        const timeout = setTimeout(() => {
-            const activeEl = document.querySelector('.focused, .large-card.expanded');
-            if (activeEl) {
-                const rect = activeEl.getBoundingClientRect();
-                const wrapperEl = document.querySelector('.focused-episode-info-wrapper');
-                const wrapperHeight = (rowIndex > 0 && wrapperEl) ? wrapperEl.getBoundingClientRect().height : 0;
-                const targetY = Math.max(0, window.scrollY + (rect.top - wrapperHeight) - (window.innerHeight / 2) + (rect.height / 2));
-                if (Math.abs(targetY - window.scrollY) > 2) {
-                    window.scrollTo({ top: targetY, behavior: 'smooth' });
+        // En Home, el header, el carrusel de episodios y la barra de "últimos vistos"
+        // están muy cerca visualmente: no hace falta mover el scroll entre ellos.
+        const closeRows = [-1, 0, 1];
+        if (view === STATES.HOME && closeRows.includes(rowIndex)) return;
+
+        let timeoutId;
+        const rafId = requestAnimationFrame(() => {
+            timeoutId = setTimeout(() => {
+                const activeEl = document.querySelector('.focused, .large-card.expanded');
+                if (activeEl) {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }
-        }, 50);
-        return () => clearTimeout(timeout);
+            }, 50);
+        });
+        return () => {
+            cancelAnimationFrame(rafId);
+            clearTimeout(timeoutId);
+        };
     }, [rowIndex, colIndex, searchIndex, view]);
 
     useEffect(() => {
@@ -1534,6 +1678,7 @@ function App() {
                                 {isSearchActive && (
                                     <>
                                         <input
+                                            id="search-anime-input"
                                             autoFocus
                                             className="search-inline-input"
                                             placeholder="Buscar anime..."
@@ -1556,12 +1701,23 @@ function App() {
 
                             <div
                                 className={`extension-selector ${(rowIndex === -1 && colIndex === 3) ? 'focused' : ''}`}
-                                onClick={() => setView(STATES.EXTENSIONS_MODAL)}
+                                onClick={() => setIsExtensionsModalOpen(true)}
                             >   </div>
 
-                            <div className="source-indicator" onClick={() => setView(STATES.EXTENSIONS_MODAL)}>
-                                <div className="source-circle" style={{ backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color }}>
-                                    {EXTENSIONS.find(e => e.id === currentSource)?.icon}
+                            <div
+                                className={`source-indicator ${(rowIndex === -1 && colIndex === 3) ? 'focused' : ''}`}
+                                onClick={() => setIsExtensionsModalOpen(true)}
+                            >
+                                <div
+                                    className="source-circle"
+                                    style={{
+                                        backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color,
+                                        border: (rowIndex === -1 && colIndex === 3) ? '2px solid var(--primary-color)' : 'none',
+                                        transform: (rowIndex === -1 && colIndex === 3) ? 'scale(1.12)' : 'scale(1)',
+                                        transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                                    }}
+                                >
+                                    <img src={EXTENSIONS.find(e => e.id === currentSource)?.iconWeb} alt={EXTENSIONS.find(e => e.id === currentSource)?.name} style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
                             </div>
 
@@ -1779,6 +1935,15 @@ function App() {
                                         <h3 className="search-empty-text">Busca tus animes favoritos</h3>
                                         <p className="search-empty-subtext">Escribe el nombre del anime en la barra superior</p>
                                     </div>
+                                ) : isSearchActive && searchLoading ? (
+                                    <div className="search-grid" style={{ marginTop: '20px' }}>
+                                        {Array.from({ length: 24 }).map((_, idx) => (
+                                            <div key={idx} className="anime-card-v2">
+                                                <div className="anime-card-v2-img-container anime-card-skeleton"></div>
+                                                <div className="anime-card-skeleton-title"></div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : isSearchActive && searchResults.length === 0 ? (
                                     <div className="search-empty-container">
                                         <div className="search-empty-icon">
@@ -1939,50 +2104,56 @@ function App() {
                     </div>
                 </div>
             )}
-{view === STATES.DETAILS && details && (
-                <div className="persona-details-view">
+            {view === STATES.DETAILS && details && (
+                <div className={`persona-details-view ${showDescription ? 'desc-mode' : ''}`}>
                     {/* Diagonal split background */}
                     <div className="persona-bg-dark"></div>
                     <div className="persona-bg-yellow"></div>
 
                     {/* SVG overlay for accent lines & triangles matching mockup */}
                     <svg className="persona-svg-overlay" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-                        {/* Diagonal split line */}
-                        <line x1="180" y1="0" x2="700" y2="1000" stroke="var(--persona-bg-accent)" strokeWidth="8" />
-                        <line x1="175" y1="0" x2="695" y2="1000" stroke="#000000" strokeWidth="4" />
+                        {/* Normal mode: single straight diagonal */}
+                        <g className="persona-svg-diagonal-group persona-svg-normal">
+                            <line x1="180" y1="0" x2="700" y2="1000" stroke="var(--persona-bg-accent)" strokeWidth="8" />
+                            <line x1="175" y1="0" x2="695" y2="1000" stroke="#000000" strokeWidth="4" />
+                            <polygon points="165,0 195,0 180,35" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
+                            <polygon points="950,1000 1000,1000 1000,930" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
+                            <line x1="760" y1="0" x2="1000" y2="300" stroke="var(--persona-bg-accent)" strokeWidth="6" />
+                        </g>
 
-                        {/* Top center yellow triangle */}
-                        <polygon points="165,0 195,0 180,35" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
-
-                        {/* Bottom right yellow triangle */}
-                        <polygon points="950,1000 1000,1000 1000,930" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
-
-                        {/* Top right diagonal stripe */}
-                        <line x1="760" y1="0" x2="1000" y2="300" stroke="var(--persona-bg-accent)" strokeWidth="6" />
+                        {/* Description mode: bent diagonal matching the desc-mode clip-path */}
+                        <g className="persona-svg-diagonal-group persona-svg-desc">
+                            <polyline points="860,0 390,620 100,1000" fill="none" stroke="var(--persona-bg-accent)" strokeWidth="8" />
+                            <polyline points="855,0 385,620 95,1000" fill="none" stroke="#000000" strokeWidth="4" />
+                            <polygon points="845,0 875,0 860,35" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
+                            <polygon points="85,1000 115,1000 100,965" fill="var(--persona-bg-accent)" stroke="#000" strokeWidth="3" />
+                        </g>
                     </svg>
 
                     {/* Top Right Header Controls (Search + Sort) to the left of Close (X) button */}
-                    <div className="persona-episodes-controls">
-                        <input
-                            type="text"
-                            className="persona-ep-search-input"
-                            placeholder="Buscar episodio..."
-                            value={episodeSearchQuery}
-                            onChange={(e) => {
-                                setEpisodeSearchQuery(e.target.value);
-                                setDetailsActiveIndex(0);
-                            }}
-                        />
-                        <button
-                            className={`persona-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
-                            onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-                            title="Ordenar episodios"
-                        >
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
-                            </svg>
-                        </button>
-                    </div>
+                    {!showDescription && (
+                        <div className="persona-episodes-controls">
+                            <input
+                                type="text"
+                                className="persona-ep-search-input"
+                                placeholder="Buscar episodio..."
+                                value={episodeSearchQuery}
+                                onChange={(e) => {
+                                    setEpisodeSearchQuery(e.target.value);
+                                    setDetailsActiveIndex(0);
+                                }}
+                            />
+                            <button
+                                className={`persona-control-btn ${episodeSortOrder === 'asc' ? 'active' : ''}`}
+                                onClick={() => setEpisodeSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                                title="Ordenar episodios"
+                            >
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                    <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
+                                </svg>
+                            </button>
+                        </div>
+                    )}
 
                     {/* Close Button */}
                     <button className="persona-close-btn" onClick={goBack} title="Cerrar">✕</button>
@@ -2031,340 +2202,381 @@ function App() {
                                     </div>
                                 </div>
                             </>
-                        ) : (
-                            /* Description View in place of Cover & Title */
-                            <div className="persona-synopsis-container">
-                                <div>
-                                    <div className="persona-synopsis-header">
-                                        <h2 className="persona-synopsis-title">Sinopsis</h2>
-                                        {details.genres && details.genres.length > 0 && (
-                                            <div className="persona-genres-list">
-                                                {details.genres.map((g, idx) => (
-                                                    <span key={idx} className="persona-genre-pill">{g}</span>
-                                                ))}
-                                            </div>
-                                        )}
+                        ) : (() => {
+                            const isRelatedView = selectedRelatedIndex !== -1;
+                            const displayedTitle = isRelatedView ? (relatedDetailsData?.title || '') : details.title;
+                            const displayedSynopsis = isRelatedView ? (relatedDetailsData?.synopsis || 'Cargando...') : (details.synopsis || 'Sin descripción disponible.');
+                            const displayedCover = isRelatedView ? (relatedDetailsData?.cover || details.cover) : details.cover;
+                            const displayedEpisodesCount = isRelatedView
+                                ? (relatedDetailsData?.episodesCount ?? null)
+                                : (details.episodes ? details.episodes.length : null);
+
+                            return (
+                                /* Description View: texto sobre el amarillo (sin portada, sin caja negra) */
+                                <div className="persona-desc-view">
+                                    <div className="persona-desc-top-row">
+                                        <div className="persona-desc-text-block">
+                                            <h2 className="persona-desc-anime-title">{displayedTitle}</h2>
+
+                                            {!isRelatedView && details.genres && details.genres.length > 0 && (
+                                                <div className="persona-genres-list">
+                                                    {details.genres.map((g, idx) => (
+                                                        <span key={idx} className="persona-genre-pill">{g}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <p className={`persona-desc-synopsis ${relatedDetailsLoading && isRelatedView ? 'loading' : ''}`}>
+                                                {displayedSynopsis}
+                                            </p>
+
+                                            <span className="persona-desc-episodes-count">
+                                                Capítulos: {displayedEpisodesCount !== null ? displayedEpisodesCount : '—'}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="persona-synopsis-body">
-                                        <p>{details.synopsis || 'Sin descripción disponible.'}</p>
+
+                                    <div className="persona-bottom-info">
+                                        <div className="persona-title-container"></div>
+                                        <div className="persona-action-buttons">
+                                            {/* Button 1: Toggle back to Cover & Title */}
+                                            <button
+                                                className="persona-btn-square active"
+                                                onClick={() => {
+                                                    setShowDescription(false);
+                                                    handleBackToSelf();
+                                                }}
+                                                title="Volver a la portada"
+                                            >
+                                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                                </svg>
+                                            </button>
+
+                                            {/* Button 2: Favorites */}
+                                            <button
+                                                className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
+                                                onClick={() => toggleFavorite(selectedAnime || details)}
+                                                title="Guardar a favoritos"
+                                            >
+                                                {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="persona-bottom-info">
-                                    <div className="persona-title-container">
-                                        <span className="persona-anime-title-mini">{details.title}</span>
-                                    </div>
-                                    <div className="persona-action-buttons">
-                                        {/* Button 1: Toggle back to Cover & Title */}
-                                        <button
-                                            className="persona-btn-square active"
-                                            onClick={() => setShowDescription(false)}
-                                            title="Volver a la portada"
-                                        >
-                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
-                                            </svg>
-                                        </button>
-
-                                        {/* Button 2: Favorites */}
-                                        <button
-                                            className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
-                                            onClick={() => toggleFavorite(selectedAnime || details)}
-                                            title="Guardar a favoritos"
-                                        >
-                                            {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                     </div>
 
                     {/* ── RIGHT SECTION (DARK AREA - DIAGONAL CHAPTER ROW) ── */}
                     <div className="persona-right-section">
 
                         {/* Diagonal 5-Card Episode Carousel Wheel */}
-                        <div
-                            className="persona-diagonal-episodes-container"
-                            ref={episodesRowRef}
-                            onWheel={(e) => {
-                                const now = Date.now();
-                                if (now - lastWheelTime.current < 90) return;
-                                lastWheelTime.current = now;
+                        {!showDescription && (
+                            <div
+                                className="persona-diagonal-episodes-container"
+                                ref={episodesRowRef}
+                                onWheel={(e) => {
+                                    const now = Date.now();
+                                    if (now - lastWheelTime.current < 90) return;
+                                    lastWheelTime.current = now;
 
-                                const filtered = (details.episodes || [])
-                                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
-                                    .sort((a, b) => {
-                                        const numA = parseFloat(a.episode);
-                                        const numB = parseFloat(b.episode);
-                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
-                                    });
+                                    const filtered = (details.episodes || [])
+                                        .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                        .sort((a, b) => {
+                                            const numA = parseFloat(a.episode);
+                                            const numB = parseFloat(b.episode);
+                                            return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                        });
 
-                                if (e.deltaY > 0) {
-                                    setDetailsActiveIndex(prev => Math.min(filtered.length - 1, prev + 1));
-                                } else if (e.deltaY < 0) {
-                                    setDetailsActiveIndex(prev => Math.max(0, prev - 1));
-                                }
-                            }}
-                        >
-                            {(() => {
-                                const filteredEpisodes = (details.episodes || [])
-                                    .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
-                                    .sort((a, b) => {
-                                        const numA = parseFloat(a.episode);
-                                        const numB = parseFloat(b.episode);
-                                        return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
-                                    });
+                                    if (e.deltaY > 0) {
+                                        setDetailsActiveIndex(prev => Math.min(filtered.length - 1, prev + 1));
+                                    } else if (e.deltaY < 0) {
+                                        setDetailsActiveIndex(prev => Math.max(0, prev - 1));
+                                    }
+                                }}
+                            >
+                                {(() => {
+                                    const filteredEpisodes = (details.episodes || [])
+                                        .filter(ep => ep.episode.toString().toLowerCase().includes(episodeSearchQuery.toLowerCase()))
+                                        .sort((a, b) => {
+                                            const numA = parseFloat(a.episode);
+                                            const numB = parseFloat(b.episode);
+                                            return episodeSortOrder === 'asc' ? numA - numB : numB - numA;
+                                        });
 
-                                if (filteredEpisodes.length === 0) {
-                                    return (
-                                        <div className="no-episodes-found" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>
-                                            No se encontraron episodios
-                                        </div>
-                                    );
-                                }
-
-                                const offsets = [-2, -1, 0, 1, 2];
-
-                                return offsets.map(offset => {
-                                    const actualIdx = detailsActiveIndex + offset;
-                                    if (actualIdx < 0 || actualIdx >= filteredEpisodes.length) return null;
-
-                                    const ep = filteredEpisodes[actualIdx];
-                                    const isFocused = offset === 0;
-                                    const epThumb = ep.image || details.backdrop || details.cover;
-                                    const animeUrl = selectedAnime?.url || details?.url || '';
-                                    const watched = isEpisodeWatched(animeUrl, ep.episode);
-
-                                    // Wide diagonal sweep aligned with right-shifted dark inclination (34% -> 74%)
-                                    const translateY = `calc(${offset} * clamp(125px, 16vh, 190px))`;
-                                    const translateX = `calc(clamp(140px, 11vw, 210px) + ${offset} * clamp(100px, 8.5vw, 155px))`;
-                                    const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
-                                    const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
-                                    const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
-
-                                    return (
-                                        <div
-                                            key={ep.url || ep.episode || actualIdx}
-                                            className={`persona-ep-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-ep' : ''}`}
-                                            style={{
-                                                transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
-                                                opacity: opacity,
-                                                zIndex: zIndex
-                                            }}
-                                            onClick={() => {
-                                                if (isFocused) {
-                                                    markEpisodeWatched(animeUrl, ep.episode, details);
-                                                    openServers(ep.url);
-                                                } else {
-                                                    setDetailsActiveIndex(actualIdx);
-                                                }
-                                            }}
-                                        >
-                                            <div className="persona-ep-thumb-box">
-                                                <img
-                                                    src={epThumb}
-                                                    className="persona-ep-thumb"
-                                                    alt={`Episodio ${ep.episode}`}
-                                                    onError={(e) => {
-                                                        if (e.target.src !== details.cover) {
-                                                            e.target.src = details.cover;
-                                                        }
-                                                    }}
-                                                />
-                                                {watched && (
-                                                    <div
-                                                        className="persona-ep-watched-check"
-                                                        title="Marcar como no visto"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleEpisodeWatched(e, animeUrl, ep.episode);
-                                                        }}
-                                                    >
-                                                        ✓
-                                                    </div>
-                                                )}
+                                    if (filteredEpisodes.length === 0) {
+                                        return (
+                                            <div className="no-episodes-found" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>
+                                                No se encontraron episodios
                                             </div>
-                                            <div className="persona-ep-info">
-                                                <div className="persona-ep-title">Capítulo {ep.episode}</div>
-                                                <div className="persona-ep-lines">
-                                                    <div className="persona-ep-line"></div>
-                                                    <div className="persona-ep-line short"></div>
+                                        );
+                                    }
+
+                                    const offsets = [-2, -1, 0, 1, 2];
+
+                                    return offsets.map(offset => {
+                                        const actualIdx = detailsActiveIndex + offset;
+                                        if (actualIdx < 0 || actualIdx >= filteredEpisodes.length) return null;
+
+                                        const ep = filteredEpisodes[actualIdx];
+                                        const isFocused = offset === 0;
+                                        const epThumb = ep.image || details.backdrop || details.cover;
+                                        const animeUrl = selectedAnime?.url || details?.url || '';
+                                        const watched = isEpisodeWatched(animeUrl, ep.episode);
+
+                                        // Wide diagonal sweep aligned with right-shifted dark inclination (34% -> 74%)
+                                        const translateY = `calc(${offset} * clamp(125px, 16vh, 190px))`;
+                                        const translateX = `calc(clamp(140px, 11vw, 210px) + ${offset} * clamp(100px, 8.5vw, 155px))`;
+                                        const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
+                                        const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
+                                        const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
+
+                                        return (
+                                            <div
+                                                key={ep.url || ep.episode || actualIdx}
+                                                className={`persona-ep-card ${isFocused ? 'focused' : ''} ${watched ? 'watched-ep' : ''}`}
+                                                style={{
+                                                    transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
+                                                    opacity: opacity,
+                                                    zIndex: zIndex
+                                                }}
+                                                onClick={() => {
+                                                    if (isFocused) {
+                                                        markEpisodeWatched(animeUrl, ep.episode, details);
+                                                        openServers(ep.url);
+                                                    } else {
+                                                        setDetailsActiveIndex(actualIdx);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="persona-ep-thumb-box">
+                                                    <img
+                                                        src={epThumb}
+                                                        className="persona-ep-thumb"
+                                                        alt={`Episodio ${ep.episode}`}
+                                                        onError={(e) => {
+                                                            if (e.target.src !== details.cover) {
+                                                                e.target.src = details.cover;
+                                                            }
+                                                        }}
+                                                    />
+                                                    {watched && (
+                                                        <div
+                                                            className="persona-ep-watched-check"
+                                                            title="Marcar como no visto"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleEpisodeWatched(e, animeUrl, ep.episode);
+                                                            }}
+                                                        >
+                                                            ✓
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="persona-ep-info">
+                                                    <div className="persona-ep-title">Capítulo {ep.episode}</div>
+                                                    <div className="persona-ep-lines">
+                                                        <div className="persona-ep-line"></div>
+                                                        <div className="persona-ep-line short"></div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    );
-                                });
-                            })()}
-                        </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+                        )}
+
+                        {/* Diagonal Related Anime Carousel (shown in description mode) */}
+                        {showDescription && (
+                            <div
+                                className="persona-diagonal-related-container"
+                                onWheel={(e) => {
+                                    const now = Date.now();
+                                    if (now - lastWheelTime.current < 90) return;
+                                    lastWheelTime.current = now;
+
+                                    const relatedList = details.related || [];
+
+                                    if (e.deltaY > 0) {
+                                        setRelatedActiveIndex(prev => Math.min(relatedList.length - 1, prev + 1));
+                                    } else if (e.deltaY < 0) {
+                                        setRelatedActiveIndex(prev => Math.max(0, prev - 1));
+                                    }
+                                }}
+                            >
+                                {(() => {
+                                    const relatedList = details.related || [];
+
+                                    if (relatedList.length === 0) {
+                                        return (
+                                            <div className="no-episodes-found" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>
+                                                No hay animes relacionados
+                                            </div>
+                                        );
+                                    }
+
+                                    const offsets = [-2, -1, 0, 1, 2];
+
+                                    return offsets.map(offset => {
+                                        const actualIdx = relatedActiveIndex + offset;
+                                        if (actualIdx < 0 || actualIdx >= relatedList.length) return null;
+
+                                        const item = relatedList[actualIdx];
+                                        const isFocused = offset === 0;
+                                        const isSelected = selectedRelatedIndex === actualIdx;
+                                        const itemThumb = item.image || details.backdrop || details.cover;
+
+                                        // Inverted horizontal direction vs the normal episodes carousel:
+                                        // items above (negative offset) shift right, items below (positive offset) shift left.
+                                        const translateY = `calc(${offset} * clamp(125px, 16vh, 190px))`;
+                                        const translateX = `calc(clamp(40px, 5vw, 90px) - 200px + ${-offset} * clamp(80px, 7vw, 130px))`;
+                                        const scale = isFocused ? 1.06 : (Math.abs(offset) === 1 ? 0.92 : 0.80);
+                                        const opacity = isFocused ? 1 : (Math.abs(offset) === 1 ? 0.65 : 0.25);
+                                        const zIndex = isFocused ? 10 : (Math.abs(offset) === 1 ? 5 : 2);
+
+                                        return (
+                                            <div
+                                                key={item.url || item.title || actualIdx}
+                                                className={`persona-ep-card ${isFocused ? 'focused' : ''} ${isSelected ? 'watched-ep' : ''}`}
+                                                style={{
+                                                    transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
+                                                    opacity: opacity,
+                                                    zIndex: zIndex
+                                                }}
+                                                onClick={() => {
+                                                    if (isFocused) {
+                                                        handleSelectRelated(item, actualIdx);
+                                                    } else {
+                                                        setRelatedActiveIndex(actualIdx);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="persona-ep-thumb-box">
+                                                    <img
+                                                        src={itemThumb}
+                                                        className="persona-ep-thumb"
+                                                        alt={item.title}
+                                                        onError={(e) => {
+                                                            if (e.target.src !== details.cover) {
+                                                                e.target.src = details.cover;
+                                                            }
+                                                        }}
+                                                    />
+                                                    {isSelected && (
+                                                        <div className="persona-ep-watched-check" title="Viendo esta info">
+                                                            ✓
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="persona-ep-info">
+                                                    <div className="persona-ep-title">{item.title}</div>
+                                                    <div className="persona-ep-lines">
+                                                        <div className="persona-ep-line"></div>
+                                                        <div className="persona-ep-line short"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
 
 
-            {view === STATES.EXTENSIONS_MODAL && (
+            {isExtensionsModalOpen && (
                 <div
-                    className="modal-overlay stellar-overlay"
-                    onClick={(e) => e.target.classList.contains('stellar-overlay') && setView(previousView)}
+                    className="modal-overlay modmail-overlay"
+                    style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+                    onClick={(e) => e.target.classList.contains('modmail-overlay') && setIsExtensionsModalOpen(false)}
                 >
-                    <div className="stellar-card">
+                    <div className="modmail-svg-wrap" role="dialog" aria-modal="true" aria-label="Selector de módulos">
+                        <svg className="modmail-svg" width="866" height="1084" viewBox="0 0 866 1084" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Tilted card silhouette */}
+                            <rect width="858.226" height="1240.87" transform="matrix(0.986892 0.161383 -0.195072 0.980789 246.483 -197.766)" fill="#1F1F1F" />
+                            <rect x="10.2028" y="12.5106" width="764.838" height="1075.81" transform="matrix(0.995594 0.0937744 -0.108396 0.994108 167.837 -90.3835)" stroke="white" strokeWidth="23" />
 
-                        {/* Crosshair lines */}
-                        <div className="stellar-crosshair stellar-crosshair-v"></div>
-                        <div className="stellar-crosshair stellar-crosshair-h"></div>
+                            {/* HTML content, warped to match the tilted frame exactly */}
+                            <foreignObject x="10.2028" y="12.5106" width="764.838" height="1075.81" transform="matrix(0.995594 0.0937744 -0.108396 0.994108 167.837 -90.3835)">
+                                <div xmlns="http://www.w3.org/1999/xhtml" className="modmail-content">
 
-                        {/* Cardinal tick marks */}
-                        <div className="stellar-tick stellar-tick-top">
-                            <svg width="13" height="16" viewBox="0 0 13 16">
-                                <polygon points="6.5,0 13,16 0,16" fill="rgba(255,255,255,0.55)" />
-                            </svg>
-                        </div>
-                        <div className="stellar-tick stellar-tick-right">
-                            <svg width="18" height="14" viewBox="0 0 18 14">
-                                <line x1="0" y1="7" x2="10" y2="7" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-                                <circle cx="14" cy="7" r="3" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" />
-                                <circle cx="14" cy="7" r="1" fill="rgba(255,255,255,0.6)" />
-                            </svg>
-                        </div>
-                        <div className="stellar-tick stellar-tick-bottom">
-                            <svg width="12" height="12" viewBox="0 0 12 12">
-                                <circle cx="6" cy="6" r="4.5" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2" />
-                                <circle cx="6" cy="6" r="1.5" fill="rgba(255,255,255,0.3)" />
-                            </svg>
-                        </div>
-                        <div className="stellar-tick stellar-tick-left">
-                            <svg width="10" height="10" viewBox="0 0 10 10">
-                                <rect x="1" y="1" width="8" height="8" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
-                            </svg>
-                        </div>
-
-                        {/* Corner labels */}
-                        <div className="stellar-coord-tl">CARTA ESTELAR<br />J2000.0 · ECL</div>
-                        <div className="stellar-coord-tr">MÓDULOS<br />No. 564</div>
-
-                        {/* Orbit rings — SVG entrecortado */}
-                        <svg className="stellar-orbits" width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
-                            {/* Ejes entrecortados */}
-                            <line x1="210" y1="0" x2="210" y2="80" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            <line x1="210" y1="340" x2="210" y2="420" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            <line x1="0" y1="210" x2="80" y2="210" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            <line x1="340" y1="210" x2="420" y2="210" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" strokeDasharray="4 5" />
-                            {/* Órbita circular principal */}
-                            <circle cx="210" cy="210" r="142" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="0.9" strokeDasharray="6 5" />
-                            {/* Elipse horizontal */}
-                            <ellipse cx="210" cy="210" rx="180" ry="50" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" strokeDasharray="5 6" />
-                            {/* Elipse vertical */}
-                            <ellipse cx="210" cy="210" rx="50" ry="180" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" strokeDasharray="5 6" />
-                            {/* Elipse diagonal 1 */}
-                            <ellipse cx="210" cy="210" rx="160" ry="70" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.6" strokeDasharray="4 7" transform="rotate(35 210 210)" />
-                            {/* Elipse diagonal 2 */}
-                            <ellipse cx="210" cy="210" rx="160" ry="70" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.6" strokeDasharray="4 7" transform="rotate(-35 210 210)" />
-                            {/* Órbita exterior */}
-                            <circle cx="210" cy="210" r="170" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.6" strokeDasharray="3 8" />
-                            {/* Nodos */}
-                            <circle cx="210" cy="68" r="2.5" fill="rgba(255,255,255,0.4)" />
-                            <circle cx="210" cy="352" r="2" fill="rgba(255,255,255,0.25)" />
-                            <circle cx="68" cy="210" r="2" fill="rgba(255,255,255,0.25)" />
-                            <circle cx="352" cy="210" r="2.5" fill="rgba(255,255,255,0.4)" />
-                            <circle cx="310" cy="110" r="1.8" fill="rgba(255,255,255,0.3)" />
-                            <circle cx="110" cy="310" r="1.8" fill="rgba(255,255,255,0.3)" />
-                        </svg>
-
-                        {/* Central planet — SVG estático con degradado y cuadrícula */}
-                        <div className="stellar-planet">
-                            <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <radialGradient id="pg" cx="36%" cy="32%" r="62%">
-                                        <stop offset="0%" stopColor="#ffffff" />
-                                        <stop offset="35%" stopColor="#aaaaaa" />
-                                        <stop offset="70%" stopColor="#444444" />
-                                        <stop offset="100%" stopColor="#0a0a0a" />
-                                    </radialGradient>
-                                    <radialGradient id="pshine" cx="30%" cy="28%" r="48%">
-                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
-                                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                                    </radialGradient>
-                                    <clipPath id="pc">
-                                        <circle cx="45" cy="45" r="44" />
-                                    </clipPath>
-                                </defs>
-                                <circle cx="45" cy="45" r="44" fill="url(#pg)" />
-                                <g clipPath="url(#pc)" fill="none" stroke="#ffffff" strokeWidth="0.5" opacity="0.28">
-                                    {/* Horizontales */}
-                                    {[9, 18, 27, 36, 45, 54, 63, 72, 81].map(y => (
-                                        <line key={`h${y}`} x1="1" y1={y} x2="89" y2={y} />
-                                    ))}
-                                    {/* Verticales */}
-                                    {[9, 18, 27, 36, 45, 54, 63, 72, 81].map(x => (
-                                        <line key={`v${x}`} x1={x} y1="1" x2={x} y2="89" />
-                                    ))}
-                                    {/* Elipses internas */}
-                                    <ellipse cx="45" cy="45" rx="44" ry="7" />
-                                    <ellipse cx="45" cy="45" rx="44" ry="14" />
-                                    <ellipse cx="45" cy="45" rx="44" ry="28" />
-                                    <ellipse cx="45" cy="45" rx="32" ry="42" />
-                                    <ellipse cx="45" cy="45" rx="16" ry="44" />
-                                </g>
-                                <circle cx="45" cy="45" r="44" fill="url(#pshine)" />
-                                <circle cx="45" cy="45" r="44" fill="none" stroke="#ffffff" strokeWidth="0.7" opacity="0.45" />
-                            </svg>
-                        </div>
-
-                        {/* Active module indicator */}
-                        <div className="active-info" style={{ color: currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.color : 'rgba(255,255,255,0.55)' }}>
-                            {currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.name.toUpperCase() + ' · ACTIVO' : 'SELECCIONA UN MÓDULO'}
-                        </div>
-
-                        {/* Moons */}
-                        {EXTENSIONS.map((ext, idx) => {
-                            const total = EXTENSIONS.length;
-                            const angle = (360 / total) * idx - 90;
-                            const rad = (angle * Math.PI) / 180;
-                            const radius = 130;
-                            const x = Math.cos(rad) * radius;
-                            const y = Math.sin(rad) * radius;
-                            const isActive = currentSource === ext.id;
-                            return (
-                                <div
-                                    key={ext.id}
-                                    className={`stellar-moon ${isActive ? 'stellar-moon-active' : ''}`}
-                                    style={{
-                                        '--moon-color': ext.color,
-                                        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                                    }}
-                                    onClick={() => selectSource(ext.id)}
-                                    title={ext.name}
-                                >
-                                    <div
-                                        className="stellar-moon-core"
-                                        style={{
-                                            backgroundColor: isActive ? `${ext.color}22` : 'rgba(255,255,255,0.05)',
-                                            borderColor: isActive ? ext.color : 'rgba(255,255,255,0.18)',
-                                        }}
-                                    >
-                                        <span className="stellar-moon-icon">{ext.icon}</span>
-                                        {isActive && (
-                                            <div className="stellar-moon-pulse" style={{ '--pulse-color': ext.color }}></div>
-                                        )}
+                                    {/* Header — like "休日 | Day off" + "TODAY's NewMail" */}
+                                    <div className="modmail-header">
+                                        <div className="modmail-chip" style={{ background: `linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 55%, red))` }}>
+                                            <span className="modmail-chip-main">MÓDULOS</span>
+                                            <span className="modmail-chip-div"></span>
+                                            <span className="modmail-chip-sub">Selecciona uno</span>
+                                        </div>
+                                        <div className="modmail-heading2">
+                                            <span className="modmail-heading2-top">TUS</span>
+                                            <span className="modmail-heading2-main">MÓDULOS</span>
+                                            <div className="modmail-heading2-flag" style={{ background: 'var(--primary-color)' }}></div>
+                                        </div>
                                     </div>
-                                    <div className="stellar-moon-label">{ext.name}</div>
+
+                                    {/* Module list — mail-style entries */}
+                                    <div className="modmail-list">
+                                        {EXTENSIONS.map((ext, extIndex) => {
+                                            const isActive = currentSource === ext.id;
+                                            const isFocused = moduleModalIndex === extIndex;
+                                            return (
+                                                <div
+                                                    key={ext.id}
+                                                    className={`modmail-item ${isActive ? 'modmail-item-active' : ''} ${isFocused ? 'modmail-item-focused' : ''}`}
+                                                    onClick={() => selectSource(ext.id)}
+                                                    onMouseEnter={() => setModuleModalIndex(extIndex)}
+                                                    style={{
+                                                        background: isActive ? 'rgba(255, 255, 255, 0.9)' : '#161616',
+                                                        borderRadius: '8px',
+                                                        boxShadow: isActive ? `8px 8px 0px 0px var(--primary-color)` : '4px 4px 0px 0px #080808',
+                                                        outline: isFocused ? `3px solid var(--primary-color)` : 'none',
+                                                        outlineOffset: isFocused ? '2px' : '0',
+                                                        transform: isFocused ? 'scale(1.02)' : 'scale(1)',
+                                                        transition: 'transform 0.15s ease, outline 0.15s ease'
+                                                    }}
+                                                >
+                                                    {!isActive && <div className="modmail-item-flag">!</div>}
+                                                    <div className="modmail-item-main">
+                                                        <div className="modmail-item-topbar" style={{ borderColor: isActive ? 'var(--primary-color)' : 'rgba(255,255,255,0.25)' }}>
+                                                            {isActive && <span className="modmail-item-tag" style={{ color: 'var(--primary-color)', borderColor: 'var(--primary-color)' }}>ACTIVO</span>}
+                                                            <span className="modmail-item-name" style={{ color: isActive ? '#1f1f1f' : 'rgba(255,255,255,0.9)' }}>{ext.name}</span>
+                                                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <circle cx="12" cy="12" r="9" stroke={isActive ? 'var(--primary-color)' : '#fff'} strokeWidth="1.5" />
+                                                                <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={isActive ? 'var(--primary-color)' : '#fff'} strokeWidth="1.1" opacity="0.85" />
+                                                                <line x1="3" y1="12" x2="21" y2="12" stroke={isActive ? 'var(--primary-color)' : '#fff'} strokeWidth="1.1" opacity="0.85" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="modmail-item-message" style={{ color: isActive ? '#202020' : 'rgba(255, 255, 255, 0.9)' }}>
+                                                            {isActive ? 'Módulo activo ahora mismo' : 'Toca para cambiar de módulo…'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="modmail-item-avatar" style={{ background: `${ext.color}26`, borderColor: ext.color }}>
+                                                        {/* agregar icono aquí. */}
+                                                        <img src={ext.iconWeb} alt={ext.name} style={{ width: '32px', height: '32px', filter: 'brightness(0) invert(1)' }} />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Footer control hints */}
+                                    <div className="modmail-footer">
+                                        <span className="modmail-footer-hint">
+                                            <span className="modmail-footer-key">A</span> Activar
+                                        </span>
+                                        <span className="modmail-footer-hint" onClick={() => setView(previousView)}>
+                                            <span className="modmail-footer-key">B</span> Cerrar
+                                        </span>
+                                    </div>
+
                                 </div>
-                            );
-                        })}
-
-                        {/* Bottom label */}
-                        <div className="stellar-label">MÓDULO ACTUAL</div>
-                        <div
-                            className="stellar-sublabel"
-                            style={{ color: currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.color : 'rgba(255,255,255,0.7)' }}
-                        >
-                            {currentSource ? EXTENSIONS.find(e => e.id === currentSource)?.name.toUpperCase() : '—'}
-                        </div>
-
-                        {/* Close button */}
-                        <button className="stellar-close-btn" onClick={() => setView(previousView)}>✕</button>
-
+                            </foreignObject>
+                        </svg>
                     </div>
                 </div>
             )}
