@@ -773,6 +773,21 @@ function App() {
 
     // Keyboard navigation simulation
     useEffect(() => {
+        // Detecta cuántas columnas tiene realmente un grid en el DOM,
+        // en vez de asumir un número fijo (evita saltos diagonales al navegar).
+        const getGridColumnCount = (selector, fallback = 5) => {
+            const container = document.querySelector(selector);
+            if (!container || !container.children.length) return fallback;
+            const items = Array.from(container.children);
+            const firstTop = items[0].offsetTop;
+            let count = 0;
+            for (const item of items) {
+                if (item.offsetTop === firstTop) count++;
+                else break;
+            }
+            return count || fallback;
+        };
+
         const handleKeyDown = (e) => {
             if (isSidebarOpen) {
                 if (e.key === 'Escape') {
@@ -839,6 +854,12 @@ function App() {
                 return; // Let standard input typing happen without spatial interference
             }
 
+            if (document.activeElement && document.activeElement.id === 'search-anime-input') {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    return; // Deja que el cursor se mueva dentro del texto mientras se escribe
+                }
+            }
+
             if (view === STATES.PROFILES) {
                 if (e.key === 'ArrowDown') setColIndex(prev => Math.min(prev + 1, profiles.length));
                 if (e.key === 'ArrowUp') setColIndex(prev => Math.max(prev - 1, 0));
@@ -871,7 +892,7 @@ function App() {
                         setColIndex(0);
                     } else if (rowIndex === 3) {
                         const listLength = Math.min(24, gridAnimes.length);
-                        const cols = 5; // grid has 5 columns
+                        const cols = getGridColumnCount('.recent-anime-grid');
                         if (colIndex + cols < listLength) {
                             setColIndex(prev => prev + cols);
                         }
@@ -879,8 +900,9 @@ function App() {
                 }
                 if (e.key === 'ArrowUp') {
                     if (rowIndex === 3) {
-                        if (colIndex >= 5) {
-                            setColIndex(prev => prev - 5);
+                        const cols = getGridColumnCount('.recent-anime-grid');
+                        if (colIndex >= cols) {
+                            setColIndex(prev => prev - cols);
                         } else {
                             setRowIndex(2);
                             setColIndex(0);
@@ -946,14 +968,16 @@ function App() {
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, results.length - 1));
                     if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
                     if (e.key === 'ArrowDown') {
-                        setSearchIndex(prev => prev + 5 < results.length ? prev + 5 : prev);
+                        const cols = getGridColumnCount('.search-grid');
+                        setSearchIndex(prev => prev + cols < results.length ? prev + cols : prev);
                     }
                     if (e.key === 'ArrowUp') {
-                        if (searchIndex < 5) {
+                        const cols = getGridColumnCount('.search-grid');
+                        if (searchIndex < cols) {
                             setRowIndex(-1);
                             setColIndex(isSearchActive ? 2 : 1); // Volver a la pestaña correspondiente
                         } else {
-                            setSearchIndex(prev => Math.max(prev - 5, 0));
+                            setSearchIndex(prev => Math.max(prev - cols, 0));
                         }
                     }
                     if (e.key === 'Enter' && results[searchIndex]) handleAnimeClick(results[searchIndex]);
@@ -976,14 +1000,16 @@ function App() {
                     if (e.key === 'ArrowRight') setSearchIndex(prev => Math.min(prev + 1, favorites.length - 1));
                     if (e.key === 'ArrowLeft') setSearchIndex(prev => Math.max(prev - 1, 0));
                     if (e.key === 'ArrowDown') {
-                        setSearchIndex(prev => prev + 5 < favorites.length ? prev + 5 : prev);
+                        const cols = getGridColumnCount('.search-grid');
+                        setSearchIndex(prev => prev + cols < favorites.length ? prev + cols : prev);
                     }
                     if (e.key === 'ArrowUp') {
-                        if (searchIndex < 5) {
+                        const cols = getGridColumnCount('.search-grid');
+                        if (searchIndex < cols) {
                             setRowIndex(-1);
                             setColIndex(0); // Volver al home link
                         } else {
-                            setSearchIndex(prev => Math.max(prev - 5, 0));
+                            setSearchIndex(prev => Math.max(prev - cols, 0));
                         }
                     }
                     if (e.key === 'Enter' && favorites[searchIndex]) handleAnimeClick(favorites[searchIndex]);
@@ -1031,6 +1057,11 @@ function App() {
     // Cinematic scroll to follow focus
     useEffect(() => {
         if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES].includes(view)) return;
+
+        // En Home, el header, el carrusel de episodios y la barra de "últimos vistos"
+        // están muy cerca visualmente: no hace falta mover el scroll entre ellos.
+        const closeRows = [-1, 0, 1];
+        if (view === STATES.HOME && closeRows.includes(rowIndex)) return;
 
         let timeoutId;
         const rafId = requestAnimationFrame(() => {
@@ -1647,6 +1678,7 @@ function App() {
                                 {isSearchActive && (
                                     <>
                                         <input
+                                            id="search-anime-input"
                                             autoFocus
                                             className="search-inline-input"
                                             placeholder="Buscar anime..."
@@ -1680,7 +1712,7 @@ function App() {
                                     className="source-circle"
                                     style={{
                                         backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color,
-                                        border: (rowIndex === -1 && colIndex === 3) ? '2px solid var(--primary-color)' : 'none',
+                                        boxShadow: (rowIndex === -1 && colIndex === 3) ? '0 0 0 3px var(--primary-color), 0 0 14px var(--primary-color)' : 'none',
                                         transform: (rowIndex === -1 && colIndex === 3) ? 'scale(1.12)' : 'scale(1)',
                                         transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                                     }}
