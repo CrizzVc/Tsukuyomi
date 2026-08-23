@@ -17,11 +17,14 @@ const STATES = {
     FAVORITES: 'FAVORITES'
 };
 
+const animeav1 = '../src/assets/animeav1.png';
+const jkanime = '../src/assets/jkanime.png';
+
 const EXTENSIONS = [
     // { id: 'animeflv', name: 'AnimeFLV', icon: 'AF', color: '#ff8a00' },
-    { id: 'animeav1', name: 'AnimeAV1', icon: 'A1', color: '#6366f1' },
+    { id: 'animeav1', name: 'AnimeAV1', icon: 'A1', color: '#20a4a1', iconWeb: animeav1 },
     // { id: 'animeonlineninja', name: 'Ninja', icon: 'AN', color: '#ff2a2a' },
-    { id: 'jkanime', name: 'JKAnime', icon: 'JK', color: '#00a8ff' },
+    { id: 'jkanime', name: 'JKAnime', icon: 'JK', color: '#00a8ff', iconWeb: jkanime },
     // { id: 'monoschinos', name: 'MonoChinos', icon: 'MC', color: '#00e5ff' },
     // { id: 'tioanime', name: 'TioAnime', icon: 'TA', color: '#ff00e5' }
 ];
@@ -1628,7 +1631,7 @@ function App() {
 
                             <div className="source-indicator" onClick={() => setView(STATES.EXTENSIONS_MODAL)}>
                                 <div className="source-circle" style={{ backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color }}>
-                                    {EXTENSIONS.find(e => e.id === currentSource)?.icon}
+                                    <img src={EXTENSIONS.find(e => e.id === currentSource)?.iconWeb} alt={EXTENSIONS.find(e => e.id === currentSource)?.name} style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
                             </div>
 
@@ -2448,12 +2451,7 @@ function App() {
                                                     </div>
                                                     <div className="modmail-item-avatar" style={{ background: `${ext.color}26`, borderColor: ext.color }}>
                                                         {/* agregar icono aquí. */}
-
-                                                        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <circle cx="12" cy="12" r="9" stroke={"#202020"} strokeWidth="1.4" />
-                                                            <ellipse cx="12" cy="12" rx="3.8" ry="9" stroke={"#202020"} strokeWidth="1" opacity="0.8" />
-                                                            <line x1="3" y1="12" x2="21" y2="12" stroke={"#202020"} strokeWidth="1" opacity="0.8" />
-                                                        </svg>
+                                                        <img src={ext.iconWeb} alt={ext.name} style={{ width: '32px', height: '32px', filter: 'brightness(0) invert(1)' }} />
                                                     </div>
                                                 </div>
                                             );

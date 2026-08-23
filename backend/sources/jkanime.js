@@ -20,7 +20,7 @@ const jkanime = {
             const title = a.find('h5').text().trim();
             const episodeText = a.find('.badge-primary').text().trim();
             const episode = episodeText.replace('Ep ', '');
-            
+
             let cover = image;
             let animeUrl = urlPath;
             if (urlPath) {
@@ -39,19 +39,19 @@ const jkanime = {
     getDetails: async (url) => {
         const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const $ = cheerio.load(response.data);
-        
+
         // Title: use the h3 inside .anime_info (the main visible block), not the page title
         const title = $('.anime_info h3').first().text().trim()
             || $('title').first().text().replace(/ - anime .* online JkAnime$/i, '').replace(' - JkAnime', '').trim();
-        
+
         // Synopsis: use the .scroll paragraph inside .anime_info
         const synopsis = $('.anime_info p.scroll').first().text().trim()
             || $('p[rel="sinopsis"]').text().trim();
-        
+
         // Cover: prefer og:image meta tag (reliable and not duplicated)
         const cover = $('meta[property="og:image"]').attr('content')
             || $('img[src*="/image/"]').first().attr('src');
-        
+
         // Status: pick from the first .anime_data block only
         const statusEl = $('.anime_data').first().find('.enemision').first();
         const status = statusEl.text().trim() || 'En emisión';
@@ -88,7 +88,7 @@ const jkanime = {
             const epsMatch = epsLi.first().text().match(/\d+/);
             if (epsMatch) totalEpisodes = parseInt(epsMatch[0]);
         }
-        
+
         // Fallback: use #uep link (latest episode href)
         if (totalEpisodes === 0) {
             const uepHref = $('#uep').attr('href');
@@ -117,7 +117,7 @@ const jkanime = {
         const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const html = response.data;
         const $ = cheerio.load(html);
-        
+
         const servers = [];
         const regex = /video\[\d+\]\s*=\s*'[^']*src="([^"]+)"/g;
         let match;
