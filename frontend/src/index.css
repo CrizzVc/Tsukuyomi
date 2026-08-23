@@ -202,6 +202,31 @@
     --persona-text-on-accent: #000000;
 }
 
+/* ══════════════════════════════════════════
+   TEMA 9 — Persona 3 (Midnight Blue)
+   ══════════════════════════════════════════ */
+[data-theme="persona-blue"] {
+    --primary-color: #00a8ff;
+    --bg-color: #0a0f1d;
+    --text-color: #e2e8f0;
+    --text-dim: #64748b;
+    --card-width: 200px;
+    --surface-1: #111a30;
+    --surface-2: #192542;
+    --surface-3: #223257;
+    --search-bg: #070a14;
+    --glow-rgb: 0, 168, 255;
+    --accent-color: #00a8ff;
+    --on-primary: #ffffff;
+    --header-bg: #070a14;
+    --card-bg: #0f172a;
+    --section-title-color: #e2e8f0;
+    --wipe-accent: #00a8ff;
+    --persona-bg-accent: #00a8ff;
+    --persona-dark-bg: #070a14;
+    --persona-text-on-accent: #ffffff;
+}
+
 /* Blueprint theme overrides for light surfaces */
 [data-theme="blueprint"] .settings-panel-title,
 [data-theme="blueprint"] .settings-section-label,

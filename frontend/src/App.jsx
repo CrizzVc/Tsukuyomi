@@ -2761,6 +2761,28 @@ function App() {
                                 <div className="theme-card-name" style={{ color: 'white' }}>Blueprint</div>
                                 <div className="theme-card-desc">Azul · Fondo claro</div>
                             </div>
+
+                            {/* Tema Persona 3 (Midnight Blue) */}
+                            <div
+                                className={`theme-card ${theme === 'persona-blue' ? 'active' : ''}`}
+                                style={{
+                                    background: theme === 'persona-blue' ? 'rgba(74,108,247,0.1)' : 'rgba(255,255,255,0.04)',
+                                    borderColor: theme === 'persona-blue' ? '#4a6cf7' : 'rgba(255,255,255,0.08)'
+                                }}
+                                onClick={() => setTheme('persona-blue')}
+                            >
+                                {theme === 'persona-blue' && (
+                                    <div className="theme-active-badge" style={{ background: '#4a6cf7' }}>✓</div>
+                                )}
+                                <div className="theme-card-preview" style={{ background: '#0a0f1d' }}>
+                                    <div style={{ position: 'absolute', top: 8, left: 10, width: 28, height: 3, borderRadius: 2, background: '#4a6cf7' }}></div>
+                                    <div style={{ position: 'absolute', top: 16, left: 10, width: 50, height: 2, borderRadius: 2, background: 'rgba(26,31,78,0.2)' }}></div>
+                                    <div style={{ position: 'absolute', top: 22, left: 10, width: 38, height: 2, borderRadius: 2, background: 'rgba(26,31,78,0.12)' }}></div>
+                                    <div style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: 3, background: '#4a6cf7', opacity: 0.85 }}></div>
+                                </div>
+                                <div className="theme-card-name" style={{ color: 'white' }}>Persona 3</div>
+                                <div className="theme-card-desc">Azul · Fondo claro</div>
+                            </div>
                         </div>
                     </div>
                 </div>
