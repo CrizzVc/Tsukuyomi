@@ -1712,7 +1712,7 @@ function App() {
                                     className="source-circle"
                                     style={{
                                         backgroundColor: EXTENSIONS.find(e => e.id === currentSource)?.color,
-                                        boxShadow: (rowIndex === -1 && colIndex === 3) ? '0 0 0 3px var(--primary-color), 0 0 14px var(--primary-color)' : 'none',
+                                        border: (rowIndex === -1 && colIndex === 3) ? '2px solid var(--primary-color)' : 'none',
                                         transform: (rowIndex === -1 && colIndex === 3) ? 'scale(1.12)' : 'scale(1)',
                                         transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                                     }}
