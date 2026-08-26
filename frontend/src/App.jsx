@@ -1777,7 +1777,7 @@ function App() {
                                 </div>
 
                                 {(() => {
-                                    const history = activeProfile ? (watchedEpisodes[`${activeProfile.id}_history`] || []).slice(0, 4) : [];
+                                    const history = activeProfile ? (watchedEpisodes[`${activeProfile.id}_history`] || []).slice(0, 4) : []; // muestra hasta 4 episodios vistos
                                     const hasHistory = history.length > 0;
                                     const focusedHistoryItem = history[colIndices[1]] || history[0];
 
