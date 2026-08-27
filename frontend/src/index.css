@@ -4103,6 +4103,9 @@ header {
     width: 100%;
     height: 100%;
     background-color: var(--persona-bg-accent);
+    /* background-image: url('./assets/lines.jpg');
+    background-size: cover;
+    background-blend-mode: color-burn; */
     /* 5 puntos (equivalentes a la diagonal recta original) para que el
        clip-path pueda interpolar suavemente hacia la forma quebrada de abajo */
     clip-path: polygon(0 0, 18% 0, 44% 50%, 70% 100%, 0 100%);
@@ -4123,6 +4126,9 @@ header {
     width: 100%;
     height: 100%;
     background-color: var(--persona-dark-bg);
+    background-image: url('./assets/suelo.jpg');
+    background-size: cover;
+    background-blend-mode: multiply;
     z-index: 0;
 }
 
