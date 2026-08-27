@@ -904,6 +904,10 @@ function App() {
         };
 
         const handleKeyDown = (e) => {
+            if (showCoverModal) {
+                return; // La carta holográfica maneja su propio Escape; no tocar la vista de atrás
+            }
+
             if (isSidebarOpen) {
                 if (e.key === 'Escape') {
                     setIsSidebarOpen(false);
@@ -1167,7 +1171,7 @@ function App() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex, showCoverModal]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
