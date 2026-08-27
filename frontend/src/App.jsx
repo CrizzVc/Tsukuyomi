@@ -162,7 +162,91 @@ const getAnimeBadge = (anime) => {
     return { text: 'TV Anime', type: 'tv' };
 };
 
+// --- Navegación con control (Gamepad API) ---
+// Traduce el D-pad / stick izquierdo y los botones Cruz (Enter) y Círculo (Escape)
+// en los mismos eventos "keydown" que ya usa toda la navegación por teclado,
+// para no duplicar lógica: cualquier listener de flechas/Enter/Escape que ya
+// exista en la app responde igual al control.
+function useGamepadNavigation() {
+    useEffect(() => {
+        const DEADZONE = 0.5;
+        const REPEAT_DELAY = 400; // ms antes de empezar a repetir al mantener presionado
+        const REPEAT_RATE = 130;  // ms entre repeticiones
+
+        // Estado por "acción" (arriba/abajo/izq/der/enter/escape)
+        const state = {
+            ArrowUp: { pressed: false, t: 0 },
+            ArrowDown: { pressed: false, t: 0 },
+            ArrowLeft: { pressed: false, t: 0 },
+            ArrowRight: { pressed: false, t: 0 },
+            Enter: { pressed: false, t: 0 },
+            Escape: { pressed: false, t: 0 },
+        };
+
+        const fireKey = (key) => {
+            window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+        };
+
+        const handlePress = (key, isDown, now) => {
+            const s = state[key];
+            if (isDown) {
+                if (!s.pressed) {
+                    s.pressed = true;
+                    s.t = now + REPEAT_DELAY;
+                    fireKey(key);
+                } else if (now >= s.t) {
+                    s.t = now + REPEAT_RATE;
+                    fireKey(key);
+                }
+            } else {
+                s.pressed = false;
+            }
+        };
+
+        let rafId = null;
+
+        const poll = () => {
+            const now = performance.now();
+            const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+            for (const pad of pads) {
+                if (!pad) continue;
+
+                const axisX = pad.axes[0] || 0;
+                const axisY = pad.axes[1] || 0;
+
+                const dpadUp = pad.buttons[12]?.pressed || axisY < -DEADZONE;
+                const dpadDown = pad.buttons[13]?.pressed || axisY > DEADZONE;
+                const dpadLeft = pad.buttons[14]?.pressed || axisX < -DEADZONE;
+                const dpadRight = pad.buttons[15]?.pressed || axisX > DEADZONE;
+
+                // Cruz / X = botón 0, Círculo = botón 1 (mapeo estándar Gamepad API,
+                // igual en control de PlayStation que en el de Xbox)
+                const cross = pad.buttons[0]?.pressed || false;
+                const circle = pad.buttons[1]?.pressed || false;
+
+                handlePress('ArrowUp', dpadUp, now);
+                handlePress('ArrowDown', dpadDown, now);
+                handlePress('ArrowLeft', dpadLeft, now);
+                handlePress('ArrowRight', dpadRight, now);
+                handlePress('Enter', cross, now);
+                handlePress('Escape', circle, now);
+
+                break; // solo el primer control conectado
+            }
+
+            rafId = requestAnimationFrame(poll);
+        };
+
+        rafId = requestAnimationFrame(poll);
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+        };
+    }, []);
+}
+
 function App() {
+    useGamepadNavigation();
     const [profiles, setProfiles] = useState(() => {
         const saved = localStorage.getItem('profiles');
         return saved ? JSON.parse(saved) : DEFAULT_PROFILES;
