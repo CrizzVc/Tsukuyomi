@@ -185,13 +185,14 @@ function useGamepadNavigation() {
             Escape: { pressed: false, t: 0 },
         };
 
-        // Botones "de acción única" (sin auto-repeat): L1, L2, R1, Triángulo
-        // y el botón del panel táctil. Se disparan una sola vez por
-        // pulsación (flanco de subida).
+        // Botones "de acción única" (sin auto-repeat): L1, L2, R1, Start,
+        // Triángulo y el botón del panel táctil. Se disparan una sola vez
+        // por pulsación (flanco de subida).
         const edgeState = {
             GamepadL1: false,
             GamepadL2: false,
             GamepadR1: false,
+            GamepadStart: false,
             GamepadTriangle: false,
             GamepadTouchpad: false,
         };
@@ -244,18 +245,19 @@ function useGamepadNavigation() {
                 const dpadRight = pad.buttons[15]?.pressed || axisX > DEADZONE;
 
                 // Cruz / X = botón 0, Círculo = botón 1, Triángulo/Y = botón 3,
-                // L1/LB = botón 4, R1/RB = botón 5, L2/LT = botón 6
-                // (mapeo estándar Gamepad API, igual en control de
-                // PlayStation que en el de Xbox). El botón del panel táctil
-                // (touchpad) no forma parte del mapeo estándar; en los
-                // controles DualShock 4 / DualSense, Chrome lo expone como
-                // el botón 17.
+                // L1/LB = botón 4, R1/RB = botón 5, L2/LT = botón 6,
+                // Start/Options = botón 9 (mapeo estándar Gamepad API, igual
+                // en control de PlayStation que en el de Xbox). El botón del
+                // panel táctil (touchpad) no forma parte del mapeo estándar;
+                // en los controles DualShock 4 / DualSense, Chrome lo
+                // expone como el botón 17.
                 const cross = pad.buttons[0]?.pressed || false;
                 const circle = pad.buttons[1]?.pressed || false;
                 const triangle = pad.buttons[3]?.pressed || false;
                 const l1 = pad.buttons[4]?.pressed || false;
                 const r1 = pad.buttons[5]?.pressed || false;
                 const l2 = pad.buttons[6]?.pressed || false;
+                const start = pad.buttons[9]?.pressed || false;
                 const touchpad = pad.buttons[17]?.pressed || false;
 
                 handlePress('ArrowUp', dpadUp, now);
@@ -269,14 +271,11 @@ function useGamepadNavigation() {
                 handleEdgePress('GamepadL1', l1);
                 handleEdgePress('GamepadR1', r1);
                 handleEdgePress('GamepadL2', l2);
-
-                // Panel táctil: lleva el scroll de la página al tope.
-                if (touchpad && !edgeState.GamepadTouchpad) {
-                    edgeState.GamepadTouchpad = true;
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else if (!touchpad) {
-                    edgeState.GamepadTouchpad = false;
-                }
+                handleEdgePress('GamepadStart', start);
+                // El panel táctil se despacha como tecla: en Detalles abre la
+                // portada, en el resto de vistas sube el scroll al tope
+                // (la decisión vive en el handler principal de teclado).
+                handleEdgePress('GamepadTouchpad', touchpad);
 
                 // Analógico derecho: sube/baja el scroll de la página mientras
                 // se mantiene inclinado (ejes 2 = X, 3 = Y en el mapeo estándar).
@@ -1153,6 +1152,31 @@ function App() {
                 }
             }
 
+            if (e.key === 'GamepadTouchpad') {
+                if (view === STATES.DETAILS && details) {
+                    // En Detalles, el touchpad abre la portada del anime.
+                    setShowCoverModal(true);
+                } else {
+                    // En el resto de vistas, sube el scroll de la página al tope.
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                return;
+            }
+
+            if (e.key === 'GamepadStart') {
+                if (view === STATES.PLAYER) {
+                    // Pausa/reanuda el video. Solo funciona con el reproductor
+                    // interno (video HTML5); el externo corre en un iframe de
+                    // otro sitio y el navegador no permite controlarlo desde afuera.
+                    const videoEl = document.querySelector('#player-overlay video');
+                    if (videoEl) {
+                        if (videoEl.paused) videoEl.play();
+                        else videoEl.pause();
+                    }
+                }
+                return;
+            }
+
             if (view === STATES.PROFILES) {
                 if (e.key === 'ArrowDown') setColIndex(prev => Math.min(prev + 1, profiles.length));
                 if (e.key === 'ArrowUp') setColIndex(prev => Math.max(prev - 1, 0));
@@ -1241,6 +1265,16 @@ function App() {
                     }
                 }
             } else if (view === STATES.CATALOG) {
+                // L1/R1 pasan de página en el grid del catálogo (solo aplica
+                // a la paginación real del catálogo, no a resultados de búsqueda).
+                const isBrowsingCatalog = !(isSearchActive && searchQuery.trim() !== '');
+                if (isBrowsingCatalog && e.key === 'GamepadL1') {
+                    if (catalogPage > 1) loadCatalog(catalogPage - 1);
+                }
+                if (isBrowsingCatalog && e.key === 'GamepadR1') {
+                    if (catalogPage < TOTAL_CATALOG_PAGES) loadCatalog(catalogPage + 1);
+                }
+
                 if (rowIndex === -1) {
                     // Header navigation in Catalog view (incluye búsqueda)
                     if (e.key === 'ArrowRight') setColIndex(prev => Math.min(prev + 1, 3));
@@ -1392,7 +1426,7 @@ function App() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex, showCoverModal, servers, playerMode, serverIndex, activeProfile, selectedAnime]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex, showCoverModal, servers, playerMode, serverIndex, activeProfile, selectedAnime, catalogPage, isSearchActive, searchQuery]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
