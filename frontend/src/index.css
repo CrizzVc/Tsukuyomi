@@ -27,6 +27,7 @@
     --persona-text-on-accent: #000000;
 }
 
+
 /* ══════════════════════════════════════════
    TEMA 2 — Ember
    ══════════════════════════════════════════ */
@@ -543,6 +544,10 @@ body {
     padding: 0;
     overflow-x: hidden;
     user-select: none;
+    background-image: url(/src/assets/lines.jpg);
+    background-blend-mode: multiply;
+    background-size: contain;
+    background-color: var(--primary-color);
 }
 
 /* Scrollbar styling for a cleaner look */
