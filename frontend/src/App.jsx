@@ -35,6 +35,120 @@ const DEFAULT_PROFILES = [
 
 const TOTAL_CATALOG_PAGES = 180;
 
+function HoloCoverModal({ src, title, onClose }) {
+    const containerRef = useRef(null);
+    const cardRef = useRef(null);
+    const holoRef = useRef(null);
+    const sparkleRef = useRef(null);
+    const glareRef = useRef(null);
+    const rafRef = useRef(null);
+    const stateRef = useRef({
+        targetRX: 0, targetRY: 0, targetGX: 50, targetGY: 50,
+        curRX: 0, curRY: 0, curGX: 50, curGY: 50
+    });
+
+    useEffect(() => {
+        const container = containerRef.current;
+        const card = cardRef.current;
+        const holo = holoRef.current;
+        const sparkle = sparkleRef.current;
+        const glare = glareRef.current;
+        if (!container || !card) return;
+
+        const lerp = (a, b, n) => a + (b - a) * n;
+
+        const animate = () => {
+            const s = stateRef.current;
+            s.curRX = lerp(s.curRX, s.targetRX, 0.12);
+            s.curRY = lerp(s.curRY, s.targetRY, 0.12);
+            s.curGX = lerp(s.curGX, s.targetGX, 0.12);
+            s.curGY = lerp(s.curGY, s.targetGY, 0.12);
+
+            card.style.transform = `rotateX(${s.curRX}deg) rotateY(${s.curRY}deg) scale3d(1.015, 1.015, 1.015)`;
+            if (holo) holo.style.backgroundPosition = `${s.curGX}% ${s.curGY}%`;
+            if (sparkle) sparkle.style.backgroundPosition = `${100 - s.curGX}% ${100 - s.curGY}%`;
+            if (glare) {
+                glare.style.background = `radial-gradient(circle at ${s.curGX}% ${s.curGY}%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.25) 20%, transparent 60%)`;
+            }
+            rafRef.current = requestAnimationFrame(animate);
+        };
+        rafRef.current = requestAnimationFrame(animate);
+
+        const handleMouseMove = (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const s = stateRef.current;
+
+            s.targetRX = -((y - rect.height / 2) / rect.height) * 8;
+            s.targetRY = ((x - rect.width / 2) / rect.width) * 8;
+            s.targetGX = (x / rect.width) * 100;
+            s.targetGY = (y / rect.height) * 100;
+
+            if (holo) holo.style.opacity = '0.45';
+            if (sparkle) sparkle.style.opacity = '0.35';
+            if (glare) glare.style.opacity = '0.5';
+            card.style.boxShadow = '0 40px 70px rgba(0,0,0,0.6), 0 0 20px rgba(212,175,55,0.2)';
+        };
+
+        const handleMouseLeave = () => {
+            const s = stateRef.current;
+            s.targetRX = 0;
+            s.targetRY = 0;
+            s.targetGX = 50;
+            s.targetGY = 50;
+            if (holo) holo.style.opacity = '0';
+            if (sparkle) sparkle.style.opacity = '0';
+            if (glare) glare.style.opacity = '0';
+            card.style.boxShadow = '0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset';
+        };
+
+        container.addEventListener('mousemove', handleMouseMove);
+        container.addEventListener('mouseleave', handleMouseLeave);
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches[0]) {
+                handleMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+            }
+        }, { passive: true });
+        container.addEventListener('touchend', handleMouseLeave);
+
+        return () => {
+            container.removeEventListener('mousemove', handleMouseMove);
+            container.removeEventListener('mouseleave', handleMouseLeave);
+            container.removeEventListener('touchend', handleMouseLeave);
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleKey = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    return (
+        <div className="holo-cover-overlay" onClick={onClose}>
+            <button className="holo-cover-close-btn" onClick={onClose} title="Cerrar">✕</button>
+            <div
+                className="holo-card-container"
+                ref={containerRef}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="holo-card" ref={cardRef}>
+                    <div className="holo-layer-holo" ref={holoRef}></div>
+                    <div className="holo-layer-sparkle" ref={sparkleRef}></div>
+                    <div className="holo-layer-glare" ref={glareRef}></div>
+                    <div className="holo-card-content">
+                        <img src={src} alt={title} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const getAnimeBadge = (anime) => {
     const title = (anime.title || '').toLowerCase();
     const ep = (anime.episode || '').toLowerCase();
@@ -65,6 +179,7 @@ function App() {
     const [isExtensionsModalOpen, setIsExtensionsModalOpen] = useState(false);
     const [moduleModalIndex, setModuleModalIndex] = useState(0);
     const [expandedSynopsis, setExpandedSynopsis] = useState(false);
+    const [showCoverModal, setShowCoverModal] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
     const [relatedActiveIndex, setRelatedActiveIndex] = useState(0);
     const [selectedRelatedIndex, setSelectedRelatedIndex] = useState(-1); // -1 = anime actual
@@ -2164,7 +2279,11 @@ function App() {
                             <>
                                 {/* Top Cover Card */}
                                 <div className="persona-cover-container">
-                                    <div className="persona-cover-card">
+                                    <div
+                                        className="persona-cover-card"
+                                        onClick={() => setShowCoverModal(true)}
+                                        title="Ver portada"
+                                    >
                                         <img src={details.cover} alt={details.title} className="persona-cover-img" />
                                     </div>
                                 </div>
@@ -2816,6 +2935,14 @@ function App() {
                         }}
                     />
                 </div>
+            )}
+
+            {showCoverModal && details && (
+                <HoloCoverModal
+                    src={details.cover}
+                    title={details.title}
+                    onClose={() => setShowCoverModal(false)}
+                />
             )}
 
             {/* Global Game-style screen transition wipe overlay */}
