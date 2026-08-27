@@ -3627,6 +3627,13 @@ header {
     border-left: 4px solid var(--accent);
 }
 
+.sidebar-item-exit:hover,
+.sidebar-item-exit.sidebar-focused {
+    background: rgba(255, 70, 70, 0.08);
+    color: #ff5c5c;
+    border-left-color: #ff5c5c;
+}
+
 .sidebar-footer {
     padding: 20px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.05);

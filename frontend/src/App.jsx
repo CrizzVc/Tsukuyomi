@@ -172,6 +172,8 @@ function useGamepadNavigation() {
         const DEADZONE = 0.5;
         const REPEAT_DELAY = 400; // ms antes de empezar a repetir al mantener presionado
         const REPEAT_RATE = 130;  // ms entre repeticiones
+        const RIGHT_STICK_DEADZONE = 0.15; // más sensible que el stick de navegación
+        const RIGHT_STICK_SCROLL_SPEED = 22; // px por frame a máxima inclinación
 
         // Estado por "acción" (arriba/abajo/izq/der/enter/escape)
         const state = {
@@ -181,6 +183,17 @@ function useGamepadNavigation() {
             ArrowRight: { pressed: false, t: 0 },
             Enter: { pressed: false, t: 0 },
             Escape: { pressed: false, t: 0 },
+        };
+
+        // Botones "de acción única" (sin auto-repeat): L1, L2, R1, Triángulo
+        // y el botón del panel táctil. Se disparan una sola vez por
+        // pulsación (flanco de subida).
+        const edgeState = {
+            GamepadL1: false,
+            GamepadL2: false,
+            GamepadR1: false,
+            GamepadTriangle: false,
+            GamepadTouchpad: false,
         };
 
         const fireKey = (key) => {
@@ -203,6 +216,16 @@ function useGamepadNavigation() {
             }
         };
 
+        // Dispara una sola vez cuando el botón pasa de "soltado" a "presionado".
+        const handleEdgePress = (key, isDown) => {
+            if (isDown && !edgeState[key]) {
+                edgeState[key] = true;
+                fireKey(key);
+            } else if (!isDown) {
+                edgeState[key] = false;
+            }
+        };
+
         let rafId = null;
 
         const poll = () => {
@@ -220,10 +243,20 @@ function useGamepadNavigation() {
                 const dpadLeft = pad.buttons[14]?.pressed || axisX < -DEADZONE;
                 const dpadRight = pad.buttons[15]?.pressed || axisX > DEADZONE;
 
-                // Cruz / X = botón 0, Círculo = botón 1 (mapeo estándar Gamepad API,
-                // igual en control de PlayStation que en el de Xbox)
+                // Cruz / X = botón 0, Círculo = botón 1, Triángulo/Y = botón 3,
+                // L1/LB = botón 4, R1/RB = botón 5, L2/LT = botón 6
+                // (mapeo estándar Gamepad API, igual en control de
+                // PlayStation que en el de Xbox). El botón del panel táctil
+                // (touchpad) no forma parte del mapeo estándar; en los
+                // controles DualShock 4 / DualSense, Chrome lo expone como
+                // el botón 17.
                 const cross = pad.buttons[0]?.pressed || false;
                 const circle = pad.buttons[1]?.pressed || false;
+                const triangle = pad.buttons[3]?.pressed || false;
+                const l1 = pad.buttons[4]?.pressed || false;
+                const r1 = pad.buttons[5]?.pressed || false;
+                const l2 = pad.buttons[6]?.pressed || false;
+                const touchpad = pad.buttons[17]?.pressed || false;
 
                 handlePress('ArrowUp', dpadUp, now);
                 handlePress('ArrowDown', dpadDown, now);
@@ -231,6 +264,26 @@ function useGamepadNavigation() {
                 handlePress('ArrowRight', dpadRight, now);
                 handlePress('Enter', cross, now);
                 handlePress('Escape', circle, now);
+
+                handleEdgePress('GamepadTriangle', triangle);
+                handleEdgePress('GamepadL1', l1);
+                handleEdgePress('GamepadR1', r1);
+                handleEdgePress('GamepadL2', l2);
+
+                // Panel táctil: lleva el scroll de la página al tope.
+                if (touchpad && !edgeState.GamepadTouchpad) {
+                    edgeState.GamepadTouchpad = true;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else if (!touchpad) {
+                    edgeState.GamepadTouchpad = false;
+                }
+
+                // Analógico derecho: sube/baja el scroll de la página mientras
+                // se mantiene inclinado (ejes 2 = X, 3 = Y en el mapeo estándar).
+                const rightStickY = pad.axes[3] || 0;
+                if (Math.abs(rightStickY) > RIGHT_STICK_DEADZONE) {
+                    window.scrollBy(0, rightStickY * RIGHT_STICK_SCROLL_SPEED);
+                }
 
                 break; // solo el primer control conectado
             }
@@ -282,6 +335,7 @@ function App() {
     const [playerUrl, setPlayerUrl] = useState('');
     const [isDirectStream, setIsDirectStream] = useState(false);
     const [playerMode, setPlayerMode] = useState('interno');
+    const [serverIndex, setServerIndex] = useState(0);
     const [playerSubtitles, setPlayerSubtitles] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -667,6 +721,7 @@ function App() {
 
     const openServers = async (url) => {
         setStatus('Buscando servidores...');
+        setServerIndex(0);
         try {
             const data = await api.fetchServers(url, currentSource);
             setServers(data || []);
@@ -679,6 +734,12 @@ function App() {
             setStatus('Error al cargar servidores.');
         }
     };
+
+    // Al cambiar de modo (interno/externo) la lista filtrada de servidores
+    // cambia, así que reseteamos el foco para no quedar "fuera de rango".
+    useEffect(() => {
+        setServerIndex(0);
+    }, [playerMode]);
 
     const playVideo = async (server, animeTitle = '', useExternal = false) => {
         setStatus('Resolviendo enlace de video...');
@@ -970,6 +1031,33 @@ function App() {
         else if (view === STATES.HOME) setView(STATES.PROFILES);
     };
 
+    // Cierra la aplicación. Intenta las APIs nativas de las plataformas de
+    // TV/consola más comunes (Tizen, webOS) y cae de vuelta a window.close()
+    // para navegadores/WebViews que sí permiten cerrar la pestaña.
+    const exitApp = () => {
+        try {
+            if (typeof window.tizen !== 'undefined' && window.tizen.application) {
+                window.tizen.application.getCurrentApplication().exit();
+                return;
+            }
+        } catch (e) {
+            console.warn('No se pudo salir vía Tizen:', e);
+        }
+        try {
+            if (typeof window.webOS !== 'undefined' && typeof window.webOS.platformBack === 'function') {
+                window.webOS.platformBack();
+                return;
+            }
+        } catch (e) {
+            console.warn('No se pudo salir vía webOS:', e);
+        }
+        try {
+            window.close();
+        } catch (e) {
+            console.warn('No se pudo cerrar la ventana:', e);
+        }
+    };
+
     // Keyboard navigation simulation
     useEffect(() => {
         // Detecta cuántas columnas tiene realmente un grid en el DOM,
@@ -997,7 +1085,7 @@ function App() {
                     setIsSidebarOpen(false);
                 } else if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    setSidebarIndex(prev => Math.min(prev + 1, 3));
+                    setSidebarIndex(prev => Math.min(prev + 1, 4));
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
                     setSidebarIndex(prev => Math.max(prev - 1, 0));
@@ -1014,6 +1102,8 @@ function App() {
                     } else if (sidebarIndex === 3) {
                         setView(STATES.PROFILES);
                         setIsSidebarOpen(false);
+                    } else if (sidebarIndex === 4) {
+                        exitApp();
                     }
                 }
                 return; // Prevent background navigation
@@ -1217,6 +1307,36 @@ function App() {
                     }
                     if (e.key === 'Enter' && favorites[searchIndex]) handleAnimeClick(favorites[searchIndex]);
                 }
+            } else if (view === STATES.SERVER_MODAL) {
+                // Navegación por la selección de servidores/servicios de video
+                // con el D-pad/flechas, igual que en el resto de la app.
+                const filteredServers = servers ? servers.filter(s => playerMode === 'interno' ? s.canExtract : true) : [];
+                const cols = getGridColumnCount('.server-grid', 3);
+
+                if (e.key === 'ArrowRight') {
+                    setServerIndex(prev => Math.min(prev + 1, Math.max(0, filteredServers.length - 1)));
+                }
+                if (e.key === 'ArrowLeft') {
+                    setServerIndex(prev => Math.max(prev - 1, 0));
+                }
+                if (e.key === 'ArrowDown') {
+                    setServerIndex(prev => (prev + cols < filteredServers.length ? prev + cols : prev));
+                }
+                if (e.key === 'ArrowUp') {
+                    setServerIndex(prev => Math.max(prev - cols, 0));
+                }
+                if (e.key === 'Enter') {
+                    if (filteredServers[serverIndex]) {
+                        playVideo(filteredServers[serverIndex], details?.title, playerMode === 'externo');
+                    }
+                }
+                // L1 = reproductor interno, R1 = reproductor externo
+                if (e.key === 'GamepadL1') {
+                    setPlayerMode('interno');
+                }
+                if (e.key === 'GamepadR1') {
+                    setPlayerMode('externo');
+                }
             } else if (view === STATES.DETAILS && details && showDescription) {
                 const relatedList = details.related || [];
 
@@ -1230,6 +1350,15 @@ function App() {
                     if (relatedList[relatedActiveIndex]) {
                         handleSelectRelated(relatedList[relatedActiveIndex], relatedActiveIndex);
                     }
+                }
+                // L2 vuelve a la portada (cierra la descripción)
+                if (e.key === 'GamepadL2') {
+                    setShowDescription(false);
+                    handleBackToSelf();
+                }
+                // Triángulo agrega/quita de favoritos
+                if (e.key === 'GamepadTriangle') {
+                    toggleFavorite(selectedAnime || details);
                 }
             } else if (view === STATES.DETAILS && details) {
                 const filteredEpisodes = (details.episodes || [])
@@ -1251,15 +1380,23 @@ function App() {
                         openServers(filteredEpisodes[detailsActiveIndex].url);
                     }
                 }
+                // L2 abre la descripción del anime
+                if (e.key === 'GamepadL2') {
+                    setShowDescription(true);
+                }
+                // Triángulo agrega/quita de favoritos
+                if (e.key === 'GamepadTriangle') {
+                    toggleFavorite(selectedAnime || details);
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex, showCoverModal]);
+    }, [view, colIndex, rowIndex, searchIndex, latest, favorites, searchResults, catalogResults, profiles, detailsActiveIndex, episodeSearchQuery, episodeSortOrder, details, isSidebarOpen, sidebarIndex, showDescription, relatedActiveIndex, isExtensionsModalOpen, moduleModalIndex, showCoverModal, servers, playerMode, serverIndex, activeProfile, selectedAnime]);
 
     // Cinematic scroll to follow focus
     useEffect(() => {
-        if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES].includes(view)) return;
+        if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES, STATES.SERVER_MODAL].includes(view)) return;
 
         // En Home, el header, el carrusel de episodios y la barra de "últimos vistos"
         // están muy cerca visualmente: no hace falta mover el scroll entre ellos.
@@ -1279,7 +1416,7 @@ function App() {
             cancelAnimationFrame(rafId);
             clearTimeout(timeoutId);
         };
-    }, [rowIndex, colIndex, searchIndex, view]);
+    }, [rowIndex, colIndex, searchIndex, view, serverIndex]);
 
     useEffect(() => {
         if (view !== STATES.DETAILS) return;
@@ -1841,6 +1978,10 @@ function App() {
                                     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                                     Cambiar de usuario
                                 </div>
+                                <div className={`sidebar-item sidebar-item-exit ${sidebarIndex === 4 ? 'sidebar-focused' : ''}`} onClick={() => { setIsSidebarOpen(false); exitApp(); }}>
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                    Salir
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2261,7 +2402,7 @@ function App() {
                             <button
                                 onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')}
                                 className="text-white/50 hover:text-white text-2xl transition-colors p-2"
-                                title="Cambiar reproductor"
+                                title="Cambiar reproductor (L1: Interno / R1: Externo)"
                             >
                                 ❮
                             </button>
@@ -2274,7 +2415,7 @@ function App() {
                             <button
                                 onClick={() => setPlayerMode(playerMode === 'interno' ? 'externo' : 'interno')}
                                 className="text-white/50 hover:text-white text-2xl transition-colors p-2"
-                                title="Cambiar reproductor"
+                                title="Cambiar reproductor (L1: Interno / R1: Externo)"
                             >
                                 ❯
                             </button>
@@ -2284,7 +2425,7 @@ function App() {
                             return filteredServers.length > 0 ? (
                                 <div className="server-grid">
                                     {filteredServers.map((s, idx) => (
-                                        <button key={idx} className="modal-btn flex items-center justify-center gap-2" onClick={() => playVideo(s, details?.title, playerMode === 'externo')}>
+                                        <button key={idx} className={`modal-btn flex items-center justify-center gap-2 ${idx === serverIndex ? 'focused' : ''}`} onClick={() => { setServerIndex(idx); playVideo(s, details?.title, playerMode === 'externo'); }}>
                                             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                                                 <path d="M8 5v14l11-7z" />
                                             </svg>
@@ -2391,7 +2532,7 @@ function App() {
                                         <button
                                             className="persona-btn-square"
                                             onClick={() => setShowDescription(true)}
-                                            title="Ver descripción"
+                                            title="Ver descripción (L2)"
                                         >
                                             <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                                                 <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
@@ -2402,7 +2543,7 @@ function App() {
                                         <button
                                             className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
                                             onClick={() => toggleFavorite(selectedAnime || details)}
-                                            title="Guardar a favoritos"
+                                            title="Guardar a favoritos (△)"
                                         >
                                             {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
                                         </button>
@@ -2453,7 +2594,7 @@ function App() {
                                                     setShowDescription(false);
                                                     handleBackToSelf();
                                                 }}
-                                                title="Volver a la portada"
+                                                title="Volver a la portada (L2)"
                                             >
                                                 <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                                                     <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
@@ -2464,7 +2605,7 @@ function App() {
                                             <button
                                                 className={`persona-btn-square ${isAnimeFavorite(selectedAnime || details) ? 'active-fav' : ''}`}
                                                 onClick={() => toggleFavorite(selectedAnime || details)}
-                                                title="Guardar a favoritos"
+                                                title="Guardar a favoritos (△)"
                                             >
                                                 {isAnimeFavorite(selectedAnime || details) ? '❤' : '♡'}
                                             </button>
