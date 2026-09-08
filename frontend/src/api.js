@@ -86,45 +86,91 @@ const logoCache = new Map();
 const TMDB_API_KEY = '647aef6fffac587fb62b2057cf9347aa';
 const tmdbBackdropCache = new Map();
 
-export const fetchTmdbBackdrop = async (animeTitle) => {
-    if (!animeTitle) return null;
-    const cleanTitle = animeTitle
-        .replace(/\([^)]*\)/g, '')
-        .replace(/hd/gi, '')
+// Busca backdrop en TMDB para un título concreto (TV primero, luego película).
+// Devuelve el backdrop_path o null.
+const _tmdbSearchBackdropPath = async (query) => {
+    try {
+        const tvRes = await fetch(
+            `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`
+        );
+        if (tvRes.ok) {
+            const tvData = await tvRes.json();
+            const path = tvData.results?.[0]?.backdrop_path || null;
+            if (path) return path;
+        }
+
+        const movieRes = await fetch(
+            `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`
+        );
+        if (movieRes.ok) {
+            const movieData = await movieRes.json();
+            return movieData.results?.[0]?.backdrop_path || null;
+        }
+    } catch (_) {}
+    return null;
+};
+
+// Genera variantes del título para ampliar las chances de match en TMDB.
+// Orden: título limpio → sin "Season N" → solo la parte base (sin número ordinal)
+const _tmdbTitleVariants = (raw) => {
+    const base = raw
+        .replace(/\([^)]*\)/g, '')   // quita paréntesis completos
+        .replace(/\bhd\b/gi, '')      // quita "HD" suelto
         .replace(/\s+/g, ' ')
         .trim();
 
-    if (tmdbBackdropCache.has(cleanTitle)) {
-        return tmdbBackdropCache.get(cleanTitle);
+    const variants = [base];
+
+    // Quita patrones de temporada: "Season 2", "2nd Season", "3ra Temporada", etc.
+    const withoutSeason = base
+        .replace(/\b\d{1,2}(st|nd|rd|th)?\s+season\b/gi, '')
+        .replace(/\bseason\s+\d{1,2}\b/gi, '')
+        .replace(/\b\d{1,2}(ra|da|ta|ma|a)?\s+temporada\b/gi, '')
+        .replace(/\btemporada\s+\d{1,2}\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (withoutSeason && withoutSeason !== base) {
+        variants.push(withoutSeason);
+    }
+
+    // Quita cualquier número final suelto o Part/Cour: "Part 2", "Cour 2", ": Zero", etc.
+    const withoutPart = withoutSeason
+        .replace(/[\s:]+(?:part|cour|vol|volume|arc)\s*\d+/gi, '')
+        .replace(/\s+\d+$/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (withoutPart && withoutPart !== withoutSeason && withoutPart.length > 2) {
+        variants.push(withoutPart);
+    }
+
+    // Deduplica manteniendo orden
+    return [...new Set(variants)];
+};
+
+export const fetchTmdbBackdrop = async (animeTitle) => {
+    if (!animeTitle) return null;
+
+    const cacheKey = animeTitle.trim();
+    if (tmdbBackdropCache.has(cacheKey)) {
+        return tmdbBackdropCache.get(cacheKey);
     }
 
     try {
-        // Search TMDB — try TV first, then movie as fallback
-        const searchRes = await fetch(
-            `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(cleanTitle)}&language=es-MX`
-        );
-        if (!searchRes.ok) return null;
-        const searchData = await searchRes.json();
-        const result = searchData.results?.[0];
+        const variants = _tmdbTitleVariants(animeTitle);
+        let backdropPath = null;
 
-        let backdropPath = result?.backdrop_path || null;
-
-        // Fallback: search as movie
-        if (!backdropPath) {
-            const movieRes = await fetch(
-                `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(cleanTitle)}&language=es-MX`
-            );
-            if (movieRes.ok) {
-                const movieData = await movieRes.json();
-                backdropPath = movieData.results?.[0]?.backdrop_path || null;
-            }
+        for (const variant of variants) {
+            backdropPath = await _tmdbSearchBackdropPath(variant);
+            if (backdropPath) break;
         }
 
         const url = backdropPath
             ? `https://image.tmdb.org/t/p/w1280${backdropPath}`
             : null;
 
-        tmdbBackdropCache.set(cleanTitle, url);
+        tmdbBackdropCache.set(cacheKey, url);
         return url;
     } catch (e) {
         console.error('[TMDB] Error fetching backdrop:', e);
