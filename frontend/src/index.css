@@ -4855,3 +4855,151 @@ header {
 .persona-ep-card.focused .persona-ep-line {
     background: rgba(var(--glow-rgb), 0.4);
 }
+
+
+/* ════════════════════════════════════════════════════
+   LATEST EPISODES BANNER  (LatestEpisodesBanner.jsx)
+   ════════════════════════════════════════════════════ */
+.leb-banner {
+    position: relative;
+    width: calc(100% + 120px);
+    margin-left: -60px;
+    margin-top: -40px;
+    height: 500px;
+    overflow: hidden;
+    background-color: var(--surface-1);
+    margin-bottom: 24px;
+    border-radius: 0;
+    flex-shrink: 0;
+}
+
+/* ── Backdrop layers ── */
+.leb-backdrop-layer {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    will-change: opacity;
+}
+
+.leb-backdrop-base {
+    opacity: 1;
+    /* subtle slow drift for life */
+    animation: lebDrift 20s ease-in-out infinite alternate;
+}
+
+.leb-backdrop-next {
+    opacity: 0;
+    transition: opacity 0.7s ease;
+}
+
+@keyframes lebDrift {
+    from { background-position: center top; }
+    to   { background-position: center 15%; }
+}
+
+/* ── Gradient vignette ── */
+.leb-vignette {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.92) 0%,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.55) 40%,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.10) 70%,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.0)  100%
+    ),
+    linear-gradient(
+        to top,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.85) 0%,
+        transparent 40%
+    );
+    pointer-events: none;
+}
+
+/* ── Content overlay ── */
+.leb-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 0 60px 28px 60px;
+}
+
+/* ── Thumbnail ── */
+.leb-thumb {
+    width: 80px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Text block ── */
+.leb-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 480px;
+}
+
+.leb-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: var(--accent-color);
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.leb-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.15;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+    /* clamp to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Play button ── */
+.leb-play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 4px;
+    padding: 8px 22px;
+    background-color: var(--accent-color);
+    color: var(--on-primary);
+    border: none;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    width: fit-content;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(var(--glow-rgb), 0.35);
+}
+
+.leb-play-btn:hover,
+.leb-play-btn:focus-visible {
+    background-color: transparent;
+    color: var(--accent-color);
+    outline: 2px solid var(--accent-color);
+    outline-offset: -2px;
+    box-shadow: 0 4px 20px rgba(var(--glow-rgb), 0.55);
+    transform: translateY(-1px);
+}
+
+/* ── No backdrop / skeleton state ── */
+.leb-banner:not(:has(.leb-backdrop-base[style*="url"])) .leb-vignette {
+    background: var(--surface-1);
+}

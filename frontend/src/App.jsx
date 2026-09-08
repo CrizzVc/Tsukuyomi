@@ -4,6 +4,7 @@ import './index.css';
 import VideoPlayer from './components/Player/VideoPlayer';
 import BannerImages from './components/bannerimages';
 import AnimeNewsCarousel from './components/animeNews';
+import LatestEpisodesBanner from './components/LatestEpisodesBanner';
 
 const STATES = {
     PROFILES: 'PROFILES',
@@ -2115,6 +2116,15 @@ function App() {
                     <main>
                         {view === STATES.HOME && (
                             <div className="home-view-content">
+                                {/* ── TMDB backdrop banner – tracks the focused card in the row ── */}
+                                <LatestEpisodesBanner
+                                    focusedAnime={latest[colIndices[0]] || latest[0] || null}
+                                    onPlay={() => {
+                                        const anime = latest[colIndices[0]] || latest[0];
+                                        if (anime) handleAnimeClick(anime);
+                                    }}
+                                />
+
                                 <div className="section-header" style={{ justifyContent: 'flex-start' }}>
                                     <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
                                     <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>

@@ -83,6 +83,55 @@ export const fetchNews = async (apiKey) => {
 const FANART_API_KEY = '6e3398f78dee2049af59890ee0d5e004';
 const logoCache = new Map();
 
+const TMDB_API_KEY = '647aef6fffac587fb62b2057cf9347aa';
+const tmdbBackdropCache = new Map();
+
+export const fetchTmdbBackdrop = async (animeTitle) => {
+    if (!animeTitle) return null;
+    const cleanTitle = animeTitle
+        .replace(/\([^)]*\)/g, '')
+        .replace(/hd/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (tmdbBackdropCache.has(cleanTitle)) {
+        return tmdbBackdropCache.get(cleanTitle);
+    }
+
+    try {
+        // Search TMDB — try TV first, then movie as fallback
+        const searchRes = await fetch(
+            `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(cleanTitle)}&language=es-MX`
+        );
+        if (!searchRes.ok) return null;
+        const searchData = await searchRes.json();
+        const result = searchData.results?.[0];
+
+        let backdropPath = result?.backdrop_path || null;
+
+        // Fallback: search as movie
+        if (!backdropPath) {
+            const movieRes = await fetch(
+                `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(cleanTitle)}&language=es-MX`
+            );
+            if (movieRes.ok) {
+                const movieData = await movieRes.json();
+                backdropPath = movieData.results?.[0]?.backdrop_path || null;
+            }
+        }
+
+        const url = backdropPath
+            ? `https://image.tmdb.org/t/p/w1280${backdropPath}`
+            : null;
+
+        tmdbBackdropCache.set(cleanTitle, url);
+        return url;
+    } catch (e) {
+        console.error('[TMDB] Error fetching backdrop:', e);
+        return null;
+    }
+};
+
 export const fetchFanartLogo = async (animeTitle) => {
     if (!animeTitle) return null;
     const cleanTitle = animeTitle.replace(/\([^)]*\)/g, '').replace(/hd/gi, '').trim();
