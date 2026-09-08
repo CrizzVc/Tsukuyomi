@@ -2116,47 +2116,49 @@ function App() {
                     <main>
                         {view === STATES.HOME && (
                             <div className="home-view-content">
-                                {/* ── TMDB backdrop banner – tracks the focused card in the row ── */}
-                                <LatestEpisodesBanner
-                                    focusedAnime={latest[colIndices[0]] || latest[0] || null}
-                                    onPlay={() => {
-                                        const anime = latest[colIndices[0]] || latest[0];
-                                        if (anime) handleAnimeClick(anime);
-                                    }}
-                                />
+                                {/* ── Hero: TMDB backdrop + carousel superpuesto ── */}
+                                <div className="leb-hero-wrapper">
+                                    <LatestEpisodesBanner
+                                        focusedAnime={latest[colIndices[0]] || latest[0] || null}
+                                        onPlay={() => {
+                                            const anime = latest[colIndices[0]] || latest[0];
+                                            if (anime) handleAnimeClick(anime);
+                                        }}
+                                    />
 
-                                <div className="section-header" style={{ justifyContent: 'flex-start' }}>
-                                    <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
-                                    <h2 className="section-title fw-bold" style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>
-                                </div>
-
-                                <div className="carousel-container mt-4">
-                                    <div
-                                        className="carousel-wrapper"
-                                        onTouchStart={(e) => handleTouchStart(e, 0)}
-                                        onTouchEnd={(e) => handleTouchEnd(e, latest.length)}
-                                    >
-                                        <div className="carousel new-episodes-carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 315}px)` }}>
-                                            {latest.map((anime, idx) => (
+                                    {/* Carousel flotando sobre el banner */}
+                                    <div className="leb-overlay-carousel">
+                                        <div className="section-header" style={{ justifyContent: 'flex-start', marginBottom: '10px' }}>
+                                            <div className="title-marker-flat" style={{ marginRight: '10px' }}></div>
+                                            <h2 className="section-title fw-bold" style={{ margin: 0, color: '#fff', fontSize: '1.2rem', fontWeight: 900 }}>ULTIMOS EPISODIOS</h2>
+                                        </div>
+                                        <div
+                                            className="carousel-wrapper"
+                                            onTouchStart={(e) => handleTouchStart(e, 0)}
+                                            onTouchEnd={(e) => handleTouchEnd(e, latest.length)}
+                                        >
+                                            <div className="carousel new-episodes-carousel" style={{ position: 'relative', transform: `translateX(-${colIndices[0] * 315}px)` }}>
+                                                {latest.map((anime, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`card new-ep-card ${rowIndex === 0 && colIndices[0] === idx ? 'focused active' : ''}`}
+                                                        style={{ backgroundImage: `url(${anime.image})` }}
+                                                        onClick={() => { setRowIndex(0); setColIndex(idx); handleAnimeClick(anime); }}
+                                                    >
+                                                        <div className="card-overlay-flat"></div>
+                                                    </div>
+                                                ))}
                                                 <div
-                                                    key={idx}
-                                                    className={`card new-ep-card ${rowIndex === 0 && colIndices[0] === idx ? 'focused active' : ''}`}
-                                                    style={{ backgroundImage: `url(${anime.image})` }}
-                                                    onClick={() => { setRowIndex(0); setColIndex(idx); handleAnimeClick(anime); }}
+                                                    className={`card new-ep-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'focused active' : ''}`}
+                                                    onClick={() => { setRowIndex(0); setColIndex(latest.length); loadCatalog(1); }}
                                                 >
-                                                    <div className="card-overlay-flat"></div>
-                                                </div>
-                                            ))}
-                                            <div
-                                                className={`card new-ep-card see-more-card ${rowIndex === 0 && colIndices[0] === latest.length ? 'focused active' : ''}`}
-                                                onClick={() => { setRowIndex(0); setColIndex(latest.length); loadCatalog(1); }}
-                                            >
-                                                <div className="see-more-content">
-                                                    <div className="see-more-icon">
-                                                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                                        </svg>
+                                                    <div className="see-more-content">
+                                                        <div className="see-more-icon">
+                                                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                                            </svg>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

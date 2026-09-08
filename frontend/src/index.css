@@ -3772,7 +3772,7 @@ header {
     margin-left: -60px;
     display: flex;
     justify-content: center;
-    margin-top: 40px;
+    margin-top: 0;
     margin-bottom: 40px;
 }
 
@@ -4862,13 +4862,11 @@ header {
    ════════════════════════════════════════════════════ */
 .leb-banner {
     position: relative;
-    width: calc(100% + 120px);
-    margin-left: -60px;
-    margin-top: -40px;
+    width: 100%;
+    margin: 0;
     height: 500px;
     overflow: hidden;
     background-color: var(--surface-1);
-    margin-bottom: 24px;
     border-radius: 0;
     flex-shrink: 0;
 }
@@ -4999,7 +4997,46 @@ header {
     transform: translateY(-1px);
 }
 
-/* ── No backdrop / skeleton state ── */
+/* ── Hero wrapper: banner + carousel superpuesto ── */
+.leb-hero-wrapper {
+    position: relative;
+    width: calc(100% + 120px);
+    margin-left: -60px;
+    margin-top: -40px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+/* El banner dentro del wrapper no aplica sus propios márgenes */
+.leb-hero-wrapper .leb-banner {
+    width: 100%;
+    margin: 0;
+}
+
+/* Carousel flotando sobre el banner, anclado al fondo */
+.leb-overlay-carousel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 60px 20px 60px;
+    z-index: 5;
+    /* gradiente extra para que las tarjetas sean legibles */
+    background: linear-gradient(
+        to top,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.80) 0%,
+        rgba(var(--bg-color-rgb, 20, 20, 22), 0.40) 60%,
+        transparent 100%
+    );
+}
+
+.leb-overlay-carousel .section-title {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+
+.leb-overlay-carousel .carousel-wrapper {
+    overflow: hidden;
+}
 .leb-banner:not(:has(.leb-backdrop-base[style*="url"])) .leb-vignette {
     background: var(--surface-1);
 }

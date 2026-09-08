@@ -91,32 +91,6 @@ function LatestEpisodesBanner({ focusedAnime, onPlay }) {
 
             {/* ── Gradient vignette overlay ── */}
             <div className="leb-vignette" />
-
-            {/* ── Content ── */}
-            <div className="leb-content">
-                {/* Thumbnail */}
-                {displayedImage && (
-                    <img
-                        src={displayedImage}
-                        alt={displayedTitle}
-                        className="leb-thumb"
-                    />
-                )}
-
-                {/* Text + action */}
-                <div className="leb-info">
-                    <div className="leb-label">ÚLTIMOS EPISODIOS</div>
-                    <div className="leb-title">{displayedTitle}</div>
-                    {onPlay && (
-                        <button className="leb-play-btn" onClick={onPlay}>
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                <path d="M8 5v14l11-7z" />
-                            </svg>
-                            Ver ahora
-                        </button>
-                    )}
-                </div>
-            </div>
         </div>
     );
 }
