@@ -149,7 +149,7 @@ const _tmdbTitleVariants = (raw) => {
     return [...new Set(variants)];
 };
 
-export const fetchTmdbBackdrop = async (animeTitle) => {
+export const fetchTmdbBackdrop = async (animeTitle, titleJP = null) => {
     if (!animeTitle) return null;
 
     const cacheKey = animeTitle.trim();
@@ -159,8 +159,16 @@ export const fetchTmdbBackdrop = async (animeTitle) => {
 
     try {
         const variants = _tmdbTitleVariants(animeTitle);
-        let backdropPath = null;
 
+        // Inserta el título japonés como variante extra (antes del último fallback)
+        if (titleJP && titleJP.trim()) {
+            const jpClean = titleJP.trim();
+            if (!variants.includes(jpClean)) {
+                variants.splice(variants.length - 1, 0, jpClean);
+            }
+        }
+
+        let backdropPath = null;
         for (const variant of variants) {
             backdropPath = await _tmdbSearchBackdropPath(variant);
             if (backdropPath) break;

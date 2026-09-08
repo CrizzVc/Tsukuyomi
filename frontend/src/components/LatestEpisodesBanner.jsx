@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchTmdbBackdrop } from '../api';
+import { fetchTmdbBackdrop, fetchDetails } from '../api';
 
 /**
  * LatestEpisodesBanner
@@ -9,15 +9,12 @@ import { fetchTmdbBackdrop } from '../api';
  *
  * Props:
  *   focusedAnime  — the anime object that is currently focused in the row
- *                   (needs at least .title and .image)
+ *                   (needs at least .title and .image, optionally .animeUrl/.url and .source)
  *   onPlay        — callback fired when the "Reproducir" button is clicked
  */
 function LatestEpisodesBanner({ focusedAnime, onPlay }) {
-    // The URL currently being displayed (fully transitioned in)
     const [displayedBackdrop, setDisplayedBackdrop] = useState(null);
-    // The URL being loaded in the background before cross-fading in
     const [nextBackdrop, setNextBackdrop] = useState(null);
-    // Whether the next image has finished loading and is fading in
     const [isFadingIn, setIsFadingIn] = useState(false);
 
     const [displayedTitle, setDisplayedTitle] = useState('');
@@ -30,24 +27,48 @@ function LatestEpisodesBanner({ focusedAnime, onPlay }) {
         if (!focusedAnime?.title) return;
 
         const title = focusedAnime.title;
-        if (loadingForRef.current === title) return; // already loading / loaded this one
+        if (loadingForRef.current === title) return;
         loadingForRef.current = title;
 
-        // Reset the fade state for the incoming image
         setIsFadingIn(false);
         clearTimeout(fadeTimerRef.current);
 
-        fetchTmdbBackdrop(title).then((url) => {
-            // Guard: by the time the fetch resolves the user may have moved on
-            if (loadingForRef.current !== title) return;
-
-            const incoming = url || focusedAnime.image || null;
-            setNextBackdrop(incoming);
-        });
-
-        // Update the text info immediately so the label feels responsive
+        // Update text immediately so the label feels responsive
         setDisplayedTitle(title);
         setDisplayedImage(focusedAnime.image || null);
+
+        const animeUrl = focusedAnime.animeUrl || focusedAnime.url || null;
+        const source   = focusedAnime.source || 'animeav1';
+
+        // Step 1: try with the display title (+ season-strip variants)
+        fetchTmdbBackdrop(title).then(async (url) => {
+            if (loadingForRef.current !== title) return;
+
+            if (url) {
+                setNextBackdrop(url);
+                return;
+            }
+
+            // Step 2: backdrop not found — try fetching titleJP from details
+            if (animeUrl) {
+                try {
+                    const details = await fetchDetails(animeUrl, source);
+                    if (loadingForRef.current !== title) return;
+
+                    const titleJP = details?.titleJP || null;
+                    const url2 = await fetchTmdbBackdrop(title, titleJP);
+                    if (loadingForRef.current !== title) return;
+
+                    setNextBackdrop(url2 || focusedAnime.image || null);
+                } catch (_) {
+                    if (loadingForRef.current === title) {
+                        setNextBackdrop(focusedAnime.image || null);
+                    }
+                }
+            } else {
+                setNextBackdrop(focusedAnime.image || null);
+            }
+        });
     }, [focusedAnime?.title]);
 
     // When a new backdrop image has been pre-loaded, cross-fade it in

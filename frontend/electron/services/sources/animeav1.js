@@ -65,6 +65,7 @@ const animeav1 = {
         const $ = cheerio.load(response.data);
         
         const title = $('h1').first().text().trim();
+        const titleJP = $('h2.text-main.truncate.font-normal').first().text().trim() || null;
         const synopsis = $('.text-subs.leading-relaxed').text().trim() || $('p').first().text().trim();
         const cover = $('img[alt*="Poster"]').attr('src') || $('img[alt*="Poster"]').attr('data-src') || $('img').eq(2).attr('src');
         const backdrop = $('img[alt*="Backdrop"]').attr('src') || $('img[alt*="Backdrop"]').attr('data-src');
@@ -115,7 +116,7 @@ const animeav1 = {
         // Sort episodes descending
         episodes.sort((a, b) => parseInt(b.episode) - parseInt(a.episode));
 
-        return { title, synopsis, cover, backdrop, status, genres, related, episodes };
+        return { title, titleJP, synopsis, cover, backdrop, status, genres, related, episodes };
     },
 
     getServers: async (url) => {

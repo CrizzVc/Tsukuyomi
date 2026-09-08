@@ -44,6 +44,7 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			const response = await axios$6.get(animeUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
 			const $ = cheerio$1.load(response.data);
 			const title = $("h1").first().text().trim();
+			const titleJP = $("h2.text-main.truncate.font-normal").first().text().trim() || null;
 			const synopsis = $(".text-subs.leading-relaxed").text().trim() || $("p").first().text().trim();
 			const cover = $("img[alt*=\"Poster\"]").attr("src") || $("img[alt*=\"Poster\"]").attr("data-src") || $("img").eq(2).attr("src");
 			const backdrop = $("img[alt*=\"Backdrop\"]").attr("src") || $("img[alt*=\"Backdrop\"]").attr("data-src");
@@ -81,6 +82,7 @@ var require_animeav1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			episodes.sort((a, b) => parseInt(b.episode) - parseInt(a.episode));
 			return {
 				title,
+				titleJP,
 				synopsis,
 				cover,
 				backdrop,
