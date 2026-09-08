@@ -4864,7 +4864,7 @@ header {
     position: relative;
     width: 100%;
     margin: 0;
-    height: 500px;
+    height: 100%;
     overflow: hidden;
     background-color: var(--surface-1);
     border-radius: 0;
@@ -4883,19 +4883,14 @@ header {
 
 .leb-backdrop-base {
     opacity: 1;
-    /* subtle slow drift for life */
-    animation: lebDrift 20s ease-in-out infinite alternate;
 }
 
 .leb-backdrop-next {
     opacity: 0;
-    transition: opacity 0.7s ease;
+    transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes lebDrift {
-    from { background-position: center top; }
-    to   { background-position: center 15%; }
-}
+
 
 /* ── Gradient vignette ── */
 .leb-vignette {
@@ -5005,6 +5000,10 @@ header {
     margin-top: -40px;
     margin-bottom: 0;
     flex-shrink: 0;
+    /* Alto dinámico: ocupa la pantalla menos el header y el carousel superpuesto */
+    height: calc(100vh - 260px);
+    min-height: 420px;
+    max-height: 820px;
 }
 
 /* El banner dentro del wrapper no aplica sus propios márgenes */

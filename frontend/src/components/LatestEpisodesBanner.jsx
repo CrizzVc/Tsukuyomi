@@ -57,7 +57,7 @@ function LatestEpisodesBanner({ focusedAnime, onPlay }) {
             setDisplayedBackdrop(nextBackdrop);
             setIsFadingIn(false);
             setNextBackdrop(null);
-        }, 700); // matches the CSS transition duration
+        }, 1200); // matches the CSS transition duration
     };
 
     return (
