@@ -4,101 +4,165 @@ import { fetchTmdbBackdrop, fetchDetails } from '../api';
 /**
  * LatestEpisodesBanner
  *
- * Shows a full-width cinematic backdrop fetched from TMDB that corresponds
- * to the currently-focused anime in the "Últimos Episodios" row.
+ * Muestra las imágenes/backdrops de los últimos 3 animes de los últimos episodios,
+ * rotando automáticamente con un temporizador (crossfade suave)
+ * de forma independiente del foco del carrusel.
  *
  * Props:
- *   focusedAnime  — the anime object that is currently focused in the row
- *                   (needs at least .title and .image, optionally .animeUrl/.url and .source)
- *   onPlay        — callback fired when the "Reproducir" button is clicked
+ *   animes       — Array de animes (se toman los 3 primeros de Últimos Episodios)
+ *   interval     — Tiempo en milisegundos entre cada cambio de imagen (por defecto 6000ms)
+ *   focusedAnime — Fallback por retrocompatibilidad
+ *   onPlay       — Callback opcional al interactuar
  */
-function LatestEpisodesBanner({ focusedAnime, onPlay }) {
+function LatestEpisodesBanner({ animes = [], focusedAnime = null, interval = 6000, onPlay }) {
+    // Tomar los últimos 3 animes
+    const items = (animes && animes.length > 0)
+        ? animes.slice(0, 3)
+        : (focusedAnime ? [focusedAnime] : []);
+
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [backdrops, setBackdrops] = useState([]);
     const [displayedBackdrop, setDisplayedBackdrop] = useState(null);
     const [nextBackdrop, setNextBackdrop] = useState(null);
     const [isFadingIn, setIsFadingIn] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
-    const [displayedTitle, setDisplayedTitle] = useState('');
-    const [displayedImage, setDisplayedImage] = useState(null);
-
-    const loadingForRef = useRef(null);
     const fadeTimerRef = useRef(null);
+    const intervalRef = useRef(null);
+    const nextBackdropRef = useRef(null);
+    const displayedBackdropRef = useRef(null);
+    const isMountedRef = useRef(true);
 
+    displayedBackdropRef.current = displayedBackdrop;
+
+    const itemsKey = items.map((a) => a.title || a.url || a.image || '').join('|');
+
+    // 1. Cargar / resolver backdrops para los 3 animes
     useEffect(() => {
-        if (!focusedAnime?.title) return;
+        isMountedRef.current = true;
+        if (!items.length) {
+            setBackdrops([]);
+            setDisplayedBackdrop(null);
+            setNextBackdrop(null);
+            return;
+        }
 
-        const title = focusedAnime.title;
-        if (loadingForRef.current === title) return;
-        loadingForRef.current = title;
+        // Inicializar inmediatamente con poster/image para evitar pantalla negra
+        const initial = items.map((a) => a.image || null);
+        setBackdrops(initial);
+        setCurrentIndex(0);
 
-        setIsFadingIn(false);
-        clearTimeout(fadeTimerRef.current);
+        // Pre-cargar y resolver TMDB backdrop para cada uno
+        items.forEach((anime, idx) => {
+            if (!anime?.title) return;
+            const title = anime.title;
+            const animeUrl = anime.animeUrl || anime.url || null;
+            const source = anime.source || 'animeav1';
 
-        // Update text immediately so the label feels responsive
-        setDisplayedTitle(title);
-        setDisplayedImage(focusedAnime.image || null);
+            fetchTmdbBackdrop(title).then(async (url) => {
+                if (!isMountedRef.current) return;
+                let finalUrl = url;
 
-        const animeUrl = focusedAnime.animeUrl || focusedAnime.url || null;
-        const source   = focusedAnime.source || 'animeav1';
-
-        // Step 1: try with the display title (+ season-strip variants)
-        fetchTmdbBackdrop(title).then(async (url) => {
-            if (loadingForRef.current !== title) return;
-
-            if (url) {
-                setNextBackdrop(url);
-                return;
-            }
-
-            // Step 2: backdrop not found — try fetching titleJP from details
-            if (animeUrl) {
-                try {
-                    const details = await fetchDetails(animeUrl, source);
-                    if (loadingForRef.current !== title) return;
-
-                    const titleJP = details?.titleJP || null;
-                    const url2 = await fetchTmdbBackdrop(title, titleJP);
-                    if (loadingForRef.current !== title) return;
-
-                    setNextBackdrop(url2 || focusedAnime.image || null);
-                } catch (_) {
-                    if (loadingForRef.current === title) {
-                        setNextBackdrop(focusedAnime.image || null);
-                    }
+                if (!finalUrl && animeUrl) {
+                    try {
+                        const details = await fetchDetails(animeUrl, source);
+                        if (!isMountedRef.current) return;
+                        const titleJP = details?.titleJP || null;
+                        finalUrl = await fetchTmdbBackdrop(title, titleJP);
+                    } catch (_) {}
                 }
-            } else {
-                setNextBackdrop(focusedAnime.image || null);
-            }
-        });
-    }, [focusedAnime?.title]);
 
-    // When a new backdrop image has been pre-loaded, cross-fade it in
+                const resolvedUrl = finalUrl || anime.image || null;
+                if (resolvedUrl && isMountedRef.current) {
+                    // Pre-cache en el navegador
+                    const preloader = new Image();
+                    preloader.src = resolvedUrl;
+
+                    setBackdrops((prev) => {
+                        const updated = [...prev];
+                        updated[idx] = resolvedUrl;
+                        return updated;
+                    });
+                }
+            });
+        });
+
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, [itemsKey]);
+
+    // 2. Temporizador para rotar automáticamente entre los animes
+    useEffect(() => {
+        if (items.length <= 1 || isPaused) {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            return;
+        }
+
+        intervalRef.current = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % items.length);
+        }, interval);
+
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, [items.length, interval, isPaused]);
+
+    // 3. Cuando cambia el currentIndex o se actualizan los backdrops
+    useEffect(() => {
+        if (!items.length) return;
+        const targetUrl = backdrops[currentIndex] || items[currentIndex]?.image;
+        if (!targetUrl) return;
+
+        // Primer render o carga inicial
+        if (!displayedBackdropRef.current) {
+            setDisplayedBackdrop(targetUrl);
+            return;
+        }
+
+        // Si ya está mostrando esta imagen, no hacer nada
+        if (displayedBackdropRef.current === targetUrl) return;
+
+        // Iniciar transición suave hacia targetUrl
+        nextBackdropRef.current = targetUrl;
+        setNextBackdrop(targetUrl);
+        setIsFadingIn(false);
+    }, [currentIndex, backdrops, itemsKey]);
+
+    // 4. Cuando la siguiente imagen terminó de cargarse en el DOM, hacer crossfade
     const handleNextLoaded = () => {
         setIsFadingIn(true);
+        clearTimeout(fadeTimerRef.current);
         fadeTimerRef.current = setTimeout(() => {
-            setDisplayedBackdrop(nextBackdrop);
+            if (nextBackdropRef.current) {
+                setDisplayedBackdrop(nextBackdropRef.current);
+            }
             setIsFadingIn(false);
             setNextBackdrop(null);
-        }, 1200); // matches the CSS transition duration
+        }, 1200); // Coincide con la duración de la transición CSS
     };
 
     return (
-        <div className="leb-banner">
-            {/* ── Static / outgoing backdrop layer ── */}
+        <div
+            className="leb-banner"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+        >
+            {/* ── Capa base / imagen actual ── */}
             <div
                 className="leb-backdrop-layer leb-backdrop-base"
                 style={{ backgroundImage: displayedBackdrop ? `url(${displayedBackdrop})` : 'none' }}
             />
 
-            {/* ── Incoming backdrop (fades in on top) ── */}
+            {/* ── Siguiente imagen que entra con crossfade ── */}
             {nextBackdrop && (
                 <>
-                    {/* Hidden img tag to trigger onLoad */}
                     <img
                         src={nextBackdrop}
                         alt=""
                         style={{ display: 'none' }}
                         onLoad={handleNextLoaded}
-                        onError={handleNextLoaded} // fall back gracefully
+                        onError={handleNextLoaded}
                     />
                     <div
                         className="leb-backdrop-layer leb-backdrop-next"
@@ -110,8 +174,24 @@ function LatestEpisodesBanner({ focusedAnime, onPlay }) {
                 </>
             )}
 
-            {/* ── Gradient vignette overlay ── */}
+            {/* ── Viñeta oscura con degradado ── */}
             <div className="leb-vignette" />
+
+            {/* ── Indicadores visuales de los animes ── */}
+            {items.length > 1 && (
+                <div className="leb-indicators">
+                    {items.map((anime, idx) => (
+                        <button
+                            key={idx}
+                            type="button"
+                            className={`leb-indicator-dot ${currentIndex === idx ? 'active' : ''}`}
+                            onClick={() => setCurrentIndex(idx)}
+                            title={anime?.title || `Anime ${idx + 1}`}
+                            aria-label={`Anime ${idx + 1}`}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

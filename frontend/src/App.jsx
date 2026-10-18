@@ -2119,9 +2119,9 @@ function App() {
                                 {/* ── Hero: TMDB backdrop + carousel superpuesto ── */}
                                 <div className="leb-hero-wrapper">
                                     <LatestEpisodesBanner
-                                        focusedAnime={latest[colIndices[0]] || latest[0] || null}
-                                        onPlay={() => {
-                                            const anime = latest[colIndices[0]] || latest[0];
+                                        animes={latest.slice(0, 3)}
+                                        interval={6000}
+                                        onPlay={(anime) => {
                                             if (anime) handleAnimeClick(anime);
                                         }}
                                     />
