@@ -1433,10 +1433,17 @@ function App() {
     useEffect(() => {
         if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES, STATES.SERVER_MODAL].includes(view)) return;
 
-        // En Home, el header, el carrusel de episodios y la barra de "últimos vistos"
-        // están muy cerca visualmente: no hace falta mover el scroll entre ellos.
-        const closeRows = [-1, 0, 1];
-        if (view === STATES.HOME && closeRows.includes(rowIndex)) return;
+        // En Home, cuando se enfoca Últimos Episodios (row 0) o el Header (row -1),
+        // subir el scrollbar completamente hasta arriba.
+        if (view === STATES.HOME) {
+            if (rowIndex === 0 || rowIndex === -1) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            if (rowIndex === 1) return;
+        }
 
         let timeoutId;
         const rafId = requestAnimationFrame(() => {
