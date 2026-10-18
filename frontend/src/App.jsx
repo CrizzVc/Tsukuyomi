@@ -1433,16 +1433,19 @@ function App() {
     useEffect(() => {
         if (![STATES.HOME, STATES.CATALOG, STATES.PROFILES, STATES.DETAILS, STATES.FAVORITES, STATES.SERVER_MODAL].includes(view)) return;
 
-        // En Home, cuando se enfoca Últimos Episodios (row 0) o el Header (row -1),
-        // subir el scrollbar completamente hasta arriba.
+        // En Home, mientras el foco esté en el Header (-1), Últimos Episodios (0)
+        // o el row de debajo (1), el scroll debe permanecer en el tope.
+        // Si ya está arriba no se toca nada (cero movimiento); si venimos de
+        // más abajo (ej. Favoritos -> row 1) sube suavemente hacia el top.
         if (view === STATES.HOME) {
-            if (rowIndex === 0 || rowIndex === -1) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
-                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+            if (rowIndex <= 1) {
+                const scroller = document.scrollingElement || document.documentElement;
+                const currentTop = Math.max(window.scrollY || 0, scroller.scrollTop || 0, document.body.scrollTop || 0);
+                if (currentTop > 0) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
                 return;
             }
-            if (rowIndex === 1) return;
         }
 
         let timeoutId;
