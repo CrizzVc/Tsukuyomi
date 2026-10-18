@@ -3,7 +3,8 @@
 **Tsukuyomi** is a desktop application designed for an ad-free and immersive anime streaming experience. Built with **Electron**, **React**, and **TailwindCSS**, it offers a Netflix-style interface with a focus on speed, aesthetics, and user experience.
 
 
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7ad951c5-834e-4c2a-8b74-f9c19809c4a4" />
+<img width="1911" height="1058" alt="image" src="https://github.com/user-attachments/assets/882c1fa8-524f-4824-bf91-ffe753077778" />
+
 
 
 ---
