@@ -1153,6 +1153,12 @@ function App() {
                 }
             }
 
+            // Previene el scroll nativo de Chromium con las flechas direccionales
+            // para que no interfiera con la navegación espacial ni desplace la vista
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+
             if (e.key === 'GamepadTouchpad') {
                 if (view === STATES.DETAILS && details) {
                     // En Detalles, el touchpad abre la portada del anime.
@@ -1439,11 +1445,9 @@ function App() {
         // más abajo (ej. Favoritos -> row 1) sube suavemente hacia el top.
         if (view === STATES.HOME) {
             if (rowIndex <= 1) {
-                const scroller = document.scrollingElement || document.documentElement;
-                const currentTop = Math.max(window.scrollY || 0, scroller.scrollTop || 0, document.body.scrollTop || 0);
-                if (currentTop > 0) {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
         }
