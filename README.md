@@ -5,7 +5,18 @@
 
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7ad951c5-834e-4c2a-8b74-f9c19809c4a4" />
 
+
 ---
+
+> [!TIP]
+> En la vista de episodios presiona **Triangulo** para agregar a favorito.
+> En la vista de episodios presiona **L2** puedes abrir/cerrar la descripción y relacionados.
+> presiona el **Touchpad** en el home para regresar hasta arriba.
+> presiona **L1** y **R1** para cambiar entre opciones de reproductor interno o externo.
+> Pausa el episodio con start.
+
+---
+
 
 ## Features
 
