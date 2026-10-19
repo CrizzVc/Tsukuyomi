@@ -3,9 +3,21 @@
 **Tsukuyomi** is a desktop application designed for an ad-free and immersive anime streaming experience. Built with **Electron**, **React**, and **TailwindCSS**, it offers a Netflix-style interface with a focus on speed, aesthetics, and user experience.
 
 
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/c07398d6-fb08-485e-90b4-02c66956075e" />
+<img width="1911" height="1058" alt="image" src="https://github.com/user-attachments/assets/882c1fa8-524f-4824-bf91-ffe753077778" />
+
+
 
 ---
+
+> [!TIP]
+> En la vista de episodios presiona **Triangulo** para agregar a favorito.
+> En la vista de episodios presiona **L2** puedes abrir/cerrar la descripción y relacionados.
+> presiona el **Touchpad** en el home para regresar hasta arriba.
+> presiona **L1** y **R1** para cambiar entre opciones de reproductor interno o externo.
+> Pausa el episodio con start.
+
+---
+
 
 ## Features
 
